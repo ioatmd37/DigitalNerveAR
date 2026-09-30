@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Noto Sans Thai', 'Sarabun', 'Leelawadee UI', 'Thonburi', system-ui, -apple-system, 'Segoe UI', Roboto,
+    sans-serif;
+  --color-nerve: #facc15;
+  --color-artery: #ef4444;
+  --color-vein: #3b82f6;
+  --color-safe: #22c55e;
+  --color-avoid: #dc2626;
+  --color-needle: #06b6d4;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #0b1220;
+  color: #e2e8f0;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  /* Large touch targets (≥48px) for tablet and gloved use. */
+  .btn {
+    @apply inline-flex min-h-12 select-none items-center justify-center gap-2 rounded-xl px-4 py-2 text-base font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cyan-300;
+  }
+  .btn-primary {
+    @apply bg-cyan-500 text-slate-950 hover:bg-cyan-400;
+  }
+  .btn-secondary {
+    @apply bg-slate-700 text-slate-50 hover:bg-slate-600;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-slate-200 ring-1 ring-slate-600 hover:bg-slate-800;
+  }
+  .btn-danger {
+    @apply bg-rose-600 text-white hover:bg-rose-500;
+  }
+  .btn-success {
+    @apply bg-emerald-500 text-slate-950 hover:bg-emerald-400;
+  }
+  .btn-sm {
+    @apply min-h-10 px-3 text-sm;
+  }
+  .card {
+    @apply rounded-2xl bg-slate-900/90 shadow-xl ring-1 ring-slate-700/70;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold;
+  }
+  .panel-title {
+    @apply mb-2 text-base font-bold text-slate-100;
+  }
+  .muted {
+    @apply text-sm text-slate-400;
+  }
+}
+
+input[type='range'] {
+  accent-color: #22d3ee;
+  height: 2rem;
+}

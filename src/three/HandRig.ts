@@ -1,21 +1,23 @@
 import {
   BufferGeometry,
-  CapsuleGeometry,
+  DoubleSide,
   Group,
   LineBasicMaterial,
   LineLoop,
+  Matrix4,
   Mesh,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
+  PlaneGeometry,
+  SphereGeometry,
   Vector3,
   type Object3D,
 } from 'three';
-import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { COLORS } from '../config/anatomy';
 import { FINGER_IDS } from '../config/hand';
 import type { CalibrationSettings, FingerId } from '../types';
 import type { AnatomyModel } from './anatomy/AnatomyModel';
 import { disposeObject } from './anatomy/AnatomyModel';
-import { createEnvelopeGeometry } from './anatomy/geometry';
+import { createEnvelopeGeometry, createLoftGeometry, createSurfacePatch, JOINTS } from './anatomy/geometry';
 import { applyFingerPlacement, applyHandCalibration, fingerPlacement } from './handPlacement';
 
 export interface HandRigOptions {
@@ -85,7 +87,7 @@ export class HandRig {
     if (this.options.showContext) this.rebuildContext(c, selected);
   }
 
-  /** Faint, non-pickable hand around the selected finger (Explorer only). */
+  /** Faint, non-pickable anatomical hand around the selected finger (Explorer only). */
   private rebuildContext(c: CalibrationSettings, selected: FingerId): void {
     const key = JSON.stringify([c.fingers, selected]);
     if (key === this.contextKey) return;
@@ -94,41 +96,82 @@ export class HandRig {
       this.context.remove(child);
       disposeObject(child);
     }
-    const ghost = () =>
-      new MeshStandardMaterial({ color: COLORS.skin, transparent: true, opacity: 0.16, depthWrite: false, roughness: 0.8 });
+    const skin = () =>
+      new MeshPhysicalMaterial({
+        color: '#e2b192',
+        roughness: 0.65,
+        sheen: 0.5,
+        sheenColor: '#ffd2bd',
+        transparent: true,
+        opacity: 0.3,
+        depthWrite: false,
+      });
+    const nailMat = () =>
+      new MeshPhysicalMaterial({ color: '#f0bfb6', roughness: 0.25, clearcoat: 1, transparent: true, opacity: 0.55, side: DoubleSide });
     const add = (o: Object3D) => {
-      o.raycast = () => {};
       o.traverse((x) => (x.raycast = () => {}));
       this.context.add(o);
     };
 
-    const palm = new Mesh(new RoundedBoxGeometry(7.6, 9.0, 2.8, 4, 1.0), ghost());
-    palm.position.set(0.7, -4.7, -1.5);
-    add(palm);
+    // Palm and wrist: rounded-rectangle loft (dorsum just below the knuckles at z ≈ 0).
+    add(
+      new Mesh(
+        createLoftGeometry([
+          { y: -12, a: 2.9, b: 1.6, cx: 0.6, cz: -1.35 },
+          { y: -9.6, a: 3.0, b: 1.05, cx: 0.6, cz: -1.25 },
+          { y: -7.5, a: 3.6, b: 1.25, cx: 0.6, cz: -1.4 },
+          { y: -4.5, a: 3.95, b: 1.3, cx: 0.7, cz: -1.35 },
+          { y: -1.6, a: 4.05, b: 1.15, cx: 0.75, cz: -1.2 },
+          { y: -0.2, a: 3.75, b: 0.95, cx: 0.7, cz: -1.0 },
+          { y: 0.35, a: 3.3, b: 0.55, cx: 0.7, cz: -1.0 },
+        ]),
+        skin(),
+      ),
+    );
+    // Thenar and hypothenar eminences.
+    for (const [pos, scale, rz] of [
+      [new Vector3(-2.3, -6.3, -2.05), new Vector3(1.7, 2.5, 1.05), 0.5],
+      [new Vector3(3.7, -5.9, -1.95), new Vector3(1.15, 2.8, 0.9), -0.15],
+    ] as const) {
+      const m = new Mesh(new SphereGeometry(1, 32, 20), skin());
+      m.position.copy(pos);
+      m.scale.copy(scale);
+      m.rotation.z = rz;
+      add(m);
+    }
 
-    const thumb = new Mesh(new CapsuleGeometry(0.95, 4.6, 6, 16), ghost());
-    thumb.position.set(-4.4, -5.0, -1.9);
-    thumb.rotation.set(0, 0, Math.PI / 4.2);
+    // Thumb: the same finger envelope, shorter and wider, aimed radially and slightly volarly, nail facing dorsoradially.
+    const thumb = new Group();
+    thumb.position.set(-4.0, -6.4, -1.7);
+    orient(thumb, new Vector3(-1.7, 4.8, -0.8), new Vector3(-0.6, 0, 0.8));
+    const thumbSkin = new Mesh(createEnvelopeGeometry(1, 32, 60), skin());
+    thumbSkin.scale.set(1.15, 0.72, 1.15);
+    thumb.add(thumbSkin);
+    const thumbNail = new Mesh(createSurfacePatch(JOINTS.nailFold, 8.15, 58, 122, 1.03, 8, 10), nailMat());
+    thumbNail.scale.copy(thumbSkin.scale);
+    thumb.add(thumbNail);
     add(thumb);
 
+    // The other three fingers.
     for (const id of FINGER_IDS) {
       if (id === selected) continue;
       const p = fingerPlacement(id, c);
       const g = new Group();
       g.position.copy(p.position);
       g.rotation.copy(p.rotation);
-      const m = new Mesh(createEnvelopeGeometry(1, 24), ghost());
+      const m = new Mesh(createEnvelopeGeometry(1, 32, 60), skin());
       m.scale.copy(p.dims);
       m.position.copy(p.modelOffset);
-      g.add(m);
+      const nail = new Mesh(createSurfacePatch(JOINTS.nailFold, 8.15, 58, 122, 1.03, 8, 10), nailMat());
+      nail.scale.copy(p.dims);
+      nail.position.copy(p.modelOffset);
+      g.add(m, nail);
       add(g);
     }
 
-    const table = new Mesh(
-      new RoundedBoxGeometry(40, 40, 0.4, 2, 0.1),
-      new MeshStandardMaterial({ color: '#1e293b', roughness: 0.95 }),
-    );
-    table.position.set(0.7, -2, -3.3);
+    // One-sided table (faces dorsally) so volar views from below are not blocked.
+    const table = new Mesh(new PlaneGeometry(40, 40), new MeshStandardMaterial({ color: '#1e293b', roughness: 0.95 }));
+    table.position.set(0.7, -4, -3.0);
     add(table);
   }
 
@@ -142,4 +185,12 @@ export class HandRig {
     this.markerOutline.geometry.dispose();
     (this.markerOutline.material as LineBasicMaterial).dispose();
   }
+}
+
+/** Point a group's +Y along `dir`, rolling it so its +Z faces `zHint` as closely as possible. */
+function orient(g: Object3D, dir: Vector3, zHint: Vector3): void {
+  const y = dir.clone().normalize();
+  const z = zHint.clone().addScaledVector(y, -zHint.dot(y)).normalize();
+  const x = new Vector3().crossVectors(y, z).normalize();
+  g.quaternion.setFromRotationMatrix(new Matrix4().makeBasis(x, y, z));
 }

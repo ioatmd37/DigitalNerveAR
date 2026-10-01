@@ -32,7 +32,9 @@ Short in-app notice (shown on every screen): *“Educational simulation only. No
 ## Model limitations
 
 - **No clinical validation has been performed.** Content has not been validated by a formal study.
-- **All anatomy is simplified for teaching purposes.** Structures are schematic tubes and shells. Dimensions,
+- **All anatomy is simplified for teaching purposes.** Structures are procedural approximations (tapered tubes,
+  lofted shells, idealised branching). The added surface detail (creases, fingerprint, vessel branches, pulleys)
+  improves recognisability, but it is not patient-specific or dissection-accurate. Dimensions,
   positions, branching, variations and tissue planes are approximations. Real anatomy varies between individuals.
 - "Safe learning zone", "avoid zone", "entry marker", "needle direction" and "simulated spread" are **labels of this
   mannequin teaching model**, not clinical recommendations. The spread animation is conceptual. It does not model

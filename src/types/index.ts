@@ -52,6 +52,7 @@ export type StructureId =
   | 'phalanx_middle'
   | 'phalanx_distal'
   | 'flexor_tendon'
+  | 'extensor_tendon'
   | 'nerve_radial'
   | 'nerve_ulnar'
   | 'artery_radial'

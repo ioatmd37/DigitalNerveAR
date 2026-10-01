@@ -15,6 +15,7 @@ import { useAnatomyModel } from '../hooks/useAnatomyModel';
 import { useViewState } from '../hooks/useViewState';
 import { useAppStore } from '../store/useAppStore';
 import { useHandRig } from '../hooks/useHandRig';
+import { applyRoomEnvironment } from '../three/environment';
 import { placeNeedleAt } from '../hooks/useNeedle';
 import type { AnatomyModel } from '../three/anatomy/AnatomyModel';
 import { assetUrl } from '../utils/assets';
@@ -32,7 +33,7 @@ const PRESET_DIRECTIONS: Record<ViewPreset, [number, number, number]> = {
   oblique: [-1, -0.55, 1],
 };
 
-const CAMERA_DISTANCE = 24;
+const CAMERA_DISTANCE = 19;
 
 interface ExplorerViewProps {
   preset: { name: ViewPreset; nonce: number };
@@ -86,6 +87,10 @@ function SceneContent({
   useEffect(() => {
     rig?.setContextVisible(showMarker);
   }, [rig, showMarker]);
+
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  useEffect(() => applyRoomEnvironment(gl, scene), [gl, scene]);
 
   useFrame(({ clock }) => model.update(clock.elapsedTime));
 

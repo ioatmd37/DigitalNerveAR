@@ -1,19 +1,19 @@
 import { Vector3 } from 'three';
 import { FLATTEN, skinRadiusAt, surfaceNormal, surfacePoint } from '../three/anatomy/geometry';
 import {
-  ARTERY,
+  anatomyPaths,
   AVOID_ZONE,
   BONE_Z,
   BONE_Z_SCALE,
+  boneRadiusAt,
   BONES,
   DORSOLATERAL_DEG,
   ENTRY_Y,
-  NERVE,
+  insideExtensor,
   needleTarget,
+  pathDistance,
   SAFE_ZONE,
-  TENDON,
   type Side,
-  type TubeSpec,
 } from '../three/anatomy/layout';
 
 /**
@@ -128,23 +128,19 @@ export function needleGeometry(n: Pick<NeedleState, 'entryY' | 'entryThetaDeg' |
   return { entry, dir: d, tip };
 }
 
-function taper(y: number): number {
-  return Math.max(skinRadiusAt(Math.min(y, 7.8)) / skinRadiusAt(0), 0.55);
-}
-
-/** Distance from p to a tapered longitudinal tube's surface (negative = inside). */
-function tubeDistance(p: Vector3, t: TubeSpec, sign: number): number {
-  if (p.y < t.y0 || p.y > t.y1) return Infinity;
-  const k = taper(p.y);
-  return Math.hypot(p.x - t.x * sign * k, p.z - t.z * k) - t.r;
-}
-
 function insideBone(p: Vector3): boolean {
-  return BONES.some((b) => {
-    const cy = Math.min(Math.max(p.y, b.y0 + b.r), b.y1 - b.r);
-    const dz = (p.z - BONE_Z) / BONE_Z_SCALE;
-    return Math.hypot(p.x, p.y - cy, dz) < b.r;
-  });
+  const dz = (p.z - BONE_Z) / BONE_Z_SCALE;
+  return BONES.some((b) => Math.hypot(p.x, dz) < boneRadiusAt(b, p.y));
+}
+
+/** Smallest distance from p to any evaluated path of a kind (negative = inside). */
+function nearest(p: Vector3, kind: 'nerve' | 'artery' | 'tendon'): number {
+  let best = Infinity;
+  for (const path of anatomyPaths()) {
+    if (path.kind !== kind || !path.evaluate) continue;
+    best = Math.min(best, pathDistance(p, path));
+  }
+  return best;
 }
 
 /** Normalised radial position in the skin cross-section (1 = on the skin). */
@@ -162,19 +158,17 @@ function thetaOf(p: Vector3): number {
 /** Classify one point (anatomy frame) against the model. Highest-priority finding wins. */
 export function classifyPoint(p: Vector3): NeedleStatus {
   if (skinFraction(p) > 1.0) return 'outside';
-  for (const sign of [-1, 1]) {
-    if (tubeDistance(p, ARTERY, sign) < 0.03) return 'artery';
-    if (tubeDistance(p, NERVE, sign) < 0.03) return 'nerve';
-  }
-  if (tubeDistance(p, TENDON, 1) < 0.02) return 'tendon';
+  const artery = nearest(p, 'artery');
+  const nerve = nearest(p, 'nerve');
+  if (artery < 0.03) return 'artery';
+  if (nerve < 0.03) return 'nerve';
+  if (nearest(p, 'tendon') < 0.02 || insideExtensor(p)) return 'tendon';
   if (insideBone(p)) return 'bone';
   for (const side of ['radial', 'ulnar'] as Side[]) {
     const t = needleTarget(side);
     if (p.y >= SAFE_ZONE.y0 && p.y <= SAFE_ZONE.y1 + 0.2 && Math.hypot(p.x - t.x, p.z - t.z) <= 0.3) return 'target';
   }
-  for (const sign of [-1, 1]) {
-    if (tubeDistance(p, NERVE, sign) < 0.25 || tubeDistance(p, ARTERY, sign) < 0.25) return 'nearBundle';
-  }
+  if (nerve < 0.25 || artery < 0.25) return 'nearBundle';
   const th = thetaOf(p);
   if (p.y >= AVOID_ZONE.y0 && p.y <= AVOID_ZONE.y1 && th >= AVOID_ZONE.theta0 && th <= AVOID_ZONE.theta1 && skinFraction(p) > 0.45) {
     return 'avoidZone';

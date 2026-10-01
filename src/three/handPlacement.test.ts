@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Group, Vector3 } from 'three';
+import { Group, Raycaster, Vector3 } from 'three';
 import { DEFAULT_CALIBRATION } from '../config/appConfig';
 import { FINGER_IDS, getFinger } from '../config/hand';
 import { cloneCalibration } from '../logic/calibration';
@@ -64,8 +64,15 @@ describe('hand placement (right hand, marker on the middle-finger knuckle)', () 
     const ctx = new HandRig({ markerUnits: false, showContext: true });
     ctx.update(DEFAULT_CALIBRATION, 'ring');
     const contextGroup = ctx.hand.children.find((c) => c.name === 'HandContext') as Group;
-    // palm + thumb + 3 other fingers + table
-    expect(contextGroup.children).toHaveLength(6);
+    // palm + thenar + hypothenar + thumb + 3 other fingers + table
+    expect(contextGroup.children).toHaveLength(8);
+    let pickable = 0;
+    contextGroup.traverse((o) => {
+      const hits: unknown[] = [];
+      o.raycast(new Raycaster(new Vector3(0, 0, 10), new Vector3(0, 0, -1)), hits as never);
+      pickable += hits.length;
+    });
+    expect(pickable).toBe(0);
     ctx.dispose();
   });
 });

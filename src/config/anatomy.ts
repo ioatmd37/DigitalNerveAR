@@ -195,8 +195,8 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: true,
     description: {
-      th: 'เอ็นงอนิ้วแบบย่อ วิ่งตามแนวกลางด้านฝ่ามือ',
-      en: 'Simplified flexor tendon running along the volar midline.',
+      th: 'เอ็นงอนิ้วแบบย่อ: FDP (ลึก) และ FDS ที่แยกเป็นสองแฉกรอบ FDP อยู่ในปลอกเอ็นใสที่มีแถบรัด (pulley) A1–A5',
+      en: 'Simplified flexor tendons: FDP (deep) and FDS splitting around it, inside a translucent sheath with A1–A5 pulleys.',
     },
     educationalNote: {
       th: 'ในโมเดลนี้ เอ็นงอนิ้วอยู่ด้านฝ่ามือของกระดูก ระหว่างมัดเส้นประสาททั้งสองข้าง',
@@ -205,6 +205,24 @@ export const STRUCTURES: AnatomyStructure[] = [
     warningNote: {
       th: 'อยู่ภายในบริเวณควรหลีกเลี่ยงด้านฝ่ามือของโมเดล',
       en: 'Located inside the model’s volar avoid zone.',
+    },
+  },
+  {
+    id: 'extensor_tendon',
+    nameTh: 'กลไกเอ็นเหยียดนิ้ว',
+    nameEn: 'Extensor mechanism',
+    icon: 'E',
+    color: '#efe9db',
+    layer: 'tendon',
+    defaultVisible: true,
+    showLabel: true,
+    description: {
+      th: 'แถบเอ็นเหยียดนิ้วบาง ๆ ด้านหลังกระดูกนิ้ว (central slip และ terminal tendon แบบย่อ)',
+      en: 'Thin dorsal extensor band over the phalanges (simplified central slip and terminal tendon).',
+    },
+    educationalNote: {
+      th: 'ในโมเดลนี้ เอ็นเหยียดอยู่แนวกลางด้านหลัง ส่วนบริเวณฝึกอยู่ด้านหลัง-ข้าง ไม่ใช่แนวกลาง',
+      en: 'In this model the extensor lies in the dorsal midline; the learning zones are dorsolateral, not midline.',
     },
   },
   {
@@ -645,6 +663,7 @@ export const LEGEND_STRUCTURES: StructureId[] = [
   'artery_ulnar',
   'vein_radial',
   'flexor_tendon',
+  'extensor_tendon',
   'phalanx_proximal',
   'subcutaneous',
   'safe_zone_radial',

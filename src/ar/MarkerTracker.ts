@@ -1,4 +1,5 @@
 import {
+  ACESFilmicToneMapping,
   AmbientLight,
   DirectionalLight,
   Group,
@@ -11,6 +12,7 @@ import {
   WebGLRenderer,
 } from 'three';
 import { Controller, type MindARUpdateEvent } from 'mind-ar/dist/mindar-image.prod.js';
+import { applyRoomEnvironment } from '../three/environment';
 
 export type TrackerErrorKind = 'insecure' | 'no-camera' | 'permission' | 'target' | 'unknown';
 
@@ -56,6 +58,7 @@ export class MarkerTracker {
   private frozen = false;
   private stopped = false;
   private readonly onResize = () => this.resize();
+  private readonly disposeEnvironment: () => void;
 
   constructor(
     private readonly container: HTMLElement,
@@ -63,6 +66,8 @@ export class MarkerTracker {
   ) {
     this.renderer = new WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.outputColorSpace = SRGBColorSpace;
+    this.renderer.toneMapping = ACESFilmicToneMapping;
+    this.disposeEnvironment = applyRoomEnvironment(this.renderer, this.scene, 0.6);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setClearColor(0x000000, 0);
     const canvas = this.renderer.domElement;
@@ -72,7 +77,7 @@ export class MarkerTracker {
     this.anchor.matrixAutoUpdate = false;
     this.anchor.visible = false;
     this.scene.add(this.anchor);
-    this.scene.add(new AmbientLight(0xffffff, 1.2));
+    this.scene.add(new AmbientLight(0xffffff, 0.6));
     const key = new DirectionalLight(0xffffff, 1.6);
     key.position.set(0.5, 1, 1.5);
     this.scene.add(key);
@@ -278,6 +283,7 @@ export class MarkerTracker {
     const stream = this.video?.srcObject as MediaStream | null;
     stream?.getTracks().forEach((t) => t.stop());
     this.video?.remove();
+    this.disposeEnvironment();
     this.renderer.dispose();
     this.renderer.domElement.remove();
     this.controller = null;

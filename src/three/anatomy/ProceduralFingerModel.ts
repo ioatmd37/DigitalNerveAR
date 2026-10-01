@@ -1,13 +1,13 @@
 import {
-  CapsuleGeometry,
-  CatmullRomCurve3,
   ConeGeometry,
   CylinderGeometry,
   DoubleSide,
   FrontSide,
   Group,
+  LatheGeometry,
   Mesh,
   MeshBasicMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   Object3D,
   Quaternion,
@@ -15,44 +15,57 @@ import {
   Sprite,
   SpriteMaterial,
   TorusGeometry,
-  TubeGeometry,
+  Vector2,
   Vector3,
   type BufferGeometry,
   type Material,
+  type MeshPhysicalMaterialParameters,
   type MeshStandardMaterialParameters,
 } from 'three';
-import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { COLORS } from '../../config/anatomy';
 import { translate } from '../../config/locales';
 import type { Language, StructureId } from '../../types';
 import { BaseAnatomyModel, disposeSprite, STRUCTURE_ID_KEY } from './AnatomyModel';
 import {
   createEnvelopeGeometry,
+  createLoftGeometry,
   createSurfacePatch,
+  createTaperedTube,
   FLATTEN,
   JOINTS,
-  longitudinalPath,
+  normalizeUV,
   skinRadiusAt,
   surfaceNormal,
-  surfacePath,
   surfacePoint,
 } from './geometry';
 import {
-  ARTERY,
+  anatomyPaths,
   AVOID_ZONE,
   BONE_Z,
   BONE_Z_SCALE,
   BONES,
   DORSOLATERAL_DEG,
   ENTRY_Y,
-  NERVE,
+  EXTENSOR,
+  extensorHalfWidth,
+  extensorZ,
   needleTarget,
   SAFE_ZONE,
   SIDE_SIGN,
+  taper,
   TENDON,
+  trunkCenter,
+  type AnatomyPath,
   type Side,
 } from './layout';
-import { createDotTexture, createHatchTexture, createLabelTexture } from './textures';
+import {
+  createDotTexture,
+  createFiberTexture,
+  createHatchTexture,
+  createLabelTexture,
+  createNailTexture,
+  createSkinTextures,
+} from './textures';
 
 /**
  * Procedural, SIMPLIFIED right-hand finger (index/middle/ring/little share
@@ -88,18 +101,28 @@ function std(color: string, opts: MeshStandardMaterialParameters = {}): MeshStan
   return new MeshStandardMaterial({ color, roughness: 0.55, metalness: 0.0, ...opts });
 }
 
-function tube(points: Vector3[], radius: number, material: Material, name: string): Mesh {
-  const curve = new CatmullRomCurve3(points);
-  const mesh = new Mesh(new TubeGeometry(curve, 64, radius, 12, false), material);
-  mesh.name = name;
-  // Round end caps so tubes don't look hollow.
-  const capGeo = new SphereGeometry(radius, 12, 8);
-  for (const p of [points[0], points[points.length - 1]]) {
-    const cap = new Mesh(capGeo, material);
-    cap.position.copy(p);
-    mesh.add(cap);
+function phys(color: string, opts: MeshPhysicalMaterialParameters = {}): MeshPhysicalMaterial {
+  return new MeshPhysicalMaterial({ color, roughness: 0.5, metalness: 0, ...opts });
+}
+
+/** Tapered tube with rounded caps for a nerve/artery/vein/tendon path. */
+function pathMesh(p: AnatomyPath, material: Material): Mesh {
+  let len = 0;
+  for (let i = 1; i < p.points.length; i++) len += p.points[i].distanceTo(p.points[i - 1]);
+  const segs = Math.min(220, Math.max(16, Math.round(len * 14)));
+  const m = new Mesh(createTaperedTube(p.points, (t) => p.r0 + (p.r1 - p.r0) * t, segs, 14, p.scaleX ?? 1, p.scaleZ ?? 1), material);
+  m.name = p.name;
+  if ((p.scaleX ?? 1) === 1 && (p.scaleZ ?? 1) === 1) {
+    for (const [pt, r] of [
+      [p.points[0], p.r0],
+      [p.points[p.points.length - 1], p.r1],
+    ] as const) {
+      const cap = new Mesh(new SphereGeometry(r, 12, 8), material);
+      cap.position.copy(pt);
+      m.add(cap);
+    }
   }
-  return mesh;
+  return m;
 }
 
 function mesh(geometry: BufferGeometry, material: Material, name: string): Mesh {
@@ -162,34 +185,62 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
   // ------------------------------------------------------------------ skin
 
   private buildSkin(): void {
-    const skinMat = std(COLORS.skin, {
+    const tex = createSkinTextures();
+    if (tex) {
+      this.trackTexture(tex.map);
+      this.trackTexture(tex.bump);
+    }
+    const skinMat = phys(tex ? '#ffffff' : COLORS.skin, {
+      map: tex?.map ?? null,
+      bumpMap: tex?.bump ?? null,
+      bumpScale: 4,
+      roughness: 0.62,
+      sheen: 0.5,
+      sheenColor: '#ffd2bd',
+      sheenRoughness: 0.55,
       transparent: true,
       opacity: 0.3,
       depthWrite: false,
       side: FrontSide,
-      roughness: 0.7,
     });
     const envelope = mesh(createEnvelopeGeometry(1), skinMat, 'skin_envelope');
     envelope.renderOrder = 2;
 
-    // Short stub of the hand (index metacarpal region) for context.
-    const stubMat = std(COLORS.skin, { transparent: true, opacity: 0.18, depthWrite: false, roughness: 0.8 });
-    stubMat.userData.opacityFactor = 0.55;
-    const stub = mesh(new RoundedBoxGeometry(2.4, 3.6, 1.75, 4, 0.7), stubMat, 'hand_stub');
-    stub.position.set(0, -2.55, 0);
+    // Metacarpal region of the hand (faded) for context.
+    const stubMat = phys('#e2b192', { roughness: 0.7, sheen: 0.4, sheenColor: '#ffd2bd', transparent: true, opacity: 0.18, depthWrite: false });
+    stubMat.userData.opacityFactor = 0.5;
+    const stub = mesh(
+      createLoftGeometry([
+        { y: -4.0, a: 1.32, b: 0.8 },
+        { y: -2.4, a: 1.28, b: 0.86 },
+        { y: -1.0, a: 1.14, b: 0.92 },
+        { y: -0.55, a: 1.08, b: 0.9 },
+      ]),
+      stubMat,
+      'hand_stub',
+    );
     stub.renderOrder = 2;
 
     this.addStructure('skin', [envelope, stub], surfacePoint(2, 90), surfacePoint(2, 90, 3));
 
-    const nailMat = std(COLORS.nail, { roughness: 0.3, side: DoubleSide, transparent: true, opacity: 0.95 });
-    const nail = mesh(createSurfacePatch(JOINTS.nailFold, 8.15, 58, 122, 1.025, 12, 16), nailMat, 'nail_plate');
+    const nailTex = this.trackTexture(createNailTexture());
+    const nailMat = phys(nailTex ? '#ffffff' : COLORS.nail, {
+      map: nailTex,
+      roughness: 0.25,
+      clearcoat: 1,
+      clearcoatRoughness: 0.15,
+      side: DoubleSide,
+      transparent: true,
+      opacity: 0.97,
+    });
+    const nail = mesh(normalizeUV(createSurfacePatch(JOINTS.nailFold, 8.18, 56, 124, 1.03, 16, 20)), nailMat, 'nail_plate');
     nail.renderOrder = 3;
     this.addStructure('nail', [nail], surfacePoint(7.6, 90, 1.02), new Vector3(0, 8.6, 2.2));
   }
 
   private buildSubcutaneous(): void {
-    const mat = std(COLORS.subcutaneous, { transparent: true, opacity: 0.28, depthWrite: false, roughness: 0.9 });
-    const layer = mesh(createEnvelopeGeometry(0.9), mat, 'subcutaneous_shell');
+    const mat = phys(COLORS.subcutaneous, { transparent: true, opacity: 0.28, depthWrite: false, roughness: 0.85, sheen: 0.3 });
+    const layer = mesh(createEnvelopeGeometry(0.9, 48, 90), mat, 'subcutaneous_shell');
     layer.renderOrder = 1;
     this.addStructure('subcutaneous', [layer], surfacePoint(7.2, 20, 0.9), new Vector3(LABEL_X, 7.6, 0.4));
   }
@@ -198,42 +249,101 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
 
   private buildBones(): void {
     for (const b of BONES) {
-      const mat = std(COLORS.bone, { roughness: 0.45 });
-      const len = Math.max(0.01, b.y1 - b.y0 - 2 * b.r);
-      const m = mesh(new CapsuleGeometry(b.r, len, 8, 20), mat, `${b.id}_mesh`);
-      m.position.set(0, (b.y0 + b.y1) / 2, BONE_Z);
+      const mat = phys(COLORS.bone, { roughness: 0.5, clearcoat: 0.15, sheen: 0.2 });
+      const len = b.y1 - b.y0;
+      const pts = b.profile.map(([t, r]) => new Vector2(Math.max(r, 0.0001), t * len));
+      const geo = new LatheGeometry(pts, 36);
+      const m = mesh(geo, mat, `${b.id}_mesh`);
+      m.position.set(0, b.y0, BONE_Z);
       m.scale.set(1, 1, BONE_Z_SCALE);
-      const anchor = new Vector3(b.r * 0.9, (b.y0 + b.y1) / 2, 0.3);
+      const anchor = new Vector3(b.r * 0.85, (b.y0 + b.y1) / 2, 0.3);
       this.addStructure(b.id, [m], anchor, new Vector3(LABEL_X, 6.4, 1.3));
     }
   }
 
+  // --------------------------------------------------------------- tendons
+
   private buildTendon(): void {
-    const mat = std(COLORS.tendon, { roughness: 0.35 });
-    const pts = longitudinalPath(TENDON.x, TENDON.z, TENDON.y0, TENDON.y1, 16);
-    this.addStructure('flexor_tendon', [tube(pts, TENDON.r, mat, 'flexor_tendon_tube')], new Vector3(0, 5.2, -0.45), new Vector3(1.6, 8.2, -1.8));
+    const fiber = this.trackTexture(createFiberTexture());
+    const mat = phys(COLORS.tendon, { roughness: 0.35, sheen: 0.6, sheenColor: '#ffffff', bumpMap: fiber, bumpScale: 0.6 });
+    const parts: Object3D[] = this.pathsOf('flexor_tendon').map((p) => pathMesh(p, mat));
+
+    // Translucent flexor sheath with annular pulleys (A1–A5).
+    const sheathMat = phys('#dbeafe', { transparent: true, opacity: 0.16, depthWrite: false, roughness: 0.3 });
+    const sheathPts = Array.from({ length: 30 }, (_, i) => {
+      const y = -0.9 + (7.3 * i) / 29;
+      return new Vector3(0, y, TENDON.z * taper(y) - 0.03);
+    });
+    const sheath = mesh(createTaperedTube(sheathPts, (t) => 0.3 - 0.08 * t, 80, 18, 1.25, 0.95), sheathMat, 'flexor_sheath');
+    sheath.renderOrder = 1;
+    parts.push(sheath);
+    const pulleyMat = phys('#f5f5f4', { roughness: 0.45, side: DoubleSide, sheen: 0.4 });
+    for (const [name, y, h] of [
+      ['A1', -0.55, 0.45],
+      ['A2', 1.25, 1.3],
+      ['A3', 4.1, 0.28],
+      ['A4', 5.15, 0.7],
+      ['A5', 6.35, 0.22],
+    ] as const) {
+      const r = 0.3 * taper(y);
+      const ring = mesh(new CylinderGeometry(r, r, h, 28, 1, true, Math.PI * 0.3, Math.PI * 1.4), pulleyMat, `pulley_${name}`);
+      ring.position.set(0, y, TENDON.z * taper(y) - 0.03);
+      ring.scale.set(1.25, 1, 0.95);
+      parts.push(ring);
+    }
+    this.addStructure('flexor_tendon', parts, new Vector3(0, 5.2, -0.45), new Vector3(1.6, 8.2, -1.8));
+
+    // Extensor mechanism: a thin dorsal band over the phalanges.
+    const extMat = phys('#efe9db', { roughness: 0.4, sheen: 0.5, bumpMap: fiber, bumpScale: 0.5 });
+    const extPts = Array.from({ length: 48 }, (_, i) => {
+      const y = EXTENSOR.y0 + ((EXTENSOR.y1 - EXTENSOR.y0) * i) / 47;
+      return new Vector3(0, y, extensorZ(y));
+    });
+    const ext = mesh(
+      createTaperedTube(extPts, (t) => extensorHalfWidth(EXTENSOR.y0 + (EXTENSOR.y1 - EXTENSOR.y0) * t), 120, 16, 1, EXTENSOR.halfThickness / EXTENSOR.halfWidth),
+      extMat,
+      'extensor_band',
+    );
+    this.addStructure('extensor_tendon', [ext], new Vector3(0, 3.0, extensorZ(3.0) + 0.05), new Vector3(-1.4, 5.2, 2.4));
   }
 
   // --------------------------------------------------------- neurovascular
 
+  private pathsOf(structure: StructureId): AnatomyPath[] {
+    return anatomyPaths().filter((p) => p.structure === structure);
+  }
+
   private buildNeurovascular(): void {
+    const fiber = this.trackTexture(createFiberTexture());
     for (const side of ['radial', 'ulnar'] as Side[]) {
       const sx = SIDE_SIGN[side];
-      // In the digit the nerve lies volar to the artery (simplified).
-      const nervePts = longitudinalPath(NERVE.x * sx, NERVE.z, NERVE.y0, NERVE.y1, 18);
-      const arteryPts = longitudinalPath(ARTERY.x * sx, ARTERY.z, ARTERY.y0, ARTERY.y1, 18);
-      const nerveMat = std(COLORS.nerve, { emissive: COLORS.nerve, emissiveIntensity: 0.12, roughness: 0.4 });
-      const arteryMat = std(COLORS.artery, { emissive: COLORS.artery, emissiveIntensity: 0.1, roughness: 0.35 });
+      const nerveMat = phys(COLORS.nerve, {
+        emissive: COLORS.nerve,
+        emissiveIntensity: 0.1,
+        roughness: 0.45,
+        sheen: 0.5,
+        bumpMap: fiber,
+        bumpScale: 0.8,
+      });
+      const arteryMat = phys(COLORS.artery, {
+        emissive: '#7f1d1d',
+        emissiveIntensity: 0.15,
+        roughness: 0.3,
+        clearcoat: 0.7,
+        clearcoatRoughness: 0.25,
+      });
+      const nerve = `nerve_${side}` as StructureId;
+      const artery = `artery_${side}` as StructureId;
       this.addStructure(
-        `nerve_${side}` as StructureId,
-        [tube(nervePts, NERVE.r, nerveMat, `nerve_${side}_tube`)],
-        new Vector3(0.58 * sx, 3.0, -0.48),
+        nerve,
+        this.pathsOf(nerve).map((p) => pathMesh(p, nerveMat)),
+        trunkCenter('nerve', side, 3.0),
         new Vector3(LABEL_X * sx, 3.3, -1.0),
       );
       this.addStructure(
-        `artery_${side}` as StructureId,
-        [tube(arteryPts, ARTERY.r, arteryMat, `artery_${side}_tube`)],
-        new Vector3(0.64 * sx, 5.0, -0.26),
+        artery,
+        this.pathsOf(artery).map((p) => pathMesh(p, arteryMat)),
+        trunkCenter('artery', side, 5.0),
         new Vector3(LABEL_X * sx, 4.9, -0.3),
       );
     }
@@ -241,13 +351,12 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
 
   private buildVeins(): void {
     for (const side of ['radial', 'ulnar'] as Side[]) {
-      const theta = side === 'radial' ? 118 : 62;
-      const pts = surfacePath(theta, 0.9, -3.2, 7.0, 16);
-      const mat = std(COLORS.vein, { roughness: 0.4 });
+      const vein = `vein_${side}` as StructureId;
+      const mat = phys(COLORS.vein, { roughness: 0.35, clearcoat: 0.5, clearcoatRoughness: 0.3 });
       this.addStructure(
-        `vein_${side}` as StructureId,
-        [tube(pts, 0.055, mat, `vein_${side}_tube`)],
-        surfacePoint(5.8, theta, 0.9),
+        vein,
+        this.pathsOf(vein).map((p) => pathMesh(p, mat)),
+        surfacePoint(5.8, side === 'radial' ? 118 : 62, 0.9),
         new Vector3(LABEL_X * SIDE_SIGN[side] * 0.85, 7.0, 1.5),
       );
     }

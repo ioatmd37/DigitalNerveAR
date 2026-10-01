@@ -28,11 +28,12 @@ describe('app store', () => {
   });
 
   it('saves, reverts and resets calibration', () => {
-    s().updateCalibration({ position: { ...DEFAULT_CALIBRATION.position, x: 4 } });
+    s().updateCalibration({ position: { ...DEFAULT_CALIBRATION.position, x: 4 }, markerSizeCm: 6 });
     expect(s().calibration.position.x).toBe(4);
     expect(s().savedCalibration).toBeNull();
     s().saveCalibration();
     expect(s().savedCalibration?.position.x).toBe(4);
+    expect(s().savedCalibration?.markerSizeCm).toBe(6);
     expect(s().savedCalibration?.savedAt).toBeTruthy();
     s().updateCalibration({ scale: 1.5 });
     s().revertCalibration();
@@ -41,12 +42,26 @@ describe('app store', () => {
     expect(s().calibration.position.x).toBe(DEFAULT_CALIBRATION.position.x);
   });
 
+  it('selects a finger and fine-tunes it independently', () => {
+    expect(s().selectedFinger).toBe('index');
+    s().selectFinger('ring');
+    expect(s().selectedFinger).toBe('ring');
+    s().updateFingerCalibration('ring', { lengthCm: 7.4, offset: { x: 0.3, y: 0, z: 0 } });
+    expect(s().calibration.fingers.ring.lengthCm).toBe(7.4);
+    expect(s().calibration.fingers.ring.offset.x).toBe(0.3);
+    expect(s().calibration.fingers.index).toEqual(DEFAULT_CALIBRATION.fingers.index);
+    s().resetFingerCalibration('ring');
+    expect(s().calibration.fingers.ring).toEqual(DEFAULT_CALIBRATION.fingers.ring);
+  });
+
   it('persists calibration and quiz results to local storage', () => {
     s().updateCalibration({ scale: 1.25 });
     s().saveCalibration();
     const raw = useAppStore.persist.getOptions().storage?.getItem('dnb-ar-trainer:v1');
-    const stored = raw as { state: { savedCalibration: { scale: number } } } | null;
+    const stored = raw as { state: { savedCalibration: { scale: number; version: number }; selectedFinger: string } } | null;
     expect(stored?.state.savedCalibration.scale).toBe(1.25);
+    expect(stored?.state.savedCalibration.version).toBe(2);
+    expect(stored?.state.selectedFinger).toBe('index');
   });
 
   it('runs the assessment flow: hide → finish → reveal → exit', () => {

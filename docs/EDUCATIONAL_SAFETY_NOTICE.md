@@ -18,7 +18,7 @@ Short in-app notice (shown on every screen): *“Educational simulation only. No
 
 - Spatial and anatomical **education** for medical students, on a **physical right-hand training mannequin**, under
   **faculty supervision**.
-- Reviewing the relationships between surface landmarks and simplified internal structures of the right index finger,
+- Reviewing the relationships between surface landmarks and simplified internal structures of a right-hand finger (index, middle, ring or little),
   as a complement to lectures, cadaveric or clinical teaching, and institutional skills curricula.
 
 ## Not intended for

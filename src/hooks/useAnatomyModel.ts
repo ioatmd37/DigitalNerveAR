@@ -6,13 +6,12 @@ import { useViewState } from './useViewState';
 
 /**
  * Creates the anatomy model for a view, keeps it in sync with the store
- * (mode/layers, language, finger dimensions) and disposes it on unmount.
+ * (mode/layers, language) and disposes it on unmount. Finger size and
+ * placement are applied by `useHandRig`.
  */
 export function useAnatomyModel(): AnatomyModel | null {
   const [model, setModel] = useState<AnatomyModel | null>(null);
   const language = useAppStore((s) => s.language);
-  const fingerLength = useAppStore((s) => s.calibration.fingerLengthCm);
-  const fingerWidth = useAppStore((s) => s.calibration.fingerWidthCm);
   const injectateNonce = useAppStore((s) => s.injectateNonce);
   const view = useViewState();
 
@@ -36,10 +35,6 @@ export function useAnatomyModel(): AnatomyModel | null {
   useEffect(() => {
     model?.setLanguage(language);
   }, [model, language]);
-
-  useEffect(() => {
-    model?.setDimensions(fingerLength, fingerWidth);
-  }, [model, fingerLength, fingerWidth]);
 
   useEffect(() => {
     model?.applyViewState(view);

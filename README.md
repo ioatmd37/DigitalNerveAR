@@ -1,7 +1,7 @@
 # Digital Nerve Block AR Trainer
 
-**Right Index Finger Mannequin Anatomy** — a mobile-first, marker-based WebAR teaching aid for medical students
-practising a digital nerve block **on a right-hand training mannequin**.
+**Right-Hand Finger Anatomy on a Mannequin** — a mobile-first, marker-based WebAR teaching aid for medical students
+practising a digital nerve block **on a whole right-hand training mannequin** (index, middle, ring or little finger).
 
 > ⚠️ **Educational simulation only. Not for use as guidance on real patients.**
 >
@@ -35,14 +35,15 @@ practising a digital nerve block **on a right-hand training mannequin**.
 
 ## Project overview
 
-A learner points a tablet or phone camera at a printed image marker fixed to the base of a right-hand mannequin. When
-the marker is recognised, a 3D, layered, **simplified** anatomy model of the right index finger is overlaid on the
-mannequin. The model shows skin, subcutaneous tissue, phalanges, the flexor tendon, the radial and ulnar digital
+A small marker sticker is fixed on the **back of a right-hand mannequin, over the middle-finger knuckle**. The learner
+chooses a finger (**index, middle, ring or little**; the thumb is not modelled) and points a tablet or phone camera at
+the hand. When the marker is recognised, a 3D, layered, **simplified** digital anatomy model is overlaid on the
+selected finger. The model shows skin, subcutaneous tissue, phalanges, the flexor tendon, the radial and ulnar digital
 nerves and arteries, optional dorsal veins, dorsolateral learning zones, a volar avoid zone, model needle entry markers,
 direction arrows, and an animated conceptual "spread" visualisation.
 
-A **3D Explorer** provides the same content without a camera. Calibration can be previewed there too, because the
-virtual marker is drawn on a virtual table.
+A **3D Explorer** provides the same content without a camera. Calibration can be previewed there too, because a faint
+virtual hand with the marker sticker is drawn around the selected finger.
 
 The UI defaults to **Thai**, with an in-app ไทย / English toggle.
 
@@ -165,10 +166,11 @@ changes.
 
 - The marker image is `public/marker/marker.png` and its compiled MindAR target is `public/marker/targets.mind`. Both are
   included and ready to use.
-- Open **Print marker** on the landing page (`/marker/print.html`) and print at **100 % / Actual size**. The marker must
-  measure **12 cm × 12 cm**; check it with a ruler. If you print a different size, set `VITE_MARKER_SIZE_CM`.
-- Mount it flat and rigid on the mannequin base, beside or under the right hand, with the yellow **TOP** arrow
-  pointing toward the fingertips.
+- Open **Print marker** on the landing page (`/marker/print.html`), choose a size (**5 cm recommended**), and print at
+  **100 % / Actual size** on matte sticker paper. Measure the printed square and enter it in *Calibration → Printed
+  marker width*.
+- Mount the sticker on a thin rigid tile and fix it on the **back of the right mannequin hand, centred over the
+  middle-finger MCP knuckle**, with the yellow **TOP** arrow pointing toward the fingertips.
 
 Full instructions, lighting tips and troubleshooting: **[docs/AR_MARKER_SETUP_GUIDE.md](docs/AR_MARKER_SETUP_GUIDE.md)**.
 
@@ -189,13 +191,14 @@ MindAR needs a compiled `.mind` target file. Three options, all local and free:
 
 ## Calibrating the mannequin
 
-Mannequins differ, so the overlay's position relative to the marker is adjustable:
+Hands differ, so calibration has three parts:
 
-1. *Instructor Mode* → enter the passcode (default `2468`, set with `VITE_INSTRUCTOR_PASSCODE`).
-2. *Open AR to calibrate live* → the **Calibration** tab opens with a cyan outline on the detected marker.
-3. Enter the measured finger **length** and **width**, then adjust **X/Y/Z** offsets, **rotation** and **scale** until
-   the virtual finger base sits on the mannequin's proximal phalanx.
-4. **Save calibration** (stored in `localStorage`). Use **Export JSON** / **Import JSON** to move calibrations between
+1. *Instructor Mode* → enter the passcode (default `2468`, set with `VITE_INSTRUCTOR_PASSCODE` or the
+   `INSTRUCTOR_PASSCODE` GitHub secret) → *Open AR to calibrate live*. A cyan outline appears on the detected sticker.
+2. **Marker sticker:** the printed width.
+3. **Whole hand:** where the middle-finger knuckle is relative to the marker (X/Y/Z, tilt/roll/turn, scale).
+4. **Selected finger:** length, width, knuckle shift, splay and flexion for each finger you teach on.
+5. **Save calibration** (stored in `localStorage`). Use **Export JSON** / **Import JSON** to move calibrations between
    devices.
 
 Step-by-step guide: **[docs/MANNEQUIN_CALIBRATION_GUIDE.md](docs/MANNEQUIN_CALIBRATION_GUIDE.md)**.
@@ -209,6 +212,7 @@ src/
 │  ├─ guidedSteps.ts       ← the 7 guided steps (layers + highlighted structures per step)
 │  ├─ quiz.ts              ← knowledge-check questions (text in locales)
 │  ├─ appConfig.ts         ← env-driven settings, default calibration, slider limits
+│  ├─ hand.ts              ← finger presets (default knuckle positions, splay, size) on a right hand
 │  └─ locales/{th,en}.ts   ← every UI string; `th` must match `en` keys (typed + tested)
 ├─ types/index.ts          ← AnatomyLayer, AnatomyStructure, LearningMode, CalibrationSettings, QuizQuestion,
 │                             QuizAttempt, SessionState, InstructorSettings, ViewState …
@@ -219,11 +223,11 @@ src/
 ├─ store/useAppStore.ts    ← Zustand store (persisted: language, saved calibration, quiz attempts, labels)
 ├─ three/
 │  ├─ anatomy/AnatomyModel.ts          ← AnatomyModel interface + shared base (layers, labels, highlight, picking)
-│  ├─ anatomy/ProceduralFingerModel.ts ← procedural right index finger (named hierarchy)
+│  ├─ anatomy/ProceduralFingerModel.ts ← procedural right-hand finger (named hierarchy)
 │  ├─ anatomy/GltfAnatomyModel.ts      ← GLB adapter (replaces structures by node name)
 │  ├─ anatomy/createAnatomyModel.ts    ← factory (procedural or GLB with fallback)
 │  ├─ anatomy/geometry.ts, textures.ts
-│  └─ calibrationTransform.ts
+│  ├─ HandRig.ts, handPlacement.ts    ← marker → hand → selected finger → model
 ├─ explorer/ExplorerView.tsx           ← React Three Fiber scene (no camera)
 ├─ ar/MarkerTracker.ts, ARView.tsx     ← MindAR tracking + three.js rendering (lazy-loaded chunk)
 ├─ ar/targetStore.ts                   ← bundled or instructor-compiled (IndexedDB) target loading
@@ -240,8 +244,11 @@ Key design points:
 - **Anatomical frame:** `+X` ulnar, `−X` radial, `+Y` distal, `+Z` dorsal, in centimetres. The finger base (web crease)
   is at `y = 0`.
 - **Marker space:** origin at the marker centre, `+X` right, `+Y` towards the marker's TOP arrow, `+Z` out of the
-  paper. MindAR measures in marker widths; `ARView` scales by `1 / VITE_MARKER_SIZE_CM`, so calibration is always in cm:
-  `anchor → markerSpace (cm) → calibration (offset/rotation/scale) → model (finger-size scaling)`.
+  paper. MindAR measures in marker widths, so the rig scales by `1 / markerSizeCm` and calibration is always in cm.
+- **Hand rig** (`src/three/HandRig.ts`, `handPlacement.ts`), shared by AR and the Explorer:
+  `anchor → markerSpace (cm) → hand (whole-hand calibration; origin = middle-finger knuckle) → finger (default
+  knuckle from src/config/hand.ts + knuckle shift, flexion, splay) → model`. One generic digit model is reused for
+  every finger and scaled to that finger's length and width.
 - **Localisation:** add a language by copying `src/config/locales/en.ts`, adding it to `MESSAGES`/`LANGUAGES`, and
   extending `Language` and the `LocalizedText` fields in `anatomy.ts`. The config test catches missing keys.
 - **Bundle:** the 3D Explorer and AR (MindAR + TensorFlow.js, ~1 MB) are separate lazy chunks. The landing page stays
@@ -249,7 +256,7 @@ Key design points:
 
 ## Replacing the procedural model with GLB/GLTF
 
-1. Model a **right** index finger in **centimetres** in the anatomical frame above (`+X` ulnar, `+Y` distal, `+Z`
+1. Model **one** right-hand finger in **centimetres** (it is reused and scaled for every finger) in the anatomical frame above (`+X` ulnar, `+Y` distal, `+Z`
    dorsal), with the finger base (web crease) at the origin. In Blender (Z-up), export with *+Y Up* and check the axes.
 2. Name each mesh or node with a **structure id** from `src/config/anatomy.ts`, e.g. `skin`, `nail`, `subcutaneous`,
    `phalanx_proximal`, `phalanx_middle`, `phalanx_distal`, `metacarpal_head`, `flexor_tendon`, `nerve_radial`,

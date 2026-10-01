@@ -2,12 +2,15 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { appConfig, DEFAULT_CALIBRATION } from '../config/appConfig';
 import { DEFAULT_LAYER_VISIBILITY, LAYER_IDS } from '../config/anatomy';
+import { DEFAULT_FINGER, defaultFingerCalibration, FINGER_IDS } from '../config/hand';
 import { clampCalibration, cloneCalibration } from '../logic/calibration';
 import { appendAttempt } from '../logic/quiz';
 import { clampGuidedStep } from '../logic/visibility';
 import type {
   AssessmentState,
   CalibrationSettings,
+  FingerCalibration,
+  FingerId,
   Language,
   LayerId,
   LearningMode,
@@ -42,7 +45,12 @@ export interface AppActions {
   setTrackingStatus: (status: TrackingStatus) => void;
   replayInjectate: () => void;
 
-  updateCalibration: (patch: Partial<Omit<CalibrationSettings, 'version'>>) => void;
+  selectFinger: (finger: FingerId) => void;
+  /** Patch whole-hand calibration (marker size, position, rotation, scale). */
+  updateCalibration: (patch: Partial<Omit<CalibrationSettings, 'version' | 'fingers'>>) => void;
+  /** Patch one finger's fine-tuning. */
+  updateFingerCalibration: (finger: FingerId, patch: Partial<FingerCalibration>) => void;
+  resetFingerCalibration: (finger: FingerId) => void;
   replaceCalibration: (c: CalibrationSettings) => void;
   saveCalibration: () => void;
   resetCalibration: () => void;
@@ -72,7 +80,7 @@ interface TransientState {
 
 export type AppState = SessionState & TransientState & AppActions;
 
-type PersistedState = Pick<AppState, 'language' | 'savedCalibration' | 'quizAttempts' | 'showLabels'>;
+type PersistedState = Pick<AppState, 'language' | 'savedCalibration' | 'quizAttempts' | 'showLabels' | 'selectedFinger'>;
 
 function initialState(): SessionState & TransientState {
   return {
@@ -86,6 +94,7 @@ function initialState(): SessionState & TransientState {
     selectedStructure: null,
     feedbackHighlight: [],
     injectateNonce: 0,
+    selectedFinger: DEFAULT_FINGER,
     calibration: cloneCalibration(DEFAULT_CALIBRATION),
     savedCalibration: null,
     trackingStatus: 'idle',
@@ -150,6 +159,8 @@ export const useAppStore = create<AppState>()(
       setTrackingStatus: (trackingStatus) => set({ trackingStatus }),
       replayInjectate: () => set((s) => ({ injectateNonce: s.injectateNonce + 1 })),
 
+      selectFinger: (selectedFinger) =>
+        set({ selectedFinger: FINGER_IDS.includes(selectedFinger) ? selectedFinger : DEFAULT_FINGER, selectedStructure: null }),
       updateCalibration: (patch) =>
         set((s) => ({
           calibration: clampCalibration({
@@ -158,6 +169,26 @@ export const useAppStore = create<AppState>()(
             position: { ...s.calibration.position, ...patch.position },
             rotationDeg: { ...s.calibration.rotationDeg, ...patch.rotationDeg },
           }),
+        })),
+      updateFingerCalibration: (finger, patch) =>
+        set((s) => {
+          const cur = s.calibration.fingers[finger];
+          return {
+            calibration: clampCalibration({
+              ...s.calibration,
+              fingers: {
+                ...s.calibration.fingers,
+                [finger]: { ...cur, ...patch, offset: { ...cur.offset, ...patch.offset } },
+              },
+            }),
+          };
+        }),
+      resetFingerCalibration: (finger) =>
+        set((s) => ({
+          calibration: {
+            ...s.calibration,
+            fingers: { ...s.calibration.fingers, [finger]: defaultFingerCalibration(finger) },
+          },
         })),
       replaceCalibration: (c) => set({ calibration: clampCalibration(c) }),
       saveCalibration: () =>
@@ -239,21 +270,27 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: appConfig.storageKeys.app,
-      version: 1,
+      // v2: whole-hand calibration with per-finger fine-tuning.
+      version: 2,
       storage: createJSONStorage(safeLocalStorage),
       partialize: (s): PersistedState => ({
         language: s.language,
         savedCalibration: s.savedCalibration,
         quizAttempts: s.quizAttempts,
         showLabels: s.showLabels,
+        selectedFinger: s.selectedFinger,
       }),
+      // Older persisted state is handled in `merge` (v1 calibrations are dropped).
+      migrate: (persisted) => persisted as PersistedState,
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PersistedState>;
-        const saved = p.savedCalibration ? clampCalibration(p.savedCalibration) : null;
+        // A v1 calibration (single finger, table-mounted marker) does not map onto the hand frame.
+        const saved = p.savedCalibration?.version === 2 ? clampCalibration(p.savedCalibration) : null;
         return {
           ...current,
           language: p.language === 'en' || p.language === 'th' ? p.language : current.language,
           showLabels: typeof p.showLabels === 'boolean' ? p.showLabels : current.showLabels,
+          selectedFinger: p.selectedFinger && FINGER_IDS.includes(p.selectedFinger) ? p.selectedFinger : current.selectedFinger,
           quizAttempts: Array.isArray(p.quizAttempts) ? p.quizAttempts : [],
           savedCalibration: saved,
           calibration: saved ? cloneCalibration(saved) : current.calibration,

@@ -1,9 +1,8 @@
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useRef } from 'react';
 import {
   CanvasTexture,
-  Group,
   SRGBColorSpace,
   TextureLoader,
   Vector3,
@@ -15,9 +14,11 @@ import { appConfig } from '../config/appConfig';
 import { useAnatomyModel } from '../hooks/useAnatomyModel';
 import { useViewState } from '../hooks/useViewState';
 import { useAppStore } from '../store/useAppStore';
-import { applyCalibration } from '../three/calibrationTransform';
+import { useHandRig } from '../hooks/useHandRig';
 import type { AnatomyModel } from '../three/anatomy/AnatomyModel';
 import { assetUrl } from '../utils/assets';
+
+const RIG_OPTIONS = { markerUnits: false, showContext: true };
 
 export type ViewPreset = 'dorsal' | 'volar' | 'radial' | 'ulnar' | 'oblique';
 
@@ -77,14 +78,13 @@ function SceneContent({
   showMarker: boolean;
   preset: ExplorerViewProps['preset'];
 }) {
-  const calibration = useAppStore((s) => s.calibration);
+  const size = useAppStore((s) => s.calibration.markerSizeCm);
   const selectStructure = useAppStore((s) => s.selectStructure);
-  const calibGroup = useRef<Group>(null);
-  const size = appConfig.markerSizeCm;
+  const rig = useHandRig(model, RIG_OPTIONS);
 
-  useLayoutEffect(() => {
-    if (calibGroup.current) applyCalibration(calibGroup.current, calibration);
-  }, [calibration]);
+  useEffect(() => {
+    rig?.setContextVisible(showMarker);
+  }, [rig, showMarker]);
 
   useFrame(({ clock }) => model.update(clock.elapsedTime));
 
@@ -96,21 +96,18 @@ function SceneContent({
 
   return (
     <>
-      {/* Marker space → world: marker lies flat on the table (world XZ), +Z (out of marker) = world up. */}
+      {/* Marker space → world: the marker sticker lies flat (world XZ) on the back of the hand,
+          +Z (out of the marker) = world up. The hand, finger and model hang off the HandRig. */}
       <group rotation={[-Math.PI / 2, 0, 0]}>
-        <mesh position={[0, 0, -0.05]} receiveShadow>
-          <planeGeometry args={[60, 60]} />
-          <meshStandardMaterial color="#1e293b" roughness={0.95} />
-        </mesh>
-        <gridHelper args={[60, 30, '#334155', '#243244']} rotation={[Math.PI / 2, 0, 0]} position={[0, 0, -0.04]} />
-        {showMarker && (
-          <Suspense fallback={null}>
-            <MarkerPlane size={size} />
-          </Suspense>
+        {rig && (
+          <primitive object={rig.markerSpace} onClick={onClick}>
+            {showMarker && (
+              <Suspense fallback={null}>
+                <MarkerPlane size={size} />
+              </Suspense>
+            )}
+          </primitive>
         )}
-        <group ref={calibGroup}>
-          <primitive object={model.root} onClick={onClick} />
-        </group>
       </group>
       <CameraRig model={model} preset={preset} />
     </>
@@ -133,13 +130,13 @@ function MarkerPlane({ size }: { size: number }) {
   );
   return (
     <group>
-      <mesh>
+      <mesh position={[0, 0, 0.02]}>
         <planeGeometry args={[size, size]} />
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
       {arrowTex && (
-        <mesh position={[size / 2 + 1.6, 0, 0.01]}>
-          <planeGeometry args={[2.4, 4.8]} />
+        <mesh position={[size * 0.75, 0, 0.03]}>
+          <planeGeometry args={[size * 0.3, size * 0.6]} />
           <meshBasicMaterial map={arrowTex} transparent toneMapped={false} />
         </mesh>
       )}

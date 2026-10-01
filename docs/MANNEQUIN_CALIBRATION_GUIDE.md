@@ -1,138 +1,157 @@
-# Mannequin Calibration Guide
+# Mannequin Calibration Guide (whole right hand, marker sticker on the dorsum)
 
 > ⚠️ Educational simulation only. Not for use as guidance on real patients. The overlay is a **simplified teaching
 > model** aligned to a **mannequin**. Calibration improves visual alignment only; it does not make the model
 > anatomically exact.
 
-Mannequins differ in size, pose and how they sit on their base. Calibration tells the app where the virtual right index
-finger sits relative to the printed marker. It is saved per device (browser `localStorage`) and can be exported and
-imported as JSON.
+The app is designed for a **whole right-hand mannequin** (for example an IV/injection training hand on a foam wrist
+block). A small **marker sticker** sits on the **back of the hand over the middle-finger knuckle**. The learner picks a
+finger (**index, middle, ring or little**), and the anatomy overlay appears on that finger. The thumb is not modelled.
+
+Calibration is saved per device (browser `localStorage`) and can be exported and imported as JSON.
 
 ---
 
 ## 1. What you need
 
-- The printed marker (12 cm × 12 cm, see [AR_MARKER_SETUP_GUIDE.md](AR_MARKER_SETUP_GUIDE.md))
-- A right-hand mannequin on a flat, stable base
-- A ruler or tape measure (cm) and a flexible tape if available
-- The tablet/phone running the app over HTTPS
-- The instructor passcode (`VITE_INSTRUCTOR_PASSCODE`, default `2468`)
+- The marker sticker: print it from **Print marker** on the landing page, 5 cm recommended (see
+  [AR_MARKER_SETUP_GUIDE.md](AR_MARKER_SETUP_GUIDE.md))
+- A thin rigid tile for the sticker (1–2 mm plastic or thick card, the same size as the marker) and double-sided tape
+- A ruler or tape measure in cm
+- The tablet or phone running the app over HTTPS
+- The instructor passcode (`VITE_INSTRUCTOR_PASSCODE` or the `INSTRUCTOR_PASSCODE` GitHub secret; default `2468`)
 
-## 2. Where to attach the image marker
+## 2. Confirm it is a RIGHT hand
 
-1. Attach the marker to a **flat base beside or under the right-hand mannequin**. The best position is just **proximal
-   to the hand**, e.g. under the wrist on the base, so the camera can see the marker and the index finger in one view.
-   Beside the hand, on the thumb (radial) side, is the next best.
-2. Mount the marker on rigid card or foam board so it stays perfectly flat. Tape all four edges.
-3. Point the yellow **TOP** arrow toward the **fingertips** (distal). The app assumes the finger runs roughly along the
-   marker's TOP direction. Other placements are handled with *Rotate Z*.
-4. The mannequin and the marker must **not move relative to each other** once calibrated. Fix the hand to the base
-   (Velcro, screws or tape) or mark its outline on the base.
+Place the hand **palm down** (nails up) with the fingers pointing **away from you**. On a right hand the **thumb is on
+your left**. The app only supports right hands; radial and ulnar would be swapped on a left hand.
 
-## 3. Measure the mannequin's right index finger
+## 3. Attach the marker sticker
+
+1. Stick the printed marker onto the rigid tile so it is perfectly flat. The dorsum of the hand is curved, and a bent
+   marker tracks badly.
+2. Fix the tile with double-sided tape on the **back of the hand**, **centred over the middle-finger MCP knuckle**.
+3. Point the yellow **TOP** arrow **toward the fingertips**, in line with the middle finger.
+4. If the knuckle is too rounded for the tile to sit still, move the tile 1–2 cm **proximally** (toward the wrist),
+   where the dorsum is flatter. Then set **Y = +1 to +2 cm** in calibration, because the knuckle is now distal to the
+   marker centre.
+5. Once calibrated, the sticker must **not move**. Mark its outline on the mannequin with a pen so it can be replaced
+   in the same spot.
+
+## 4. Measure the fingers you will use
 
 | Measurement | How | Calibration field |
 | --- | --- | --- |
-| **Finger length** | On the **volar** side, from the proximal finger crease (at the web space) to the fingertip, in cm | *Index finger length (cm)* |
-| **Finger width** | Radial-to-ulnar width at the **middle of the proximal phalanx**, in cm | *Index finger width (cm)* |
+| **Finger length** | On the palm side, from the proximal finger crease (web) to the fingertip | *Finger length (cm)* |
+| **Finger width** | Side to side at the middle of the proximal phalanx | *Finger width (cm)* |
+| **Marker width** | The printed square, measured with a ruler | *Printed marker width (cm)* |
 
-The procedural model is built at 8.5 cm × 2.0 cm and is scaled non-uniformly to your measurements, so the internal
-structures stay in proportion to the finger.
+Each finger has adult-size defaults (index 8.0 × 1.9 cm, middle 8.8 × 1.9, ring 8.3 × 1.8, little 6.6 × 1.6), and you
+only need to change the fingers you teach on.
 
-Also note roughly:
+## 5. Calibrate
 
-- The height of the dorsal surface of the proximal phalanx above the marker plane (→ **Z offset**).
-- The distance from the marker centre to the index finger's MCP knuckle along and across the marker (→ **Y** and **X
-  offsets**).
+1. Landing page → **Instructor Mode** → enter the passcode → **Open AR to calibrate live**. The **Calibration** tab
+   opens.
+2. Hold the device 20–35 cm above the hand until the badge shows **✓ Marker detected**. A **cyan outline** is drawn
+   around the sticker. If the outline is bigger or smaller than the printed square, correct **Printed marker width**
+   first. Everything else depends on it.
+3. Use **❄ Hold overlay** to freeze the pose if your hands get in the way, then release it to re-check.
 
-## 4. Calibrate
+### A. Whole hand (do this first, with the middle finger selected)
 
-1. Landing page → **Instructor Mode** → enter the passcode.
-2. Tap **Open AR to calibrate live**. The **Calibration** tab opens.
-3. Point the camera at the marker until the badge shows **✓ Marker detected**. A **cyan outline** appears on the
-   marker. If it doesn't match the printed square, the marker size setting is wrong (see the marker guide).
-4. Tap **❄ Hold overlay** to freeze the pose if your hands get in the way, then release it to re-check.
-5. Enter the measured **finger length** and **width**.
-6. Adjust in this order, using the **−/+** buttons for fine steps:
+Select **Middle**. The whole-hand values say where the **middle-finger knuckle** is relative to the marker centre.
 
-   | Control | Meaning (marker space) | Typical use |
-   | --- | --- | --- |
-   | **Rotate Z** | Turn on the table (around the marker normal) | Align the finger's long axis with the mannequin finger |
-   | **X offset** | Toward marker right (+) / left (−), cm | Slide sideways onto the index finger |
-   | **Y offset** | Toward the marker TOP (+) / bottom (−), cm | Slide the finger base onto the proximal phalanx |
-   | **Z offset (vertical height)** | Up from the marker plane, cm | Lift the model to the height of the mannequin finger |
-   | **Rotate X** | Tilt (fingertip up or down) | Mannequin finger resting at an angle to the table |
-   | **Rotate Y** | Roll around the finger axis | Mannequin hand slightly pronated or supinated |
-   | **Scale** | Uniform size multiplier | Final touch after entering length and width |
+| Control | Meaning | Typical use |
+| --- | --- | --- |
+| **X** | Toward ulnar / marker right (+), cm | Sticker not centred side-to-side on the knuckle |
+| **Y** | Toward fingertips / marker TOP (+), cm | Sticker placed proximal to the knuckle (→ positive Y) |
+| **Z** | Height relative to the marker plane, cm | Default −0.2 (tile thickness). More negative if the tile is thicker |
+| **Tilt hand (X)** | Fingertips up or down | The mannequin's fingers slope toward the table |
+| **Roll hand (Y)** | Rotation around the hand's long axis | Hand slightly tilted onto its side |
+| **Turn hand (Z)** | Rotation on the table | TOP arrow not exactly in line with the middle finger |
+| **Scale** | Uniform size | Small or large mannequin hand (after entering the marker width) |
 
-### Align the virtual finger base with the proximal phalanx
+Adjust until the virtual **middle finger** lies on the mannequin's middle finger. Check that the **MCP knuckle** dot
+sits on the knuckle and the **nail fold** sits on the nail.
 
-- Switch to **Surface Landmarks** (the calibration tab stays available) and turn on **3D labels**.
-- Match the virtual **MCP knuckle** dot to the mannequin's index MCP knuckle (dorsal), using **X/Y** and then **Z**.
-- Match the **PIP crease** and **nail fold** labels to the mannequin's PIP joint and nail. If the tip overshoots or falls
-  short, correct **finger length** rather than scale.
-- The green **dorsolateral learning zones** should sit on both sides of the dorsal base of the proximal phalanx.
+### B. Each finger you use
 
-### Verify right-hand orientation
+Select the finger (**Index / Middle / Ring / Little**) and fine-tune:
 
-On a right hand viewed from the dorsal side with the fingers pointing away from you:
+| Control | Meaning |
+| --- | --- |
+| **Finger length / width** | The measured values |
+| **Knuckle shift X/Y/Z** | Moves only this finger's knuckle (ulnar+, distal+, dorsal+), cm |
+| **Splay** | Sideways angle of this finger (+ toward the thumb) |
+| **Flexion** | Bend at the MCP joint (+ toward the palm). Mannequin fingers are often slightly flexed |
+| **Reset finger to default** | Restores this finger's defaults only |
 
-- The **nail** is on top (dorsal), and the **thumb** is on the **left**, which is the **radial** side.
-- The app's orientation gizmo must show **Radial** toward the mannequin's thumb and **Distal** toward the fingertip.
-- The **web space** landmark must be on the thumb side, and the yellow **radial digital nerve** label must be on the
-  thumb side.
-- If radial and ulnar look swapped, you are probably using a left-hand mannequin or viewing from the palm. This MVP
-  supports the **right** hand only, so do not mirror it with negative scale.
+Use **Surface Landmarks** mode with **3D labels** on, and match the **MCP knuckle**, **PIP crease**, **DIP crease**
+and **nail fold** to the mannequin. Correct a wrong fingertip position with **length** or **flexion**, not scale.
 
-7. Tap **Save calibration**. The badge changes to **Calibration: Saved**.
-8. Optional: **Export JSON** and keep the file with the mannequin (e.g. `mannequin-A-calibration.json`), so other devices
-   can **Import JSON** and then **Save**.
+4. Tap **Save calibration**. The badge shows **Calibration: Saved**.
+5. Optional: **Export JSON** and keep it with the mannequin (e.g. `hand-A-calibration.json`), so other tablets can
+   **Import JSON** and then **Save**.
 
-## 5. Test from several viewing angles
+## 6. Verify right-hand orientation in the overlay
 
-Check each view, holding the device 25–45 cm from the marker. The badge must stay **✓ Marker detected**, and the
-overlay should stay on the mannequin within a few millimetres.
+- The 3D orientation gizmo must show **Radial** toward the mannequin's **thumb** and **Distal** toward the fingertips.
+- The **web space** landmark and the yellow **radial digital nerve** label must be on the thumb side of the selected
+  finger.
+- On the 2D orientation key, the highlighted finger and the yellow marker square must match your setup.
+
+## 7. Test from several viewing angles
+
+Hold the device 20–35 cm from the sticker. The badge must stay **✓ Marker detected**.
 
 | View | What to check |
 | --- | --- |
-| **Dorsal** (from above) | Nail, MCP knuckle, learning zones and the finger's long axis line up |
-| **Radial** (thumb side) | Web space landmark, radial learning zone and the radial nerve/artery run along the radial side |
-| **Ulnar** (middle-finger side) | Ulnar learning zone and ulnar bundle on the correct side; finger height (Z) is right |
-| **Oblique** (≈45° dorsoradial, then dorsoulnar) | Depth relationships: nerve volar to artery, both volar-lateral to the bone |
+| **Dorsal** (from above) | Nail, MCP knuckle, the dorsolateral learning zones and the finger's long axis line up |
+| **Radial** (thumb side) | Radial learning zone and the radial nerve/artery run along the thumb side of the finger |
+| **Ulnar** | Ulnar learning zone and bundle on the little-finger side; finger height is right |
+| **Oblique** (≈45°) | Depth: nerve volar to artery, both volar-lateral to the bone |
 
-If one view is right but another is off, the error is usually in **Z** (height) or **Rotate X/Y** (tilt/roll). A
-single view cannot resolve depth. The **3D Explorer** has the same Dorsal/Volar/Radial/Ulnar/Oblique presets and shows
-the virtual marker, so you can sanity-check a calibration without the camera.
+If one view is right but another is off, adjust **Z** or the finger's **knuckle shift Z** and **flexion**. A single
+view cannot resolve depth. The **3D Explorer** (Dorsal/Volar/Radial/Ulnar/Oblique, with a faint virtual hand and the
+sticker) shows the same calibration without the camera.
 
-## 6. Recalibrate after moving the marker or mannequin
+## 8. Recalibrate when…
 
-Recalibrate whenever:
+- the sticker is replaced, peeled, bent or moved;
+- you change to a different mannequin hand;
+- you move to a new device (import the JSON, then check), or browser data was cleared;
+- you start using a finger you have not fine-tuned yet.
 
-- the marker is re-printed, re-mounted, peeled or bent;
-- the mannequin moves on its base, or you swap mannequins;
-- you move to a new device (import the JSON, then verify), or the browser data was cleared.
+Use **Revert to saved** to undo unsaved changes, or **Reset to defaults** to start again.
 
-Quick recalibration: Instructor Mode → *Open AR to calibrate live* → check the MCP knuckle and nail landmarks → adjust
-**X/Y/Rotate Z** first, then **Z** → **Save**. Use **Revert to saved** to undo unsaved changes, or **Reset to
-defaults** to start over.
+> Calibrations from the first version of the app (single index finger, marker on the table) cannot be imported. The
+> geometry is different, so recalibrate.
 
-## 7. Calibration JSON format
+## 9. Calibration JSON format (version 2)
 
 ```json
 {
   "kind": "dnb-ar-trainer.calibration",
-  "exportedAt": "2026-01-01T09:00:00.000Z",
-  "note": "Mannequin overlay calibration. Educational simulation only.",
+  "exportedAt": "2026-10-01T09:00:00.000Z",
+  "note": "Mannequin hand overlay calibration. Educational simulation only.",
   "calibration": {
-    "version": 1,
-    "position": { "x": 0, "y": 7.5, "z": 2.5 },
+    "version": 2,
+    "markerSizeCm": 5,
+    "position": { "x": 0, "y": 0, "z": -0.2 },
     "rotationDeg": { "x": 0, "y": 0, "z": 0 },
     "scale": 1,
-    "fingerLengthCm": 8.5,
-    "fingerWidthCm": 2
+    "fingers": {
+      "index":  { "offset": { "x": 0, "y": 0, "z": 0 }, "flexionDeg": 0, "splayDeg": 6,   "lengthCm": 8.0, "widthCm": 1.9 },
+      "middle": { "offset": { "x": 0, "y": 0, "z": 0 }, "flexionDeg": 0, "splayDeg": 0,   "lengthCm": 8.8, "widthCm": 1.9 },
+      "ring":   { "offset": { "x": 0, "y": 0, "z": 0 }, "flexionDeg": 0, "splayDeg": -5,  "lengthCm": 8.3, "widthCm": 1.8 },
+      "little": { "offset": { "x": 0, "y": 0, "z": 0 }, "flexionDeg": 0, "splayDeg": -12, "lengthCm": 6.6, "widthCm": 1.6 }
+    }
   }
 }
 ```
 
-Units: position in cm from the marker centre; rotation in degrees (XYZ Euler). Imports are validated, and
-out-of-range values are clamped to the slider limits.
+Units: cm and degrees. Hand frame: origin = middle-finger MCP knuckle (dorsal skin), +X ulnar, +Y distal, +Z dorsal.
+Default knuckle positions (before **knuckle shift**): index (−2.0, −0.3, −0.25), middle (0, 0, 0), ring (1.8, −0.4,
+−0.3), little (3.4, −1.3, −0.8), defined in `src/config/hand.ts`. Imports are validated, and out-of-range values are
+clamped.

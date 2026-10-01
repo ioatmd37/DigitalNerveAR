@@ -12,26 +12,29 @@ uploaded.
 | --- | --- |
 | `public/marker/marker.png` | The printable marker image (1024 × 1024 px, high contrast, dense detail, asymmetric) |
 | `public/marker/targets.mind` | The compiled MindAR target for `marker.png` (**must match the image**) |
-| `public/marker/print.html` | A print page that sizes the marker to exactly 120 mm |
+| `public/marker/print.html` | A print page with a size picker (4–12 cm, 5 cm recommended) and several copies per sheet |
 | `scripts/build-marker.mjs` | Generates and/or compiles the marker (`npm run marker:build`) |
 
-## 1. Print the marker
+## 1. Print the marker sticker
 
-1. Open the app → **Print marker** (or `https://<host>:5173/marker/print.html`).
-2. Print at **100 % / Actual size**, with "Fit to page" **disabled**, on **matte** paper.
-3. **Recommended size: start with 12 cm × 12 cm.** Measure the printed square with a ruler. It must be 120 mm; if not,
-   fix the printer scaling. **Print without distortion**: both sides must be equal.
-4. Using another size (e.g. 15 cm for more stable tracking at longer distances)? Set `VITE_MARKER_SIZE_CM` in
-   `.env.local` to the real printed width and restart. Calibration offsets are in cm, so this keeps them correct.
+1. Open the app → **Print marker** (or `https://<host>/marker/print.html`).
+2. Choose the size. **5 cm is recommended** for the back of an adult mannequin hand. Use 6 cm if detection is
+   unreliable and the hand is large enough, or 4 cm for a small hand.
+3. Print at **100 % / Actual size**, with "Fit to page" **disabled**, on **matte** sticker paper. **Print without
+   distortion**: both sides must be equal.
+4. Measure the printed square with a ruler and enter it in **Instructor Mode → Calibration → Printed marker width**.
+   Everything is measured in cm from this value, so an incorrect width makes the overlay too big or too small.
 
-## 2. Mount and place it
+## 2. Mount it on the mannequin hand
 
-- **Use a high-contrast, detailed image marker.** The supplied marker is designed for this. Plain, symmetric or
-  repetitive images track poorly.
-- **Place it on a flat, stable base.** Glue or tape it to rigid card, foam board or acrylic, then fix it to the
-  mannequin base beside or under the right hand. Curled or bent paper causes drift.
-- Point the yellow **TOP** arrow toward the mannequin's fingertips.
-- Once calibrated, **do not move the marker relative to the mannequin**.
+- **Use a high-contrast, detailed image marker.** The supplied marker has bold shapes designed to work at sticker
+  size. Plain, symmetric or repetitive images track poorly.
+- **Keep it flat and stable.** The back of the hand is curved, so stick the marker onto a **thin rigid tile** (1–2 mm
+  plastic or thick card) first. A bent sticker causes drift and jitter.
+- Fix the tile with double-sided tape on the **back of the right hand, centred over the middle-finger MCP knuckle**.
+  If it rocks on the knuckle, move it 1–2 cm toward the wrist and set **Y** in calibration (see the calibration guide).
+- Point the yellow **TOP** arrow toward the **fingertips**, in line with the middle finger.
+- Once calibrated, **do not move the sticker**. Outline it with a pen so it can be replaced in the same place.
 
 ## 3. Environment
 
@@ -42,7 +45,8 @@ uploaded.
 - **Keep the marker continuously visible where possible.** The whole marker should be in the camera view. Hands and
   instruments covering it cause "Marker not detected". Use **❄ Hold overlay** to freeze the last pose during brief
   occlusions.
-- Hold the device 25–45 cm from the marker, at up to about 60° from perpendicular. Very steep angles reduce accuracy.
+- Hold the device **20–35 cm** from the sticker (the marker should fill at least about ⅙ of the screen width), at up to
+  about 60° from perpendicular. Very steep angles reduce accuracy.
 
 ## 4. Start AR
 
@@ -90,13 +94,13 @@ areas, no repeating patterns, and an asymmetric layout.
 
 | Symptom | Likely cause → fix |
 | --- | --- |
-| Never detected | Wrong or mismatched `targets.mind` (recompile from the printed image); marker too small in view (move closer); poor light; glare |
+| Never detected | Wrong or mismatched `targets.mind` (recompile from the printed image, or re-print: the marker design changed in this version); sticker too small in view (move closer); poor light; glare |
 | "Marker target file could not be loaded" | `public/marker/targets.mind` is missing, or `VITE_MARKER_TARGET_URL` is wrong |
 | "Camera access requires HTTPS" | Open the `https://` URL (`npm run dev:https`), not `http://` |
 | Camera permission denied | Allow camera for the site in browser settings (Chrome: lock icon → Permissions; iOS: Settings → Safari → Camera) |
-| Overlay jitters | Improve light, use a larger marker (15 cm), hold the device steadier or closer, keep the whole marker in view, and avoid steep angles. Tracking smoothing lives in `appConfig.tracking` (`filterMinCF`, `filterBeta`: lower = smoother but more lag) |
-| Overlay drifts or is offset | Marker not flat, marker moved after calibration, wrong `VITE_MARKER_SIZE_CM` (the cyan outline in the Calibration tab should match the printed square) → recalibrate |
-| Detected, then lost when hands move in | The marker is occluded. Reposition it or use **Hold overlay** |
+| Overlay jitters | Improve light, use a larger sticker (6 cm), make sure it is on a rigid tile, hold the device steadier or closer, keep the whole marker in view, and avoid steep angles. Tracking smoothing lives in `appConfig.tracking` (`filterMinCF`, `filterBeta`: lower = smoother but more lag) |
+| Overlay drifts or is offset | Marker not flat, sticker moved after calibration, or wrong *Printed marker width* (the cyan outline in the Calibration tab should match the printed square) → recalibrate |
+| Detected, then lost when hands move in | The sticker is covered by the learner's hand or the needle. Approach from the side, or use **Hold overlay** |
 | Very slow on old devices | Close other apps/tabs and use a newer tablet. The tracker is GPU-accelerated (WebGL) |
 | No AR at all | Use **Explore 3D Model**, which works without a camera or marker |
 
@@ -107,7 +111,7 @@ areas, no repeating patterns, and an asymmetric layout.
 - [ ] **Explore 3D Model** works with no camera
 - [ ] **Start AR Session** asks for camera permission
 - [ ] Red "Marker not detected" → green "Marker detected" when the marker is in view
-- [ ] Right index finger model appears on the marker
+- [ ] The finger model appears on the selected mannequin finger (index / middle / ring / little)
 - [ ] All layers toggle; Show all / Hide all work
 - [ ] Label cards show Thai and English names
 - [ ] Guided Simulation steps 1–7 work

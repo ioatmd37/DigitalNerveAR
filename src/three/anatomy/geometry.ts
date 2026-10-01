@@ -1,7 +1,7 @@
 import { BufferGeometry, Float32BufferAttribute, LatheGeometry, Vector2, Vector3 } from 'three';
 
 /**
- * Geometry helpers for the procedural right index finger.
+ * Geometry helpers for the procedural right-hand finger.
  *
  * Anatomical frame (cm): +X ulnar, −X radial, +Y distal, +Z dorsal.
  * The finger's skin cross-section is an ellipse: semi-axis r(y) in X and

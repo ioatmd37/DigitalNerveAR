@@ -3,11 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Print AR marker — DNB AR Trainer</title>
+    <title>Print AR marker sticker — DNB AR Trainer</title>
     <style>
       @page {
         size: A4 portrait;
-        margin: 12mm;
+        margin: 10mm;
       }
       * {
         box-sizing: border-box;
@@ -16,55 +16,51 @@
         font-family: 'Noto Sans Thai', 'Sarabun', system-ui, sans-serif;
         color: #0f172a;
         margin: 0;
-        padding: 12mm;
+        padding: 10mm;
         background: #fff;
       }
       .toolbar {
-        margin-bottom: 8mm;
+        margin-bottom: 6mm;
         padding: 4mm;
         border-radius: 3mm;
         background: #fef3c7;
         font-size: 11pt;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3mm 6mm;
+        align-items: center;
       }
-      .toolbar button {
+      .toolbar button,
+      .toolbar select {
         font-size: 12pt;
-        padding: 2mm 5mm;
-        margin-right: 3mm;
+        padding: 2mm 4mm;
       }
       .sheet {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5mm;
+        flex-wrap: wrap;
+        gap: 6mm;
+        justify-content: center;
       }
       .cut {
-        padding: 6mm;
+        padding: 3mm;
         border: 0.3mm dashed #64748b;
+        text-align: center;
+        font-size: 7pt;
       }
-      /* The printed marker MUST be exactly 120 mm wide (VITE_MARKER_SIZE_CM=12). */
+      /* Width is set from the size picker; it must match "Printed marker width" in Calibration. */
       .marker {
         display: block;
-        width: 120mm;
-        height: 120mm;
-        image-rendering: auto;
-      }
-      .ruler {
-        width: 120mm;
-        height: 6mm;
-        border: 0.3mm solid #0f172a;
-        border-top: none;
-        position: relative;
-        font-size: 8pt;
-        text-align: center;
-        line-height: 6mm;
+        width: var(--size, 50mm);
+        height: var(--size, 50mm);
       }
       .notes {
-        max-width: 170mm;
-        font-size: 10pt;
+        max-width: 180mm;
+        margin: 6mm auto 0;
+        font-size: 9.5pt;
         line-height: 1.5;
       }
       .notes h2 {
-        font-size: 12pt;
+        font-size: 11pt;
         margin: 3mm 0 1mm;
       }
       .warn {
@@ -85,41 +81,73 @@
   </head>
   <body>
     <div class="toolbar">
+      <label>
+        ขนาด / Size
+        <select id="size">
+          <option value="4">4 cm</option>
+          <option value="5" selected>5 cm (แนะนำ / recommended)</option>
+          <option value="6">6 cm</option>
+          <option value="8">8 cm</option>
+          <option value="12">12 cm</option>
+        </select>
+      </label>
+      <label>
+        จำนวน / Copies
+        <select id="copies">
+          <option>1</option>
+          <option>2</option>
+          <option selected>4</option>
+          <option>6</option>
+        </select>
+      </label>
       <button onclick="window.print()">🖨 Print / พิมพ์</button>
-      Print at <b>100% / Actual size</b> (disable “Fit to page”). ตั้งค่าพิมพ์ <b>100% / ขนาดจริง</b> (ปิด “พอดีหน้า”).
+      <span>Print at <b>100% / Actual size</b>. พิมพ์ที่ <b>100% / ขนาดจริง</b> (ปิด “พอดีหน้า”).</span>
     </div>
-    <div class="sheet">
-      <div class="cut">
-        <img class="marker" src="marker.png" alt="AR marker" />
-        <div class="ruler">← 120 mm — verify with a ruler / ตรวจสอบด้วยไม้บรรทัด →</div>
-      </div>
-      <div class="notes">
-        <p class="warn">
-          สื่อการเรียนรู้นี้ใช้สำหรับการฝึกกับหุ่นจำลองเท่านั้น ไม่ใช่เครื่องมือแนะนำตำแหน่งฉีดยาหรือการรักษาผู้ป่วยจริง<br />
-          This educational tool is for mannequin-based simulation only. It is not intended to guide injection placement or
-          treatment in real patients.
-        </p>
-        <h2>วิธีใช้ / How to use</h2>
-        <ol>
-          <li>
-            พิมพ์บนกระดาษด้าน (ไม่มัน) ตัดตามเส้นประ แล้วติดบนแผ่นแข็งที่เรียบ วางไว้บนฐานข้างหรือใต้หุ่นมือขวา
-            <br />Print on matte paper, cut along the dashed line, mount on a rigid flat board, and fix it to the base beside
-            or under the right-hand mannequin.
-          </li>
-          <li>
-            ให้ลูกศรสีเหลือง (TOP) ชี้ไปทางปลายนิ้วของหุ่น<br />Point the yellow arrow (TOP) toward the mannequin’s
-            fingertips.
-          </li>
-          <li>
-            ขนาดมาร์กเกอร์ต้องเป็น 12 × 12 ซม. หากพิมพ์ขนาดอื่น ให้ตั้งค่า VITE_MARKER_SIZE_CM ให้ตรง<br />The marker must be
-            12 × 12 cm. If you print another size, set VITE_MARKER_SIZE_CM to match.
-          </li>
-          <li>
-            ดูรายละเอียดใน docs/AR_MARKER_SETUP_GUIDE.md และ docs/MANNEQUIN_CALIBRATION_GUIDE.md<br />See
-            docs/AR_MARKER_SETUP_GUIDE.md and docs/MANNEQUIN_CALIBRATION_GUIDE.md.
-          </li>
-        </ol>
-      </div>
+
+    <div class="sheet" id="sheet"></div>
+
+    <div class="notes">
+      <p class="warn">
+        สื่อการเรียนรู้นี้ใช้สำหรับการฝึกกับหุ่นจำลองเท่านั้น ไม่ใช่เครื่องมือแนะนำตำแหน่งฉีดยาหรือการรักษาผู้ป่วยจริง<br />
+        This educational tool is for mannequin-based simulation only. It is not intended to guide injection placement or
+        treatment in real patients.
+      </p>
+      <h2>วิธีติดสติกเกอร์ / How to apply the sticker</h2>
+      <ol>
+        <li>
+          พิมพ์บนกระดาษสติกเกอร์ด้าน (ไม่มัน) แล้วติดบนแผ่นแข็งบาง ๆ (เช่น พลาสติก/การ์ดหนา ~1–2 มม.) ให้เรียบ<br />
+          Print on matte sticker paper and mount it on a thin rigid tile (plastic or thick card, ~1–2 mm) so it stays flat.
+        </li>
+        <li>
+          ติดบน<b>หลังมือของหุ่นมือขวา</b> ให้กึ่งกลางอยู่<b>เหนือข้อโคนนิ้วกลาง (MCP)</b> และให้ลูกศรสีเหลือง TOP
+          ชี้ไปทางปลายนิ้ว<br />
+          Fix it on the <b>back (dorsum) of the right mannequin hand</b>, centred <b>over the middle-finger MCP knuckle</b>,
+          with the yellow TOP arrow pointing toward the fingertips.
+        </li>
+        <li>
+          วัดความกว้างที่พิมพ์ได้จริงด้วยไม้บรรทัด แล้วใส่ค่าใน โหมดอาจารย์ → ปรับเทียบ → ความกว้างมาร์กเกอร์<br />
+          Measure the printed width with a ruler and enter it in Instructor Mode → Calibration → Printed marker width.
+        </li>
+      </ol>
     </div>
+
+    <script>
+      const sheet = document.getElementById('sheet');
+      const size = document.getElementById('size');
+      const copies = document.getElementById('copies');
+      function render() {
+        document.documentElement.style.setProperty('--size', size.value * 10 + 'mm');
+        sheet.innerHTML = '';
+        for (let i = 0; i < Number(copies.value); i++) {
+          const cut = document.createElement('div');
+          cut.className = 'cut';
+          cut.innerHTML = '<img class="marker" src="marker.png" alt="AR marker" /><div>' + size.value + ' cm</div>';
+          sheet.appendChild(cut);
+        }
+      }
+      size.addEventListener('change', render);
+      copies.addEventListener('change', render);
+      render();
+    </script>
   </body>
 </html>

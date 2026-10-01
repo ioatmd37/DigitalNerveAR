@@ -1,5 +1,6 @@
 import { CALIBRATION_LIMITS, DEFAULT_CALIBRATION } from '../config/appConfig';
-import type { CalibrationSettings, Vec3 } from '../types';
+import { defaultFingerCalibration, FINGER_IDS } from '../config/hand';
+import type { CalibrationSettings, FingerCalibration, FingerId, Vec3 } from '../types';
 
 export const CALIBRATION_FILE_KIND = 'dnb-ar-trainer.calibration';
 
@@ -11,11 +12,31 @@ function finite(v: unknown): v is number {
   return typeof v === 'number' && Number.isFinite(v);
 }
 
+function cloneFinger(f: FingerCalibration): FingerCalibration {
+  return { ...f, offset: { ...f.offset } };
+}
+
 export function cloneCalibration(c: CalibrationSettings): CalibrationSettings {
   return {
     ...c,
     position: { ...c.position },
     rotationDeg: { ...c.rotationDeg },
+    fingers: Object.fromEntries(FINGER_IDS.map((id) => [id, cloneFinger(c.fingers[id])])) as Record<
+      FingerId,
+      FingerCalibration
+    >,
+  };
+}
+
+function clampFinger(f: FingerCalibration): FingerCalibration {
+  const L = CALIBRATION_LIMITS;
+  const o = L.fingerOffset;
+  return {
+    offset: { x: clamp(f.offset.x, o.min, o.max), y: clamp(f.offset.y, o.min, o.max), z: clamp(f.offset.z, o.min, o.max) },
+    flexionDeg: clamp(f.flexionDeg, L.flexionDeg.min, L.flexionDeg.max),
+    splayDeg: clamp(f.splayDeg, L.splayDeg.min, L.splayDeg.max),
+    lengthCm: clamp(f.lengthCm, L.fingerLengthCm.min, L.fingerLengthCm.max),
+    widthCm: clamp(f.widthCm, L.fingerWidthCm.min, L.fingerWidthCm.max),
   };
 }
 
@@ -23,7 +44,8 @@ export function cloneCalibration(c: CalibrationSettings): CalibrationSettings {
 export function clampCalibration(c: CalibrationSettings): CalibrationSettings {
   const L = CALIBRATION_LIMITS;
   return {
-    version: 1,
+    version: 2,
+    markerSizeCm: clamp(c.markerSizeCm, L.markerSizeCm.min, L.markerSizeCm.max),
     position: {
       x: clamp(c.position.x, L.position.min, L.position.max),
       y: clamp(c.position.y, L.position.min, L.position.max),
@@ -35,22 +57,18 @@ export function clampCalibration(c: CalibrationSettings): CalibrationSettings {
       z: clamp(c.rotationDeg.z, L.rotation.min, L.rotation.max),
     },
     scale: clamp(c.scale, L.scale.min, L.scale.max),
-    fingerLengthCm: clamp(c.fingerLengthCm, L.fingerLengthCm.min, L.fingerLengthCm.max),
-    fingerWidthCm: clamp(c.fingerWidthCm, L.fingerWidthCm.min, L.fingerWidthCm.max),
+    fingers: Object.fromEntries(
+      FINGER_IDS.map((id) => [id, clampFinger(c.fingers?.[id] ?? defaultFingerCalibration(id))]),
+    ) as Record<FingerId, FingerCalibration>,
     ...(c.savedAt ? { savedAt: c.savedAt } : {}),
   };
 }
 
+/** Compare calibrations, ignoring `savedAt`. */
 export function calibrationEquals(a: CalibrationSettings, b: CalibrationSettings | null): boolean {
   if (!b) return false;
-  const eq = (u: Vec3, v: Vec3) => u.x === v.x && u.y === v.y && u.z === v.z;
-  return (
-    eq(a.position, b.position) &&
-    eq(a.rotationDeg, b.rotationDeg) &&
-    a.scale === b.scale &&
-    a.fingerLengthCm === b.fingerLengthCm &&
-    a.fingerWidthCm === b.fingerWidthCm
-  );
+  const strip = (c: CalibrationSettings) => JSON.stringify({ ...clampCalibration(c), savedAt: undefined });
+  return strip(a) === strip(b);
 }
 
 /** Serialize for export. Wrapped with a kind tag so imports can be validated. */
@@ -59,7 +77,7 @@ export function exportCalibration(c: CalibrationSettings, now: Date = new Date()
     {
       kind: CALIBRATION_FILE_KIND,
       exportedAt: now.toISOString(),
-      note: 'Mannequin overlay calibration. Educational simulation only.',
+      note: 'Mannequin hand overlay calibration. Educational simulation only.',
       calibration: clampCalibration(c),
     },
     null,
@@ -76,10 +94,28 @@ function readVec3(v: unknown, name: string): Vec3 | string {
   return { x: o.x, y: o.y, z: o.z };
 }
 
+function readFinger(id: FingerId, v: unknown): FingerCalibration | string {
+  const d = defaultFingerCalibration(id);
+  if (v === undefined) return d;
+  if (!v || typeof v !== 'object') return `"fingers.${id}" must be an object`;
+  const o = v as Record<string, unknown>;
+  const offset = o.offset === undefined ? d.offset : readVec3(o.offset, `fingers.${id}.offset`);
+  if (typeof offset === 'string') return offset;
+  const num = (key: keyof FingerCalibration) => (finite(o[key]) ? (o[key] as number) : (d[key] as number));
+  return {
+    offset,
+    flexionDeg: num('flexionDeg'),
+    splayDeg: num('splayDeg'),
+    lengthCm: num('lengthCm'),
+    widthCm: num('widthCm'),
+  };
+}
+
 /**
- * Parse and validate calibration JSON. Accepts either the wrapped export
- * format or a bare CalibrationSettings object. Missing finger dimensions
- * fall back to defaults; out-of-range values are clamped.
+ * Parse and validate calibration JSON (wrapped export format or a bare
+ * object). Missing fingers/fields fall back to defaults; out-of-range
+ * values are clamped. Version-1 files (single finger, table-mounted marker)
+ * are rejected because their geometry differs.
  */
 export function parseCalibration(text: string): ParseResult {
   let data: unknown;
@@ -95,7 +131,10 @@ export function parseCalibration(text: string): ParseResult {
   }
   const raw = ('calibration' in root ? root.calibration : root) as Record<string, unknown> | undefined;
   if (!raw || typeof raw !== 'object') return { ok: false, error: 'missing "calibration" object' };
-  if (raw.version !== undefined && raw.version !== 1) {
+  if (raw.version === 1) {
+    return { ok: false, error: 'version 1 file (single finger, table marker) — please recalibrate' };
+  }
+  if (raw.version !== undefined && raw.version !== 2) {
     return { ok: false, error: `unsupported version ${String(raw.version)}` };
   }
   const position = readVec3(raw.position, 'position');
@@ -103,14 +142,22 @@ export function parseCalibration(text: string): ParseResult {
   const rotationDeg = readVec3(raw.rotationDeg, 'rotationDeg');
   if (typeof rotationDeg === 'string') return { ok: false, error: rotationDeg };
   if (!finite(raw.scale) || raw.scale <= 0) return { ok: false, error: '"scale" must be a positive number' };
+  const markerSizeCm = raw.markerSizeCm === undefined ? DEFAULT_CALIBRATION.markerSizeCm : raw.markerSizeCm;
+  if (!finite(markerSizeCm) || markerSizeCm <= 0) {
+    return { ok: false, error: '"markerSizeCm" must be a positive number' };
+  }
 
-  const value = clampCalibration({
-    version: 1,
-    position,
-    rotationDeg,
-    scale: raw.scale,
-    fingerLengthCm: finite(raw.fingerLengthCm) ? raw.fingerLengthCm : DEFAULT_CALIBRATION.fingerLengthCm,
-    fingerWidthCm: finite(raw.fingerWidthCm) ? raw.fingerWidthCm : DEFAULT_CALIBRATION.fingerWidthCm,
-  });
-  return { ok: true, value };
+  const fingersRaw = (raw.fingers ?? {}) as Record<string, unknown>;
+  if (typeof fingersRaw !== 'object') return { ok: false, error: '"fingers" must be an object' };
+  const fingers = {} as Record<FingerId, FingerCalibration>;
+  for (const id of FINGER_IDS) {
+    const f = readFinger(id, fingersRaw[id]);
+    if (typeof f === 'string') return { ok: false, error: f };
+    fingers[id] = f;
+  }
+
+  return {
+    ok: true,
+    value: clampCalibration({ version: 2, markerSizeCm, position, rotationDeg, scale: raw.scale, fingers }),
+  };
 }

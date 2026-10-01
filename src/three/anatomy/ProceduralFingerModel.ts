@@ -40,7 +40,8 @@ import {
 import { createDotTexture, createHatchTexture, createLabelTexture } from './textures';
 
 /**
- * Procedural, SIMPLIFIED right index finger built from three.js primitives.
+ * Procedural, SIMPLIFIED right-hand finger (index/middle/ring/little share
+ * one generic digit, scaled per finger) built from three.js primitives.
  *
  * Object hierarchy (names are stable and match structure ids, so a GLB
  * model can replace any structure by using the same node names):

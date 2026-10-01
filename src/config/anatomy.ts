@@ -1,7 +1,7 @@
 import type { AnatomyLayer, AnatomyStructure, LayerId, LayerVisibility, StructureId } from '../types';
 
 /**
- * Configuration-first anatomy definition for a SIMPLIFIED right index finger
+ * Configuration-first anatomy definition for a SIMPLIFIED right-hand finger
  * teaching model on a mannequin. Geometry lives in
  * `src/three/anatomy/ProceduralFingerModel.ts`; everything learner-facing
  * (names, colors, notes) lives here so it can be reviewed by faculty
@@ -75,8 +75,8 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: false,
     description: {
-      th: 'เปลือกผิวหนังโปร่งแสงของนิ้วชี้ขวาในหุ่นจำลอง',
-      en: 'Semi-transparent skin envelope of the mannequin right index finger.',
+      th: 'เปลือกผิวหนังโปร่งแสงของนิ้วมือขวาที่เลือกในหุ่นจำลอง',
+      en: 'Semi-transparent skin envelope of the selected mannequin right-hand finger.',
     },
     educationalNote: {
       th: `ใช้ผิวหนังเพื่อเชื่อมโยงจุดสังเกตภายนอกกับโครงสร้างภายใน ${SIMPLIFIED_TH}`,
@@ -129,8 +129,8 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: false,
     description: {
-      th: 'ปลายกระดูกฝ่ามือนิ้วชี้ บริเวณข้อโคนนิ้ว (MCP)',
-      en: 'Distal end of the index metacarpal at the MCP joint region.',
+      th: 'ปลายกระดูกฝ่ามือของนิ้วที่เลือก บริเวณข้อโคนนิ้ว (MCP)',
+      en: 'Distal end of the selected finger’s metacarpal at the MCP joint region.',
     },
     educationalNote: {
       th: 'ใช้เป็นจุดอ้างอิงด้านต้น (proximal) ของนิ้ว',
@@ -549,8 +549,8 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: true,
     description: {
-      th: 'บริเวณง่ามนิ้วระหว่างนิ้วโป้งและนิ้วชี้',
-      en: 'Web space between thumb and index finger.',
+      th: 'ง่ามนิ้วฝั่งเรเดียลของนิ้วที่เลือก (สำหรับนิ้วชี้คือง่ามนิ้วโป้ง)',
+      en: 'Web space on the radial side of the selected finger (for the index finger, the thumb web).',
     },
     educationalNote: {
       th: 'ช่วยยืนยันว่าด้านนี้คือด้านเรเดียล (ฝั่งนิ้วโป้ง)',
@@ -609,8 +609,8 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: false,
     description: {
-      th: 'ลูกศรแสดงทิศ Dorsal/Volar, Radial/Ulnar, Proximal/Distal ของนิ้วชี้ขวา',
-      en: 'Arrows showing dorsal/volar, radial/ulnar and proximal/distal for the right index finger.',
+      th: 'ลูกศรแสดงทิศ Dorsal/Volar, Radial/Ulnar, Proximal/Distal ของนิ้วมือขวา',
+      en: 'Arrows showing dorsal/volar, radial/ulnar and proximal/distal for a right-hand finger.',
     },
     educationalNote: {
       th: 'มือขวา: ด้านเรเดียลคือฝั่งนิ้วโป้ง ด้านอัลนาคือฝั่งนิ้วกลาง',

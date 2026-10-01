@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
-import { BufferGeometry, Group, LineBasicMaterial, LineLoop, Raycaster, Vector2, Vector3 } from 'three';
+import { Raycaster, Vector2 } from 'three';
 import { appConfig } from '../config/appConfig';
 import { useAnatomyModel } from '../hooks/useAnatomyModel';
+import { useHandRig } from '../hooks/useHandRig';
 import { useViewState } from '../hooks/useViewState';
 import { useT } from '../i18n/useT';
 import { useAppStore } from '../store/useAppStore';
-import { applyCalibration } from '../three/calibrationTransform';
 import type { MarkerTracker, TrackerErrorKind } from './MarkerTracker';
 import { loadTargetBuffer, TargetLoadError } from './targetStore';
 
@@ -21,29 +21,28 @@ interface ARViewProps {
  * anatomy model as the Explorer is attached to the marker anchor through
  * the calibration transform:
  *
- *   anchor (1 unit = marker width) → markerSpace (cm) → calibration → model
+ *   anchor (1 unit = marker width) → markerSpace (cm) → hand → finger → model
  */
+const RIG_OPTIONS = { markerUnits: true, showContext: false };
 export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
   const { t } = useT();
   const containerRef = useRef<HTMLDivElement>(null);
   const trackerRef = useRef<MarkerTracker | null>(null);
-  const calibGroupRef = useRef<Group | null>(null);
-  const markerOutlineRef = useRef<LineLoop | null>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [errorKind, setErrorKind] = useState<TrackerErrorKind | null>(null);
   const [customTarget, setCustomTarget] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   const model = useAnatomyModel();
+  const rig = useHandRig(model, RIG_OPTIONS);
   const view = useViewState();
-  const calibration = useAppStore((s) => s.calibration);
   const activeTab = useAppStore((s) => s.activeTab);
   const setTrackingStatus = useAppStore((s) => s.setTrackingStatus);
   const selectStructure = useAppStore((s) => s.selectStructure);
 
   // Start / stop the tracker.
   useEffect(() => {
-    if (!model || !containerRef.current) return;
+    if (!model || !rig || !containerRef.current) return;
     let cancelled = false;
     const container = containerRef.current;
     setPhase('loading');
@@ -62,16 +61,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
         });
         trackerRef.current = tracker;
 
-        const markerSpace = new Group();
-        markerSpace.name = 'MarkerSpace(cm)';
-        markerSpace.scale.setScalar(1 / appConfig.markerSizeCm);
-        const calib = new Group();
-        calib.name = 'Calibration';
-        calib.add(model.root);
-        markerSpace.add(calib, createMarkerOutline(appConfig.markerSizeCm, (o) => (markerOutlineRef.current = o)));
-        tracker.anchor.add(markerSpace);
-        calibGroupRef.current = calib;
-        applyCalibration(calib, useAppStore.getState().calibration);
+        tracker.anchor.add(rig.markerSpace);
 
         setPhase('camera');
         await tracker.start(target.buffer);
@@ -100,19 +90,14 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
       cancelled = true;
       trackerRef.current?.stop();
       trackerRef.current = null;
-      if (calibGroupRef.current) calibGroupRef.current.remove(model.root);
-      calibGroupRef.current = null;
+      rig.markerSpace.parent?.remove(rig.markerSpace);
       setTrackingStatus('idle');
     };
-  }, [model, attempt, setTrackingStatus]);
+  }, [model, rig, attempt, setTrackingStatus]);
 
   useEffect(() => {
-    if (calibGroupRef.current) applyCalibration(calibGroupRef.current, calibration);
-  }, [calibration, phase]);
-
-  useEffect(() => {
-    if (markerOutlineRef.current) markerOutlineRef.current.visible = activeTab === 'calibration';
-  }, [activeTab, phase]);
+    if (rig) rig.markerOutline.visible = activeTab === 'calibration';
+  }, [rig, activeTab, phase]);
 
   useEffect(() => {
     trackerRef.current?.setFrozen(frozen);
@@ -188,23 +173,4 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
       )}
     </div>
   );
-}
-
-/** Thin outline of the printed marker (shown while calibrating). */
-function createMarkerOutline(sizeCm: number, register: (o: LineLoop) => void): LineLoop {
-  const h = sizeCm / 2;
-  const outline = new LineLoop(
-    new BufferGeometry().setFromPoints([
-      new Vector3(-h, -h, 0),
-      new Vector3(h, -h, 0),
-      new Vector3(h, h, 0),
-      new Vector3(-h, h, 0),
-    ]),
-    new LineBasicMaterial({ color: '#22d3ee', depthTest: false }),
-  );
-  outline.name = 'MarkerOutline';
-  outline.renderOrder = 1002;
-  outline.visible = false;
-  register(outline);
-  return outline;
 }

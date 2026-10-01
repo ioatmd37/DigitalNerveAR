@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
 import { DisclaimerBanner } from '../components/Disclaimer';
+import { FingerSelector } from '../components/FingerSelector';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { OrientationWidget } from '../components/OrientationWidget';
 import { AnatomyPanel } from '../components/panels/AnatomyPanel';
@@ -97,6 +98,9 @@ export function ViewerScreen({ kind }: { kind: 'ar' | 'explorer' }) {
               {t(`modes.${mode}`)}
             </span>
             <TrackingBadge kind={kind} />
+            <div className="pointer-events-auto">
+              <FingerSelector compact />
+            </div>
             <CalibrationBadge />
             {instructor && <span className="chip bg-violet-600 text-white">🎓 {t('instructor.unlocked')}</span>}
             <div className="pointer-events-auto ml-auto">

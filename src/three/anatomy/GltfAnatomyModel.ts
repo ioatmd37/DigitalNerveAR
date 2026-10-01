@@ -16,7 +16,7 @@ const KNOWN_IDS = new Set<string>(STRUCTURES.map((s) => s.id));
  * glTF `extras.structureId` — equals a structure id from
  * `src/config/anatomy.ts` (e.g. `nerve_radial`, `phalanx_proximal`).
  *
- * GLB requirements: right index finger, centimetres, anatomical frame
+ * GLB requirements: one right-hand finger (it is reused for every finger), cm, anatomical frame
  * +X ulnar, +Y distal, +Z dorsal, finger base (web crease) at y = 0.
  */
 export class GltfAnatomyModel extends ProceduralFingerModel {

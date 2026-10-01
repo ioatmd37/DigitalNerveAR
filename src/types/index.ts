@@ -1,7 +1,7 @@
 /**
  * Core data model for the Digital Nerve Block AR Trainer.
  *
- * All anatomy is a SIMPLIFIED EDUCATIONAL MODEL of a right index finger on a
+ * All anatomy is a SIMPLIFIED EDUCATIONAL MODEL of a right-hand finger on a
  * training mannequin. Nothing here describes a real patient.
  */
 
@@ -103,24 +103,45 @@ export interface Vec3 {
   z: number;
 }
 
+/** Fingers that can carry the overlay (the thumb has a different anatomy and is not modelled). */
+export type FingerId = 'index' | 'middle' | 'ring' | 'little';
+
+/** Per-finger fine-tuning, relative to the finger's default position on the hand. */
+export interface FingerCalibration {
+  /** Extra offset of this finger's MCP knuckle from its default position, cm (hand frame). */
+  offset: Vec3;
+  /** Flexion/extension at the MCP joint, degrees (+ = fingertip toward the palm). */
+  flexionDeg: number;
+  /** Total sideways angle of the finger, degrees (+ = fingertip toward the thumb/radial). */
+  splayDeg: number;
+  /** Measured length from the proximal finger crease (web) to the fingertip, cm. */
+  lengthCm: number;
+  /** Measured radial-to-ulnar width at the proximal phalanx, cm. */
+  widthCm: number;
+}
+
 /**
- * Transform from the printed marker to the virtual finger.
+ * Transform from the printed marker sticker to the mannequin hand.
  *
- * Marker space: origin = marker centre, +X = marker right, +Y = marker top,
- * +Z = out of the marker toward the viewer. Units: centimetres.
+ * Marker space: origin = marker centre, +X = marker right, +Y = marker TOP
+ * (toward the fingertips), +Z = out of the marker. Units: centimetres.
+ *
+ * Hand frame: origin = dorsal skin over the MIDDLE-finger MCP knuckle,
+ * +X ulnar, +Y distal, +Z dorsal (right hand). With the sticker on that
+ * knuckle and its TOP arrow toward the fingertips, both frames almost
+ * coincide (only the sticker/tile thickness separates them).
  */
 export interface CalibrationSettings {
-  version: 1;
-  /** Offset of the finger base (MCP region) from the marker centre, cm. */
+  version: 2;
+  /** Printed marker width, cm (must match the sticker). */
+  markerSizeCm: number;
+  /** Middle-finger MCP knuckle position relative to the marker centre, cm. */
   position: Vec3;
-  /** Euler rotation in degrees (XYZ order). */
+  /** Whole-hand Euler rotation in degrees (XYZ order). */
   rotationDeg: Vec3;
-  /** Uniform scale multiplier. */
+  /** Whole-hand uniform scale multiplier. */
   scale: number;
-  /** Measured mannequin index finger length (web crease → tip), cm. */
-  fingerLengthCm: number;
-  /** Measured mannequin index finger width at the proximal phalanx, cm. */
-  fingerWidthCm: number;
+  fingers: Record<FingerId, FingerCalibration>;
   /** ISO timestamp of the last save (informational). */
   savedAt?: string;
 }
@@ -187,6 +208,8 @@ export interface SessionState {
   showLabels: boolean;
   guidedStep: number;
   selectedStructure: StructureId | null;
+  /** Finger that currently carries the overlay. */
+  selectedFinger: FingerId;
   calibration: CalibrationSettings;
   savedCalibration: CalibrationSettings | null;
   trackingStatus: TrackingStatus;

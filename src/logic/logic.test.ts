@@ -83,49 +83,76 @@ describe('computeViewState', () => {
   });
 });
 
-describe('calibration', () => {
+describe('calibration (v2: whole hand + per-finger)', () => {
   const custom = {
     ...DEFAULT_CALIBRATION,
-    position: { x: 1.5, y: 9.2, z: 3.1 },
+    markerSizeCm: 6,
+    position: { x: 1.5, y: -0.4, z: -0.3 },
     rotationDeg: { x: 5, y: -10, z: 90 },
     scale: 1.1,
-    fingerLengthCm: 7.9,
-    fingerWidthCm: 1.8,
+    fingers: {
+      ...DEFAULT_CALIBRATION.fingers,
+      ring: { offset: { x: 0.2, y: -0.1, z: 0 }, flexionDeg: 10, splayDeg: -7, lengthCm: 7.9, widthCm: 1.7 },
+    },
   };
+
+  it('defaults to a 5 cm sticker on the middle-finger knuckle', () => {
+    expect(DEFAULT_CALIBRATION.version).toBe(2);
+    expect(DEFAULT_CALIBRATION.markerSizeCm).toBe(5);
+    expect(Object.keys(DEFAULT_CALIBRATION.fingers).sort()).toEqual(['index', 'little', 'middle', 'ring']);
+  });
 
   it('round-trips through export/import', () => {
     const parsed = parseCalibration(exportCalibration(custom));
     expect(parsed.ok).toBe(true);
-    if (parsed.ok) expect(calibrationEquals(parsed.value, custom)).toBe(true);
+    if (parsed.ok) {
+      expect(calibrationEquals(parsed.value, custom)).toBe(true);
+      expect(parsed.value.fingers.ring.flexionDeg).toBe(10);
+    }
   });
 
-  it('accepts a bare calibration object and fills missing finger dimensions', () => {
+  it('accepts a bare object and fills missing fingers and marker size with defaults', () => {
     const parsed = parseCalibration(
       JSON.stringify({ position: { x: 0, y: 0, z: 0 }, rotationDeg: { x: 0, y: 0, z: 0 }, scale: 1 }),
     );
-    expect(parsed.ok && parsed.value.fingerLengthCm).toBe(DEFAULT_CALIBRATION.fingerLengthCm);
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.value.markerSizeCm).toBe(DEFAULT_CALIBRATION.markerSizeCm);
+      expect(parsed.value.fingers.little).toEqual(DEFAULT_CALIBRATION.fingers.little);
+    }
   });
 
-  it('rejects malformed input with a helpful error', () => {
+  it('rejects malformed input and old v1 files with a helpful error', () => {
     expect(parseCalibration('not json')).toEqual({ ok: false, error: 'invalid JSON' });
     expect(parseCalibration('{"kind":"other"}').ok).toBe(false);
+    const v1 = parseCalibration(
+      JSON.stringify({ version: 1, position: { x: 0, y: 0, z: 0 }, rotationDeg: { x: 0, y: 0, z: 0 }, scale: 1 }),
+    );
+    expect(v1.ok).toBe(false);
+    if (!v1.ok) expect(v1.error).toMatch(/version 1/);
     expect(parseCalibration(JSON.stringify({ position: { x: 'a' }, rotationDeg: {}, scale: 1 })).ok).toBe(false);
-    expect(
-      parseCalibration(JSON.stringify({ position: { x: 0, y: 0, z: 0 }, rotationDeg: { x: 0, y: 0, z: 0 }, scale: -1 })).ok,
-    ).toBe(false);
-    expect(
-      parseCalibration(
-        JSON.stringify({ version: 2, position: { x: 0, y: 0, z: 0 }, rotationDeg: { x: 0, y: 0, z: 0 }, scale: 1 }),
-      ).ok,
-    ).toBe(false);
+    const bad = { position: { x: 0, y: 0, z: 0 }, rotationDeg: { x: 0, y: 0, z: 0 }, scale: 1 };
+    expect(parseCalibration(JSON.stringify({ ...bad, scale: -1 })).ok).toBe(false);
+    expect(parseCalibration(JSON.stringify({ ...bad, markerSizeCm: 0 })).ok).toBe(false);
+    expect(parseCalibration(JSON.stringify({ ...bad, fingers: { ring: { offset: { x: 'no' } } } })).ok).toBe(false);
   });
 
   it('clamps out-of-range values', () => {
-    const c = clampCalibration({ ...custom, position: { x: 999, y: -999, z: 0 }, scale: 50, rotationDeg: { x: 400, y: 0, z: 0 } });
+    const c = clampCalibration({
+      ...custom,
+      markerSizeCm: 100,
+      position: { x: 999, y: -999, z: 0 },
+      scale: 50,
+      rotationDeg: { x: 400, y: 0, z: 0 },
+      fingers: { ...custom.fingers, index: { ...custom.fingers.index, splayDeg: 99, lengthCm: 1 } },
+    });
+    expect(c.markerSizeCm).toBe(20);
     expect(c.position.x).toBe(30);
     expect(c.position.y).toBe(-30);
     expect(c.scale).toBe(2);
     expect(c.rotationDeg.x).toBe(180);
+    expect(c.fingers.index.splayDeg).toBe(40);
+    expect(c.fingers.index.lengthCm).toBe(4);
   });
 });
 

@@ -68,20 +68,22 @@ function drawMarker(seed) {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-  const ink = () => ['#0b0f19', '#0b0f19', '#0b0f19', '#1e3a8a', '#0e7490', '#475569'][Math.floor(rnd() * 6)];
+  const ink = () => ['#0b0f19', '#0b0f19', '#0b0f19', '#0b0f19', '#1e3a8a', '#0e7490'][Math.floor(rnd() * 6)];
 
   g.fillStyle = '#ffffff';
   g.fillRect(0, 0, S, S);
 
-  // Dense random geometric texture (corners/edges = trackable features).
+  // Random geometric texture (corners/edges = trackable features). Shapes and
+  // strokes are deliberately bold so the marker still tracks when printed as
+  // a small (~5 cm) sticker on the back of a mannequin hand.
   const M = 70;
-  for (let i = 0; i < 260; i++) {
+  for (let i = 0; i < 150; i++) {
     const x = M + rnd() * (S - 2 * M);
     const y = 170 + rnd() * (S - 170 - M);
-    const r = 10 + rnd() * 46;
+    const r = 22 + rnd() * 58;
     g.fillStyle = ink();
     g.strokeStyle = ink();
-    g.lineWidth = 3 + rnd() * 9;
+    g.lineWidth = 9 + rnd() * 12;
     const kind = rnd();
     g.save();
     g.translate(x, y);
@@ -124,9 +126,9 @@ function drawMarker(seed) {
   g.font = '800 64px system-ui, sans-serif';
   g.textBaseline = 'middle';
   g.fillText('DNB-AR  R-HAND', 170, 60);
-  g.font = '600 34px system-ui, sans-serif';
+  g.font = '700 38px system-ui, sans-serif';
   g.fillStyle = '#67e8f9';
-  g.fillText('TOP = FINGERTIP DIRECTION', 170, 118);
+  g.fillText('TOP → FINGERTIPS', 170, 118);
   // Up arrow in the header (top-left).
   g.fillStyle = '#facc15';
   g.beginPath();

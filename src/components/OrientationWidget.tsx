@@ -1,13 +1,24 @@
 import { useState } from 'react';
 import { useT } from '../i18n/useT';
+import { useAppStore } from '../store/useAppStore';
+import type { FingerId } from '../types';
 
 /**
- * 2D orientation key for the RIGHT index finger seen from the dorsal side
+ * 2D orientation key for a RIGHT-hand finger seen from the dorsal side
  * with the fingertip pointing up (away from the learner), matching the
  * default AR/explorer set-up. The 3D model also carries an axis gizmo.
  */
+/** Approximate finger axes in the SVG drawing below (right hand, dorsal view). */
+const FINGER_LINES: Record<FingerId, { tip: [number, number]; base: [number, number]; w: number }> = {
+  index: { tip: [75, 41], base: [75, 78], w: 18 },
+  middle: { tip: [101, 21], base: [100, 74], w: 18 },
+  ring: { tip: [127, 32], base: [123, 78], w: 15 },
+  little: { tip: [150, 52], base: [141, 92], w: 12 },
+};
+
 export function OrientationWidget() {
   const { t } = useT();
+  const sel = FINGER_LINES[useAppStore((s) => s.selectedFinger)];
   // Open by default only where there is room (tablets/desktops).
   const [open, setOpen] = useState(
     () => typeof window !== 'undefined' && window.innerWidth >= 900 && window.innerHeight >= 700,
@@ -36,19 +47,29 @@ export function OrientationWidget() {
           stroke="#e8b89a"
           strokeWidth="2"
         />
-        {/* Index finger highlighted. */}
-        <rect x="87" y="10" width="24" height="64" rx="12" fill="#22d3ee" fillOpacity="0.25" stroke="#22d3ee" strokeWidth="2" />
-        <rect x="93" y="13" width="12" height="11" rx="4" fill="#f7e1dc" opacity="0.9" />
+        {/* Selected finger highlighted (tip → base in the drawing). */}
+        <line
+          x1={sel.tip[0]}
+          y1={sel.tip[1]}
+          x2={sel.base[0]}
+          y2={sel.base[1]}
+          stroke="#22d3ee"
+          strokeOpacity="0.45"
+          strokeWidth={sel.w}
+          strokeLinecap="round"
+        />
+        {/* Marker sticker over the middle-finger knuckle. */}
+        <rect x="92" y="80" width="16" height="16" fill="#0f172a" stroke="#facc15" strokeWidth="2" />
         {/* Arrows */}
         <g stroke="#e2e8f0" strokeWidth="2.5" fill="#e2e8f0">
-          <line x1="99" y1="100" x2="99" y2="84" />
-          <polygon points="99,78 94,87 104,87" />
+          <line x1="100" y1="140" x2="100" y2="112" />
+          <polygon points="100,104 95,113 105,113" />
           <line x1="40" y1="120" x2="22" y2="120" />
           <polygon points="15,120 24,115 24,125" />
           <line x1="158" y1="120" x2="176" y2="120" />
           <polygon points="183,120 174,115 174,125" />
         </g>
-        <text x="99" y="114" textAnchor="middle" fontSize="11" fill="#e2e8f0" fontWeight="700">
+        <text x="100" y="158" textAnchor="middle" fontSize="11" fill="#e2e8f0" fontWeight="700">
           {t('orientation.distal').split(' ')[0]}
         </text>
         <text x="20" y="140" textAnchor="middle" fontSize="11" fill="#e2e8f0" fontWeight="700">

@@ -1,5 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { CALIBRATION_LIMITS } from '../../config/appConfig';
+import { getFinger } from '../../config/hand';
+import { FingerSelector } from '../FingerSelector';
 import { useT } from '../../i18n/useT';
 import { calibrationEquals, exportCalibration, parseCalibration } from '../../logic/calibration';
 import { useAppStore } from '../../store/useAppStore';
@@ -56,11 +58,24 @@ function Slider({ label, value, min, max, step, unit, onChange }: SliderProps) {
 }
 
 export function CalibrationPanel({ onStartAssessment }: { onStartAssessment: () => void }) {
-  const { t } = useT();
+  const { t, language } = useT();
   const c = useAppStore((s) => s.calibration);
   const saved = useAppStore((s) => s.savedCalibration);
-  const { updateCalibration, saveCalibration, resetCalibration, revertCalibration, replaceCalibration, setAllLayers, setMode } =
-    useAppStore.getState();
+  const finger = useAppStore((s) => s.selectedFinger);
+  const {
+    updateCalibration,
+    updateFingerCalibration: updateFinger,
+    resetFingerCalibration: resetFinger,
+    saveCalibration,
+    resetCalibration,
+    revertCalibration,
+    replaceCalibration,
+    setAllLayers,
+    setMode,
+  } = useAppStore.getState();
+  const f = c.fingers[finger];
+  const preset = getFinger(finger);
+  const fingerName = language === 'th' ? preset.nameTh : preset.nameEn;
   const fileRef = useRef<HTMLInputElement>(null);
   const [toast, setToast] = useState<{ text: string; error?: boolean } | null>(null);
   const L = CALIBRATION_LIMITS;
@@ -94,28 +109,35 @@ export function CalibrationPanel({ onStartAssessment }: { onStartAssessment: () 
       <p className="text-xs text-slate-400">{t('calibration.guide')}</p>
 
       <section className="space-y-2">
-        <h3 className="panel-title">{t('calibration.position')}</h3>
+        <h3 className="panel-title">{t('calibration.marker')}</h3>
+        <Slider label={t('calibration.markerSize')} unit=" cm" {...L.markerSizeCm} value={c.markerSizeCm} onChange={(markerSizeCm) => updateCalibration({ markerSizeCm })} />
+      </section>
+
+      <section className="space-y-2">
+        <h3 className="panel-title">{t('calibration.hand')}</h3>
+        <p className="text-xs text-slate-400">{t('calibration.handHint')}</p>
         <Slider label={t('calibration.x')} unit=" cm" {...L.position} value={c.position.x} onChange={(x) => updateCalibration({ position: { ...c.position, x } })} />
         <Slider label={t('calibration.y')} unit=" cm" {...L.position} value={c.position.y} onChange={(y) => updateCalibration({ position: { ...c.position, y } })} />
         <Slider label={t('calibration.z')} unit=" cm" {...L.positionZ} value={c.position.z} onChange={(z) => updateCalibration({ position: { ...c.position, z } })} />
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="panel-title">{t('calibration.rotation')}</h3>
         <Slider label={t('calibration.rx')} unit="°" {...L.rotation} value={c.rotationDeg.x} onChange={(x) => updateCalibration({ rotationDeg: { ...c.rotationDeg, x } })} />
         <Slider label={t('calibration.ry')} unit="°" {...L.rotation} value={c.rotationDeg.y} onChange={(y) => updateCalibration({ rotationDeg: { ...c.rotationDeg, y } })} />
         <Slider label={t('calibration.rz')} unit="°" {...L.rotation} value={c.rotationDeg.z} onChange={(z) => updateCalibration({ rotationDeg: { ...c.rotationDeg, z } })} />
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="panel-title">{t('calibration.scale')}</h3>
         <Slider label={t('calibration.scale')} unit="×" {...L.scale} value={c.scale} onChange={(scale) => updateCalibration({ scale })} />
       </section>
 
       <section className="space-y-2">
-        <h3 className="panel-title">{t('calibration.finger')}</h3>
-        <Slider label={t('calibration.length')} unit=" cm" {...L.fingerLengthCm} value={c.fingerLengthCm} onChange={(fingerLengthCm) => updateCalibration({ fingerLengthCm })} />
-        <Slider label={t('calibration.width')} unit=" cm" {...L.fingerWidthCm} value={c.fingerWidthCm} onChange={(fingerWidthCm) => updateCalibration({ fingerWidthCm })} />
+        <h3 className="panel-title">{t('calibration.fingerSection', { finger: fingerName })}</h3>
+        <FingerSelector compact />
+        <Slider label={t('calibration.length')} unit=" cm" {...L.fingerLengthCm} value={f.lengthCm} onChange={(lengthCm) => updateFinger(finger, { lengthCm })} />
+        <Slider label={t('calibration.width')} unit=" cm" {...L.fingerWidthCm} value={f.widthCm} onChange={(widthCm) => updateFinger(finger, { widthCm })} />
+        <Slider label={t('calibration.fx')} unit=" cm" {...L.fingerOffset} value={f.offset.x} onChange={(x) => updateFinger(finger, { offset: { ...f.offset, x } })} />
+        <Slider label={t('calibration.fy')} unit=" cm" {...L.fingerOffset} value={f.offset.y} onChange={(y) => updateFinger(finger, { offset: { ...f.offset, y } })} />
+        <Slider label={t('calibration.fz')} unit=" cm" {...L.fingerOffset} value={f.offset.z} onChange={(z) => updateFinger(finger, { offset: { ...f.offset, z } })} />
+        <Slider label={t('calibration.splay')} unit="°" {...L.splayDeg} value={f.splayDeg} onChange={(splayDeg) => updateFinger(finger, { splayDeg })} />
+        <Slider label={t('calibration.flexion')} unit="°" {...L.flexionDeg} value={f.flexionDeg} onChange={(flexionDeg) => updateFinger(finger, { flexionDeg })} />
+        <button className="btn btn-ghost btn-sm w-full" onClick={() => resetFinger(finger)}>
+          ↺ {t('calibration.resetFinger', { finger: fingerName })}
+        </button>
       </section>
 
       <div className="grid grid-cols-2 gap-2">

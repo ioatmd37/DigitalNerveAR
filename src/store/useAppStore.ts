@@ -4,6 +4,7 @@ import { appConfig, DEFAULT_CALIBRATION } from '../config/appConfig';
 import { DEFAULT_LAYER_VISIBILITY, LAYER_IDS } from '../config/anatomy';
 import { DEFAULT_FINGER, defaultFingerCalibration, FINGER_IDS } from '../config/hand';
 import { clampCalibration, cloneCalibration } from '../logic/calibration';
+import { defaultNeedleState, type NeedleResult, type NeedleSide, type NeedleState, type NeedleStatus } from '../logic/needle';
 import { appendAttempt } from '../logic/quiz';
 import { clampGuidedStep } from '../logic/visibility';
 import type {
@@ -45,6 +46,15 @@ export interface AppActions {
   setTrackingStatus: (status: TrackingStatus) => void;
   replayInjectate: () => void;
 
+  /** Change needle position; any geometry change invalidates a previous aspiration. */
+  setNeedle: (patch: Partial<Pick<NeedleState, 'entryY' | 'entryThetaDeg' | 'aimDeg' | 'tiltDeg' | 'depthCm' | 'side'>>) => void;
+  setNeedleShowAnatomy: (show: boolean) => void;
+  selectNeedleSide: (side: NeedleSide) => void;
+  restartNeedle: () => void;
+  recordNeedleEvents: (events: NeedleStatus[]) => void;
+  aspirateNeedle: (blood: boolean) => void;
+  injectNeedle: (result: NeedleResult) => void;
+
   selectFinger: (finger: FingerId) => void;
   /** Patch whole-hand calibration (marker size, position, rotation, scale). */
   updateCalibration: (patch: Partial<Omit<CalibrationSettings, 'version' | 'fingers'>>) => void;
@@ -76,6 +86,8 @@ interface TransientState {
   feedbackHighlight: StructureId[];
   /** Incremented to restart the simulated spread animation. */
   injectateNonce: number;
+  /** Virtual needle practice (session only, not persisted). */
+  needle: NeedleState;
 }
 
 export type AppState = SessionState & TransientState & AppActions;
@@ -94,6 +106,7 @@ function initialState(): SessionState & TransientState {
     selectedStructure: null,
     feedbackHighlight: [],
     injectateNonce: 0,
+    needle: defaultNeedleState('radial'),
     selectedFinger: DEFAULT_FINGER,
     calibration: cloneCalibration(DEFAULT_CALIBRATION),
     savedCalibration: null,
@@ -158,6 +171,41 @@ export const useAppStore = create<AppState>()(
       setFeedbackHighlight: (feedbackHighlight) => set({ feedbackHighlight }),
       setTrackingStatus: (trackingStatus) => set({ trackingStatus }),
       replayInjectate: () => set((s) => ({ injectateNonce: s.injectateNonce + 1 })),
+
+      setNeedle: (patch) =>
+        set((s) => {
+          const geometryChanged = (['entryY', 'entryThetaDeg', 'aimDeg', 'tiltDeg', 'depthCm'] as const).some(
+            (k) => k in patch && patch[k] !== s.needle[k],
+          );
+          return {
+            needle: {
+              ...s.needle,
+              ...patch,
+              ...(geometryChanged ? { aspiration: 'none' as const, injected: false } : {}),
+            },
+          };
+        }),
+      setNeedleShowAnatomy: (showAnatomy) => set((s) => ({ needle: { ...s.needle, showAnatomy } })),
+      selectNeedleSide: (side) =>
+        set((s) => ({
+          needle: { ...defaultNeedleState(side), showAnatomy: s.needle.showAnatomy, results: s.needle.results },
+        })),
+      restartNeedle: () =>
+        set((s) => {
+          const results = { ...s.needle.results };
+          delete results[s.needle.side];
+          return { needle: { ...defaultNeedleState(s.needle.side), showAnatomy: s.needle.showAnatomy, results } };
+        }),
+      recordNeedleEvents: (events) =>
+        set((s) => {
+          const fresh = [...new Set(events)].filter((e) => !s.needle.events.includes(e));
+          return fresh.length ? { needle: { ...s.needle, events: [...s.needle.events, ...fresh] } } : {};
+        }),
+      aspirateNeedle: (blood) => set((s) => ({ needle: { ...s.needle, aspiration: blood ? 'blood' : 'clear' } })),
+      injectNeedle: (result) =>
+        set((s) => ({
+          needle: { ...s.needle, injected: true, results: { ...s.needle.results, [s.needle.side]: result } },
+        })),
 
       selectFinger: (selectedFinger) =>
         set({ selectedFinger: FINGER_IDS.includes(selectedFinger) ? selectedFinger : DEFAULT_FINGER, selectedStructure: null }),

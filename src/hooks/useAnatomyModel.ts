@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { createAnatomyModel } from '../three/anatomy/createAnatomyModel';
 import type { AnatomyModel } from '../three/anatomy/AnatomyModel';
+import { useNeedleSim } from './useNeedle';
 import { useViewState } from './useViewState';
 
 /**
@@ -44,6 +45,8 @@ export function useAnatomyModel(): AnatomyModel | null {
     // Restart the spread animation whenever it (re)appears or on "replay".
     if (view.animateInjectate) model?.restartInjectate();
   }, [model, view.animateInjectate, injectateNonce]);
+
+  useNeedleSim(model);
 
   return model;
 }

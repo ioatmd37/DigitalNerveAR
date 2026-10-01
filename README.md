@@ -25,6 +25,7 @@ practising a digital nerve block **on a whole right-hand training mannequin** (i
 - [Running the development server](#running-the-development-server)
 - [Using a tablet or phone on the local network](#using-a-tablet-or-phone-on-the-local-network)
 - [Deploying to GitHub Pages](#deploying-to-github-pages)
+- [Needle Practice (virtual needle)](#needle-practice-virtual-needle)
 - [Printing and using the image marker](#printing-and-using-the-image-marker)
 - [Calibrating the mannequin](#calibrating-the-mannequin)
 - [Architecture and developer notes](#architecture-and-developer-notes)
@@ -58,6 +59,7 @@ The UI defaults to **Thai**, with an in-app ไทย / English toggle.
 | Anatomy Overlay Mode | Translucent skin, bone, tendon, nerves, arteries, optional veins. **Tap-to-label** in 3D or from the legend |
 | Layer-by-Layer Mode | 14 toggleable layers (skin, subcutaneous, bone, tendon, nerves, arteries, veins, safe zones, avoid zone, entry markers, needle path, simulated spread, landmarks, orientation), **Show all / Hide all**, labels toggle |
 | Guided Simulation | 7-step, non-clinical sequence (orientation → bundles → learning zones → entry markers → direction arrows → simulated spread → safety concepts) with highlighted structures |
+| Needle Practice | Virtual needle on the mannequin model (AR or 3D): tap the finger to choose an entry point, set the angle and tilt, advance the depth. Live model feedback (tissue / target beside the bone / near the bundle / bone contact / nerve, artery, tendon, volar avoid zone, through-and-through), aspiration check, simulated injection spread at the needle tip, and a 4-point checklist per side for the current session only. A "blind practice" switch hides internal anatomy |
 | Knowledge Check | 5 multiple-choice questions with immediate feedback, highlighted structures, a final score, and history in **local storage only** |
 | Instructor Mode | Passcode from `.env`, calibration panel (X/Y/Z, rotation X/Y/Z, scale, measured finger length/width), save/reset/revert, export/import JSON, show/hide all structures, start assessment, **in-browser marker compiler** |
 | Assessment Mode | Surface-only overlay, no labels or tap-to-label, timer (start/pause/finish), **Reveal anatomy for feedback** after the learner finishes; no auto-grading |
@@ -161,6 +163,26 @@ One-time setup:
 GitHub Pages is HTTPS, so the AR camera works on tablets and phones. Pages on a **private** repository requires a paid
 GitHub plan. The published site is public. It collects no data, and the instructor passcode only prevents accidental
 changes.
+
+## Needle Practice (virtual needle)
+
+The **💉 Needle Practice** tab lets learners rehearse the **dorsolateral** approach on the selected finger:
+
+1. Choose **Radial** or **Ulnar**, or tap the finger to set the entry point.
+2. Set the **angle toward the palm** and **tilt**, then increase **Depth**. The tip marker and the status card turn:
+   - **green** at the model target beside the bone;
+   - **amber** for bone contact or near the bundle;
+   - **red** in the model nerve, artery, tendon or volar avoid zone, or when the needle passes through the far side.
+3. **Aspirate:** the syringe fills red if the tip is in the model artery. Any needle movement invalidates the previous
+   aspiration.
+4. **Inject (simulated)** shows a conceptual spread at the tip and scores the side out of 4. Each point is one check:
+   entry in the learning zone, no red events during the attempt, aspirated with no blood before injecting, and injected
+   at the model target.
+
+Turn off **Show anatomy** for blind practice. Results are kept for the current session only. The feedback comes from
+the simplified layout in `src/three/anatomy/layout.ts`, evaluated by `src/logic/needle.ts` (unit-tested). It describes
+**this teaching model only**: it is not a judgement of real anatomy or real technique, and not guidance for patients.
+With a GLB model, the feedback still uses the procedural layout.
 
 ## Printing and using the image marker
 

@@ -92,7 +92,7 @@ export interface AnatomyStructure {
   showLabel: boolean;
 }
 
-export type LearningMode = 'surface' | 'anatomy' | 'layers' | 'guided' | 'quiz' | 'assessment';
+export type LearningMode = 'surface' | 'anatomy' | 'layers' | 'guided' | 'needle' | 'quiz' | 'assessment';
 
 /** Panel tabs: every learning mode plus the instructor-only calibration panel. */
 export type PanelTab = LearningMode | 'calibration';

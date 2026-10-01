@@ -37,6 +37,21 @@ import {
   surfacePath,
   surfacePoint,
 } from './geometry';
+import {
+  ARTERY,
+  AVOID_ZONE,
+  BONE_Z,
+  BONE_Z_SCALE,
+  BONES,
+  DORSOLATERAL_DEG,
+  ENTRY_Y,
+  NERVE,
+  needleTarget,
+  SAFE_ZONE,
+  SIDE_SIGN,
+  TENDON,
+  type Side,
+} from './layout';
 import { createDotTexture, createHatchTexture, createLabelTexture } from './textures';
 
 /**
@@ -67,13 +82,6 @@ import { createDotTexture, createHatchTexture, createLabelTexture } from './text
  * Frame: +X ulnar, −X radial, +Y distal, +Z dorsal; units = cm.
  */
 
-type Side = 'radial' | 'ulnar';
-/** X sign for each side (radial is toward the thumb = −X on a right hand). */
-const SIDE_SIGN: Record<Side, number> = { radial: -1, ulnar: 1 };
-/** Dorsolateral angle for each side, measured from +X toward +Z. */
-const DORSOLATERAL_DEG: Record<Side, number> = { radial: 130, ulnar: 50 };
-
-const ENTRY_Y = 1.0;
 const LABEL_X = 3.4;
 
 function std(color: string, opts: MeshStandardMaterialParameters = {}): MeshStandardMaterial {
@@ -189,18 +197,12 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
   // ----------------------------------------------------------------- bones
 
   private buildBones(): void {
-    const bones: { id: StructureId; y0: number; y1: number; r: number }[] = [
-      { id: 'metacarpal_head', y0: -3.8, y1: 0.05, r: 0.5 },
-      { id: 'phalanx_proximal', y0: 0.25, y1: 3.95, r: 0.42 },
-      { id: 'phalanx_middle', y0: 4.18, y1: 6.15, r: 0.35 },
-      { id: 'phalanx_distal', y0: 6.36, y1: 7.95, r: 0.28 },
-    ];
-    for (const b of bones) {
+    for (const b of BONES) {
       const mat = std(COLORS.bone, { roughness: 0.45 });
       const len = Math.max(0.01, b.y1 - b.y0 - 2 * b.r);
       const m = mesh(new CapsuleGeometry(b.r, len, 8, 20), mat, `${b.id}_mesh`);
-      m.position.set(0, (b.y0 + b.y1) / 2, 0.08);
-      m.scale.set(1, 1, 0.9);
+      m.position.set(0, (b.y0 + b.y1) / 2, BONE_Z);
+      m.scale.set(1, 1, BONE_Z_SCALE);
       const anchor = new Vector3(b.r * 0.9, (b.y0 + b.y1) / 2, 0.3);
       this.addStructure(b.id, [m], anchor, new Vector3(LABEL_X, 6.4, 1.3));
     }
@@ -208,8 +210,8 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
 
   private buildTendon(): void {
     const mat = std(COLORS.tendon, { roughness: 0.35 });
-    const pts = longitudinalPath(0, -0.5, -3.6, 6.55, 16);
-    this.addStructure('flexor_tendon', [tube(pts, 0.16, mat, 'flexor_tendon_tube')], new Vector3(0, 5.2, -0.45), new Vector3(1.6, 8.2, -1.8));
+    const pts = longitudinalPath(TENDON.x, TENDON.z, TENDON.y0, TENDON.y1, 16);
+    this.addStructure('flexor_tendon', [tube(pts, TENDON.r, mat, 'flexor_tendon_tube')], new Vector3(0, 5.2, -0.45), new Vector3(1.6, 8.2, -1.8));
   }
 
   // --------------------------------------------------------- neurovascular
@@ -218,19 +220,19 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
     for (const side of ['radial', 'ulnar'] as Side[]) {
       const sx = SIDE_SIGN[side];
       // In the digit the nerve lies volar to the artery (simplified).
-      const nervePts = longitudinalPath(0.6 * sx, -0.5, -3.6, 8.0, 18);
-      const arteryPts = longitudinalPath(0.68 * sx, -0.29, -3.6, 7.9, 18);
+      const nervePts = longitudinalPath(NERVE.x * sx, NERVE.z, NERVE.y0, NERVE.y1, 18);
+      const arteryPts = longitudinalPath(ARTERY.x * sx, ARTERY.z, ARTERY.y0, ARTERY.y1, 18);
       const nerveMat = std(COLORS.nerve, { emissive: COLORS.nerve, emissiveIntensity: 0.12, roughness: 0.4 });
       const arteryMat = std(COLORS.artery, { emissive: COLORS.artery, emissiveIntensity: 0.1, roughness: 0.35 });
       this.addStructure(
         `nerve_${side}` as StructureId,
-        [tube(nervePts, 0.08, nerveMat, `nerve_${side}_tube`)],
+        [tube(nervePts, NERVE.r, nerveMat, `nerve_${side}_tube`)],
         new Vector3(0.58 * sx, 3.0, -0.48),
         new Vector3(LABEL_X * sx, 3.3, -1.0),
       );
       this.addStructure(
         `artery_${side}` as StructureId,
-        [tube(arteryPts, 0.065, arteryMat, `artery_${side}_tube`)],
+        [tube(arteryPts, ARTERY.r, arteryMat, `artery_${side}_tube`)],
         new Vector3(0.64 * sx, 5.0, -0.26),
         new Vector3(LABEL_X * sx, 4.9, -0.3),
       );
@@ -265,7 +267,7 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
         side: DoubleSide,
         depthWrite: false,
       });
-      const patch = mesh(createSurfacePatch(0.3, 2.2, c - 25, c + 25, 1.035), mat, `safe_zone_${side}_patch`);
+      const patch = mesh(createSurfacePatch(SAFE_ZONE.y0, SAFE_ZONE.y1, c - SAFE_ZONE.halfWidthDeg, c + SAFE_ZONE.halfWidthDeg, 1.035), mat, `safe_zone_${side}_patch`);
       patch.renderOrder = 5;
       this.addStructure(
         `safe_zone_${side}` as StructureId,
@@ -284,7 +286,7 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       side: DoubleSide,
       depthWrite: false,
     });
-    const outer = mesh(createSurfacePatch(0.1, 7.3, 203, 337, 1.03, 40, 28), outerMat, 'avoid_zone_surface');
+    const outer = mesh(createSurfacePatch(AVOID_ZONE.y0, AVOID_ZONE.y1, AVOID_ZONE.theta0, AVOID_ZONE.theta1, 1.03, 40, 28), outerMat, 'avoid_zone_surface');
     outer.renderOrder = 5;
     // Faint inner volume so the zone reads as a region, not only a surface.
     const innerMat = new MeshBasicMaterial({
@@ -294,7 +296,7 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       side: DoubleSide,
       depthWrite: false,
     });
-    const inner = mesh(createSurfacePatch(0.1, 7.3, 203, 337, 0.97, 40, 28), innerMat, 'avoid_zone_volume');
+    const inner = mesh(createSurfacePatch(AVOID_ZONE.y0, AVOID_ZONE.y1, AVOID_ZONE.theta0, AVOID_ZONE.theta1, 0.97, 40, 28), innerMat, 'avoid_zone_volume');
     inner.renderOrder = 4;
     this.addStructure('avoid_zone_volar', [outer, inner], surfacePoint(3.2, 270, 1.03), new Vector3(0, 3.0, -2.6));
   }
@@ -303,7 +305,7 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
 
   /** Where the model arrow tip stops: beside the bone, near the bundle. */
   static needleTarget(side: Side): Vector3 {
-    return new Vector3(0.74 * SIDE_SIGN[side], ENTRY_Y, -0.16);
+    return needleTarget(side);
   }
 
   static entryPoint(side: Side): Vector3 {

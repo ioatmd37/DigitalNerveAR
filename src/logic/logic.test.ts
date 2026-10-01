@@ -78,6 +78,16 @@ describe('computeViewState', () => {
     expect(v.highlight).toEqual(['nerve_radial']);
   });
 
+  it('needle mode shows anatomy by default and supports blind practice', () => {
+    const shown = computeViewState({ ...base, mode: 'needle' });
+    expect(shown.layers.nerves).toBe(true);
+    expect(shown.layers.needlePath).toBe(false); // no answer arrows
+    expect(shown.labels).toBe(false);
+    const blind = computeViewState({ ...base, mode: 'needle', needleShowAnatomy: false });
+    expect(showsInternalAnatomy(blind)).toBe(false);
+    expect(blind.layers.skin).toBe(true);
+  });
+
   it('a selected structure is highlighted', () => {
     expect(computeViewState({ ...base, selectedStructure: 'artery_ulnar' }).highlight).toEqual(['artery_ulnar']);
   });

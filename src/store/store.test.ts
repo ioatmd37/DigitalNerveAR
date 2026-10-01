@@ -84,6 +84,29 @@ describe('app store', () => {
     expect(s().mode).toBe('anatomy');
   });
 
+  it('runs a needle practice attempt: insert → aspirate → inject → score', async () => {
+    const { evaluateNeedle, scoreAttempt } = await import('../logic/needle');
+    s().setMode('needle');
+    s().setNeedle({ aimDeg: 43, depthCm: 0.8 });
+    s().aspirateNeedle(false);
+    expect(s().needle.aspiration).toBe('clear');
+    // Any geometry change invalidates the aspiration.
+    s().setNeedle({ depthCm: 0.79 });
+    expect(s().needle.aspiration).toBe('none');
+    s().setNeedle({ depthCm: 0.8 });
+    s().aspirateNeedle(false);
+    const e = evaluateNeedle(s().needle);
+    s().injectNeedle(scoreAttempt(s().needle, e));
+    expect(s().needle.results.radial?.score).toBe(4);
+    s().recordNeedleEvents(['bone', 'bone', 'artery']);
+    expect(s().needle.events).toEqual(['bone', 'artery']);
+    s().restartNeedle();
+    expect(s().needle.results.radial).toBeUndefined();
+    expect(s().needle.events).toEqual([]);
+    s().selectNeedleSide('ulnar');
+    expect(s().needle.entryThetaDeg).toBe(50);
+  });
+
   it('toggles layers individually and all at once', () => {
     s().toggleLayer('veins');
     expect(s().userLayers.veins).toBe(true);

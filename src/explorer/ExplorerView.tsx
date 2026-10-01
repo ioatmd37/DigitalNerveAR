@@ -15,6 +15,7 @@ import { useAnatomyModel } from '../hooks/useAnatomyModel';
 import { useViewState } from '../hooks/useViewState';
 import { useAppStore } from '../store/useAppStore';
 import { useHandRig } from '../hooks/useHandRig';
+import { placeNeedleAt } from '../hooks/useNeedle';
 import type { AnatomyModel } from '../three/anatomy/AnatomyModel';
 import { assetUrl } from '../utils/assets';
 
@@ -91,6 +92,11 @@ function SceneContent({
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     if (!interactive) return;
     e.stopPropagation();
+    if (useAppStore.getState().mode === 'needle') {
+      const p = model.pickSkinPoint(e.intersections);
+      if (p) placeNeedleAt(p);
+      return;
+    }
     selectStructure(model.pick(e.intersections));
   };
 

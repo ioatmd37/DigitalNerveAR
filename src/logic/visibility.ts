@@ -11,6 +11,8 @@ export interface VisibilityInput {
   selectedStructure?: StructureId | null;
   /** Structures to pulse as quiz feedback (after an answer is chosen). */
   feedbackHighlight?: StructureId[];
+  /** Needle practice: show internal anatomy (false = "blind" practice). */
+  needleShowAnatomy?: boolean;
 }
 
 const SURFACE_LAYERS: LayerId[] = ['skin', 'landmarks', 'safeZones', 'orientation'];
@@ -83,6 +85,22 @@ export function computeViewState(input: VisibilityInput): ViewState {
         highlight: selected.length ? selected : step.highlight,
         interactive: true,
         animateInjectate: step.layers.includes('injectate'),
+      };
+    }
+    case 'needle': {
+      const show = input.needleShowAnatomy ?? true;
+      return {
+        layers: layerVisibility(
+          show
+            ? ['skin', 'bone', 'tendon', 'nerves', 'arteries', 'safeZones', 'avoidZone', 'landmarks', 'orientation']
+            : ['skin', 'landmarks', 'orientation'],
+        ),
+        skinOpacity: show ? XRAY_SKIN_OPACITY : SURFACE_SKIN_OPACITY,
+        // Labels would clutter the needle; tap-to-label is replaced by tap-to-place.
+        labels: false,
+        highlight: [],
+        interactive: true,
+        animateInjectate: false,
       };
     }
     case 'quiz':

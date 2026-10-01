@@ -37,6 +37,9 @@ Short in-app notice (shown on every screen): *“Educational simulation only. No
 - "Safe learning zone", "avoid zone", "entry marker", "needle direction" and "simulated spread" are **labels of this
   mannequin teaching model**, not clinical recommendations. The spread animation is conceptual. It does not model
   volume, pressure, diffusion or pharmacology.
+- **Needle Practice** feedback (target, near bundle, bone contact, nerve/artery/tendon, aspiration "blood", score)
+  is computed against the schematic model geometry only. It does not reflect real tissue, real needle behaviour or
+  safe technique on patients, and the score is a teaching aid, not a competence assessment.
 - AR alignment can be off by millimetres to centimetres, depending on calibration, marker quality, lighting, device
   and viewing angle. The system does not see the mannequin's anatomy; it only follows the printed marker.
 

@@ -36,6 +36,10 @@ export interface AnatomyModel {
   setDimensions(lengthCm: number, widthCm: number): void;
   /** Resolve a raycast hit list to the structure the learner meant. */
   pick(intersections: ReadonlyArray<{ object: Object3D }>): StructureId | null;
+  /** First visible hit on the skin, in the (unscaled) anatomy frame, or null. */
+  pickSkinPoint(intersections: ReadonlyArray<{ object: Object3D; point: Vector3 }>): Vector3 | null;
+  /** Attach an extra animated object (e.g. the virtual needle) to the anatomy frame. */
+  addExtension(ext: ModelExtension): void;
   /** Restart the simulated spread animation. */
   restartInjectate(): void;
   /** Advance animations; `elapsed` in seconds. */
@@ -43,6 +47,12 @@ export interface AnatomyModel {
   /** Local point (anatomy frame) to frame the camera on. */
   getFocusPoint(): Vector3;
   dispose(): void;
+}
+
+export interface ModelExtension {
+  object: Object3D;
+  update?(elapsed: number): void;
+  dispose?(): void;
 }
 
 interface TrackedMaterial {
@@ -112,6 +122,7 @@ export abstract class BaseAnatomyModel implements AnatomyModel {
   protected dims = new Vector3(1, 1, 1);
   private readonly highlighted = new Set<StructureId>();
   private readonly ownedTextures = new Set<Texture>();
+  private readonly extensions: ModelExtension[] = [];
 
   protected constructor() {
     this.root.name = 'AnatomyModelRoot';
@@ -240,6 +251,20 @@ export abstract class BaseAnatomyModel implements AnatomyModel {
     return envelope;
   }
 
+  pickSkinPoint(intersections: ReadonlyArray<{ object: Object3D; point: Vector3 }>): Vector3 | null {
+    for (const hit of intersections) {
+      if (!visibleInHierarchy(hit.object) || (hit.object as Sprite).isSprite) continue;
+      const id = findStructureId(hit.object);
+      if (id === 'skin') return this.anatomyFrame.worldToLocal(hit.point.clone());
+    }
+    return null;
+  }
+
+  addExtension(ext: ModelExtension): void {
+    this.extensions.push(ext);
+    this.anatomyFrame.add(ext.object);
+  }
+
   getFocusPoint(): Vector3 {
     return new Vector3(0, 3.6, 0);
   }
@@ -247,6 +272,7 @@ export abstract class BaseAnatomyModel implements AnatomyModel {
   restartInjectate(): void {}
 
   update(elapsed: number): void {
+    for (const ext of this.extensions) ext.update?.(elapsed);
     if (this.highlighted.size === 0) return;
     const pulse = 0.5 + 0.5 * Math.sin(elapsed * 4);
     for (const id of this.highlighted) {
@@ -341,6 +367,7 @@ export abstract class BaseAnatomyModel implements AnatomyModel {
   }
 
   dispose(): void {
+    for (const ext of this.extensions) ext.dispose?.();
     disposeObject(this.root);
     for (const t of this.ownedTextures) t.dispose();
     this.ownedTextures.clear();

@@ -15,6 +15,7 @@ export function useViewState(): ViewState {
       revealed: s.assessment.revealed,
       selectedStructure: s.selectedStructure,
       feedbackHighlight: s.feedbackHighlight,
+      needleShowAnatomy: s.needle.showAnatomy,
     })),
   );
   return useMemo(
@@ -27,6 +28,7 @@ export function useViewState(): ViewState {
         assessment: { revealed: input.revealed },
         selectedStructure: input.selectedStructure,
         feedbackHighlight: input.feedbackHighlight,
+        needleShowAnatomy: input.needleShowAnatomy,
       }),
     [input],
   );

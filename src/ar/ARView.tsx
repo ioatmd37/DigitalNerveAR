@@ -3,6 +3,7 @@ import { Raycaster, Vector2 } from 'three';
 import { appConfig } from '../config/appConfig';
 import { useAnatomyModel } from '../hooks/useAnatomyModel';
 import { useHandRig } from '../hooks/useHandRig';
+import { placeNeedleAt } from '../hooks/useNeedle';
 import { useViewState } from '../hooks/useViewState';
 import { useT } from '../i18n/useT';
 import { useAppStore } from '../store/useAppStore';
@@ -122,7 +123,13 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
       ray.setFromCamera(ndc, tracker.camera);
       ray.camera = tracker.camera;
       tracker.scene.updateMatrixWorld();
-      selectStructure(model.pick(ray.intersectObject(model.root, true)));
+      const hits = ray.intersectObject(model.root, true);
+      if (useAppStore.getState().mode === 'needle') {
+        const p = model.pickSkinPoint(hits);
+        if (p) placeNeedleAt(p);
+        return;
+      }
+      selectStructure(model.pick(hits));
     },
     [model, view.interactive, selectStructure],
   );

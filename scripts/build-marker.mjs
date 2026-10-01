@@ -73,22 +73,22 @@ function drawMarker(seed) {
   g.fillStyle = '#ffffff';
   g.fillRect(0, 0, S, S);
 
-  // Random geometric texture (corners/edges = trackable features). Shapes and
-  // strokes are deliberately bold so the marker still tracks when printed as
-  // a small (~5 cm) sticker on the back of a mannequin hand.
-  const M = 70;
-  for (let i = 0; i < 150; i++) {
+  // Few, large, bold shapes with thick strokes: the marker is printed as a
+  // tiny (~2 cm) sticker, so every feature must survive printing and a
+  // low-resolution camera view (MindAR needs the marker to cover >= ~100 px).
+  const M = 60;
+  for (let i = 0; i < 46; i++) {
     const x = M + rnd() * (S - 2 * M);
-    const y = 170 + rnd() * (S - 170 - M);
-    const r = 22 + rnd() * 58;
+    const y = 190 + rnd() * (S - 190 - M);
+    const r = 55 + rnd() * 75;
     g.fillStyle = ink();
     g.strokeStyle = ink();
-    g.lineWidth = 9 + rnd() * 12;
+    g.lineWidth = 24 + rnd() * 14;
     const kind = rnd();
     g.save();
     g.translate(x, y);
     g.rotate(rnd() * Math.PI * 2);
-    if (kind < 0.3) {
+    if (kind < 0.35) {
       g.beginPath();
       const n = 3 + Math.floor(rnd() * 3);
       for (let k = 0; k < n; k++) {
@@ -98,16 +98,12 @@ function drawMarker(seed) {
       }
       g.closePath();
       g.fill();
-    } else if (kind < 0.5) {
-      g.fillRect(-r, -r * 0.35, r * 2, r * 0.7);
-    } else if (kind < 0.68) {
+    } else if (kind < 0.55) {
+      g.fillRect(-r, -r * 0.3, r * 2, r * 0.6);
+    } else if (kind < 0.75) {
       g.beginPath();
-      g.arc(0, 0, r * 0.8, 0, Math.PI * 2);
+      g.arc(0, 0, r * 0.75, 0, Math.PI * 2);
       g.stroke();
-    } else if (kind < 0.8) {
-      g.beginPath();
-      g.arc(0, 0, r * 0.5, 0, Math.PI * 2);
-      g.fill();
     } else {
       g.beginPath();
       g.moveTo(-r, 0);
@@ -119,28 +115,29 @@ function drawMarker(seed) {
     g.restore();
   }
 
-  // Header band with orientation arrow (asymmetric → unambiguous rotation).
+  // Header band: a big yellow TOP arrow plus bold blocks (no small text,
+  // which would be unreadable and untrackable at sticker size).
   g.fillStyle = '#0b0f19';
-  g.fillRect(0, 0, S, 150);
-  g.fillStyle = '#ffffff';
-  g.font = '800 64px system-ui, sans-serif';
-  g.textBaseline = 'middle';
-  g.fillText('DNB-AR  R-HAND', 170, 60);
-  g.font = '700 38px system-ui, sans-serif';
-  g.fillStyle = '#67e8f9';
-  g.fillText('TOP → FINGERTIPS', 170, 118);
-  // Up arrow in the header (top-left).
+  g.fillRect(0, 0, S, 170);
   g.fillStyle = '#facc15';
   g.beginPath();
-  g.moveTo(85, 18);
-  g.lineTo(140, 88);
-  g.lineTo(106, 88);
-  g.lineTo(106, 134);
-  g.lineTo(64, 134);
-  g.lineTo(64, 88);
-  g.lineTo(30, 88);
+  g.moveTo(110, 14);
+  g.lineTo(196, 104);
+  g.lineTo(140, 104);
+  g.lineTo(140, 160);
+  g.lineTo(80, 160);
+  g.lineTo(80, 104);
+  g.lineTo(24, 104);
   g.closePath();
   g.fill();
+  g.fillStyle = '#ffffff';
+  g.fillRect(260, 40, 210, 90);
+  g.fillRect(520, 40, 90, 90);
+  g.beginPath();
+  g.arc(730, 85, 50, 0, Math.PI * 2);
+  g.fill();
+  g.fillStyle = '#67e8f9';
+  g.fillRect(820, 40, 150, 50);
 
   // Big asymmetric corner block (bottom-right) + checker strip (left).
   g.fillStyle = '#0b0f19';
@@ -150,15 +147,15 @@ function drawMarker(seed) {
   g.lineTo(S, S - 230);
   g.closePath();
   g.fill();
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 6; i++) {
     g.fillStyle = i % 2 ? '#0b0f19' : '#ffffff';
-    g.fillRect(0, 170 + i * 60, 40, 60);
+    g.fillRect(0, 190 + i * 130, 56, 130);
   }
 
   // Outer frame.
   g.strokeStyle = '#0b0f19';
-  g.lineWidth = 28;
-  g.strokeRect(14, 14, S - 28, S - 28);
+  g.lineWidth = 40;
+  g.strokeRect(20, 20, S - 40, S - 40);
   return c.toDataURL('image/png');
 }
 

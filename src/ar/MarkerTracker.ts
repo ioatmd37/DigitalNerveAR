@@ -28,6 +28,8 @@ export interface TrackerOptions {
   filterBeta: number;
   warmupTolerance: number;
   missTolerance: number;
+  /** Request 1920×1080 instead of 1280×720 (for very small markers; costs more CPU/GPU). */
+  highResolution?: boolean;
   onTrackingChange: (tracking: boolean) => void;
 }
 
@@ -128,7 +130,11 @@ export class MarkerTracker {
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: this.options.highResolution ? 1920 : 1280 },
+          height: { ideal: this.options.highResolution ? 1080 : 720 },
+        },
       });
     } catch (err) {
       const name = (err as DOMException)?.name;

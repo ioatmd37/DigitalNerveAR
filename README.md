@@ -166,7 +166,7 @@ changes.
 
 - The marker image is `public/marker/marker.png` and its compiled MindAR target is `public/marker/targets.mind`. Both are
   included and ready to use.
-- Open **Print marker** on the landing page (`/marker/print.html`), choose a size (**5 cm recommended**), and print at
+- Open **Print marker** on the landing page (`/marker/print.html`), choose a size (**2 cm recommended**; 2.5–3 cm tracks more steadily), and print at
   **100 % / Actual size** on matte sticker paper. Measure the printed square and enter it in *Calibration → Printed
   marker width*.
 - Mount the sticker on a thin rigid tile and fix it on the **back of the right mannequin hand, centred over the

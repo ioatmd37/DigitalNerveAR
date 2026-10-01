@@ -14,7 +14,7 @@ Calibration is saved per device (browser `localStorage`) and can be exported and
 
 ## 1. What you need
 
-- The marker sticker: print it from **Print marker** on the landing page, 5 cm recommended (see
+- The marker sticker: print it from **Print marker** on the landing page, 2 × 2 cm by default (2.5–3 cm tracks more steadily) (see
   [AR_MARKER_SETUP_GUIDE.md](AR_MARKER_SETUP_GUIDE.md))
 - A thin rigid tile for the sticker (1–2 mm plastic or thick card, the same size as the marker) and double-sided tape
 - A ruler or tape measure in cm
@@ -53,7 +53,7 @@ only need to change the fingers you teach on.
 
 1. Landing page → **Instructor Mode** → enter the passcode → **Open AR to calibrate live**. The **Calibration** tab
    opens.
-2. Hold the device 20–35 cm above the hand until the badge shows **✓ Marker detected**. A **cyan outline** is drawn
+2. Hold the device 12–20 cm above the hand until the badge shows **✓ Marker detected**. A **cyan outline** is drawn
    around the sticker. If the outline is bigger or smaller than the printed square, correct **Printed marker width**
    first. Everything else depends on it.
 3. Use **❄ Hold overlay** to freeze the pose if your hands get in the way, then release it to re-check.
@@ -103,7 +103,7 @@ and **nail fold** to the mannequin. Correct a wrong fingertip position with **le
 
 ## 7. Test from several viewing angles
 
-Hold the device 20–35 cm from the sticker. The badge must stay **✓ Marker detected**.
+Hold the device 12–20 cm from a 2 cm sticker (up to ~25 cm for 3 cm). The badge must stay **✓ Marker detected**.
 
 | View | What to check |
 | --- | --- |

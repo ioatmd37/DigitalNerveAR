@@ -96,9 +96,9 @@ describe('calibration (v2: whole hand + per-finger)', () => {
     },
   };
 
-  it('defaults to a 5 cm sticker on the middle-finger knuckle', () => {
+  it('defaults to a 2 cm sticker on the middle-finger knuckle', () => {
     expect(DEFAULT_CALIBRATION.version).toBe(2);
-    expect(DEFAULT_CALIBRATION.markerSizeCm).toBe(5);
+    expect(DEFAULT_CALIBRATION.markerSizeCm).toBe(2);
     expect(Object.keys(DEFAULT_CALIBRATION.fingers).sort()).toEqual(['index', 'little', 'middle', 'ring']);
   });
 

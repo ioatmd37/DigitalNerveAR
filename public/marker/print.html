@@ -38,7 +38,7 @@
       .sheet {
         display: flex;
         flex-wrap: wrap;
-        gap: 6mm;
+        gap: 4mm;
         justify-content: center;
       }
       .cut {
@@ -50,8 +50,8 @@
       /* Width is set from the size picker; it must match "Printed marker width" in Calibration. */
       .marker {
         display: block;
-        width: var(--size, 50mm);
-        height: var(--size, 50mm);
+        width: var(--size, 20mm);
+        height: var(--size, 20mm);
       }
       .notes {
         max-width: 180mm;
@@ -84,20 +84,20 @@
       <label>
         ขนาด / Size
         <select id="size">
+          <option value="2" selected>2 cm (แนะนำ / recommended)</option>
+          <option value="2.5">2.5 cm</option>
+          <option value="3">3 cm</option>
           <option value="4">4 cm</option>
-          <option value="5" selected>5 cm (แนะนำ / recommended)</option>
-          <option value="6">6 cm</option>
-          <option value="8">8 cm</option>
-          <option value="12">12 cm</option>
+          <option value="5">5 cm</option>
         </select>
       </label>
       <label>
         จำนวน / Copies
         <select id="copies">
           <option>1</option>
-          <option>2</option>
-          <option selected>4</option>
-          <option>6</option>
+          <option>4</option>
+          <option selected>12</option>
+          <option>24</option>
         </select>
       </label>
       <button onclick="window.print()">🖨 Print / พิมพ์</button>
@@ -116,7 +116,8 @@
       <ol>
         <li>
           พิมพ์บนกระดาษสติกเกอร์ด้าน (ไม่มัน) แล้วติดบนแผ่นแข็งบาง ๆ (เช่น พลาสติก/การ์ดหนา ~1–2 มม.) ให้เรียบ<br />
-          Print on matte sticker paper and mount it on a thin rigid tile (plastic or thick card, ~1–2 mm) so it stays flat.
+          Print on matte sticker paper and mount it on a thin rigid tile (plastic or thick card, ~1–2 mm) so it stays flat.<br />
+          ใช้การพิมพ์ที่คมชัด (≥ 600 dpi) / Use a sharp, high-resolution print (≥ 600 dpi).
         </li>
         <li>
           ติดบน<b>หลังมือของหุ่นมือขวา</b> ให้กึ่งกลางอยู่<b>เหนือข้อโคนนิ้วกลาง (MCP)</b> และให้ลูกศรสีเหลือง TOP

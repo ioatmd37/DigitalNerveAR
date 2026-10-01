@@ -12,14 +12,16 @@ uploaded.
 | --- | --- |
 | `public/marker/marker.png` | The printable marker image (1024 × 1024 px, high contrast, dense detail, asymmetric) |
 | `public/marker/targets.mind` | The compiled MindAR target for `marker.png` (**must match the image**) |
-| `public/marker/print.html` | A print page with a size picker (4–12 cm, 5 cm recommended) and several copies per sheet |
+| `public/marker/print.html` | A print page with a size picker (2–5 cm, 2 cm recommended) and several copies per sheet |
 | `scripts/build-marker.mjs` | Generates and/or compiles the marker (`npm run marker:build`) |
 
 ## 1. Print the marker sticker
 
 1. Open the app → **Print marker** (or `https://<host>/marker/print.html`).
-2. Choose the size. **5 cm is recommended** for the back of an adult mannequin hand. Use 6 cm if detection is
-   unreliable and the hand is large enough, or 4 cm for a small hand.
+2. Choose the size. **2 × 2 cm is the default** and fits over the middle-finger knuckle. It is close to MindAR's
+   limit: the marker must cover at least about **100 pixels** of the camera image. If detection is unreliable, use
+   **2.5 or 3 cm**, which track noticeably more steadily. Print sharply (≥ 600 dpi laser or photo printer); blurry
+   edges at this size prevent detection.
 3. Print at **100 % / Actual size**, with "Fit to page" **disabled**, on **matte** sticker paper. **Print without
    distortion**: both sides must be equal.
 4. Measure the printed square with a ruler and enter it in **Instructor Mode → Calibration → Printed marker width**.
@@ -45,8 +47,14 @@ uploaded.
 - **Keep the marker continuously visible where possible.** The whole marker should be in the camera view. Hands and
   instruments covering it cause "Marker not detected". Use **❄ Hold overlay** to freeze the last pose during brief
   occlusions.
-- Hold the device **20–35 cm** from the sticker (the marker should fill at least about ⅙ of the screen width), at up to
-  about 60° from perpendicular. Very steep angles reduce accuracy.
+- Hold the device **12–20 cm** from a 2 cm sticker (up to ~25 cm for 3 cm). The marker should look at least about
+  the size of a fingernail on the screen. Keep within about 45° of perpendicular, because small markers lose accuracy
+  quickly at steep angles.
+- For markers ≤ 3 cm, the app automatically asks for a 1080p camera stream so the marker covers more pixels. This
+  uses more processing power; older tablets may run slower.
+- **Small marker, long lever:** the fingertip is 4–5 marker-widths away from a 2 cm sticker, so a small tilt error at
+  the sticker becomes a few millimetres at the fingertip. Expect more jitter than with a large marker, and use
+  **❄ Hold overlay** to freeze a good pose while teaching.
 
 ## 4. Start AR
 

@@ -57,6 +57,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
         setCustomTarget(target.custom);
         const tracker = new MarkerTracker(container, {
           ...appConfig.tracking,
+          highResolution: useAppStore.getState().calibration.markerSizeCm <= appConfig.smallMarkerCm,
           onTrackingChange: (tracking) => setTrackingStatus(tracking ? 'tracking' : 'lost'),
         });
         trackerRef.current = tracker;

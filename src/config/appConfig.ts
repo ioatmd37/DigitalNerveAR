@@ -23,12 +23,17 @@ export const appConfig = {
   markerImageUrl: 'marker/marker.png',
   markerPrintUrl: 'marker/print.html',
   /** Default printed marker width (cm); instructors can change it in Calibration. */
-  markerSizeCm: num(env.VITE_MARKER_SIZE_CM, 5),
+  markerSizeCm: num(env.VITE_MARKER_SIZE_CM, 2),
   modelSource: ((env.VITE_MODEL_SOURCE as string | undefined) === 'gltf' ? 'gltf' : 'procedural') as
     | 'procedural'
     | 'gltf',
   modelGltfUrl: (env.VITE_MODEL_GLTF_URL as string | undefined) || 'models/right-index-finger.glb',
   /** MindAR one-euro filter tuning: lower minCF / beta = smoother but laggier. */
+  /**
+   * Markers this small (cm) or smaller get a 1920×1080 camera request:
+   * MindAR needs the marker to cover >= ~100 px of the camera image.
+   */
+  smallMarkerCm: 3,
   tracking: {
     filterMinCF: 0.0001,
     filterBeta: 10,
@@ -64,7 +69,7 @@ export const DEFAULT_CALIBRATION: CalibrationSettings = {
 };
 
 export const CALIBRATION_LIMITS = {
-  markerSizeCm: { min: 3, max: 20, step: 0.1 },
+  markerSizeCm: { min: 1.5, max: 20, step: 0.1 },
   position: { min: -30, max: 30, step: 0.1 },
   positionZ: { min: -15, max: 15, step: 0.1 },
   rotation: { min: -180, max: 180, step: 1 },

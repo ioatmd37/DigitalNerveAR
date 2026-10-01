@@ -24,6 +24,7 @@ practising a digital nerve block **on a right-hand training mannequin**.
 - [Local installation](#local-installation)
 - [Running the development server](#running-the-development-server)
 - [Using a tablet or phone on the local network](#using-a-tablet-or-phone-on-the-local-network)
+- [Deploying to GitHub Pages](#deploying-to-github-pages)
 - [Printing and using the image marker](#printing-and-using-the-image-marker)
 - [Calibrating the mannequin](#calibrating-the-mannequin)
 - [Architecture and developer notes](#architecture-and-developer-notes)
@@ -142,6 +143,23 @@ Tips:
   its root CA on the tablet, and configure `server.https` in `vite.config.ts`.
 - **Static deployment:** `npm run build` produces `dist/`, a fully static site (relative paths via `base: './'`). Host it
   on any HTTPS static host or an institutional web server.
+
+## Deploying to GitHub Pages
+
+`.github/workflows/deploy-pages.yml` lints, tests, builds and publishes the site on every push to `main` (or the
+current development branch), and it can also be run manually from the **Actions** tab.
+
+One-time setup:
+
+1. Repository **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+2. Optional: **Settings → Secrets and variables → Actions → New repository secret** named `INSTRUCTOR_PASSCODE`.
+   Without it, the default passcode `2468` is used.
+3. Push, or re-run the workflow. The site appears at `https://<user>.github.io/<repo>/`, for example
+   `https://ioatmd37.github.io/DigitalNerveAR/`.
+
+GitHub Pages is HTTPS, so the AR camera works on tablets and phones. Pages on a **private** repository requires a paid
+GitHub plan. The published site is public. It collects no data, and the instructor passcode only prevents accidental
+changes.
 
 ## Printing and using the image marker
 

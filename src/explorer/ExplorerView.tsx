@@ -39,6 +39,8 @@ const CAMERA_DISTANCE = 19;
 interface ExplorerViewProps {
   preset: { name: ViewPreset; nonce: number };
   showMarker: boolean;
+  /** Pixels covered by an overlay at the bottom (portrait dock); the view is re-centred above it. */
+  bottomInset?: number;
 }
 
 /**
@@ -46,7 +48,7 @@ interface ExplorerViewProps {
  * marker lies on a "table" and the finger is placed relative to it using
  * the same calibration as AR, so instructors can preview calibration here.
  */
-export function ExplorerView({ preset, showMarker }: ExplorerViewProps) {
+export function ExplorerView({ preset, showMarker, bottomInset = 0 }: ExplorerViewProps) {
   const model = useAnatomyModel();
   const selectStructure = useAppStore((s) => s.selectStructure);
   const view = useViewState();
@@ -60,6 +62,7 @@ export function ExplorerView({ preset, showMarker }: ExplorerViewProps) {
       gl={{ antialias: true, alpha: false }}
     >
       <color attach="background" args={['#151515']} />
+      <ViewInset bottom={bottomInset} />
       <hemisphereLight args={['#f6f6f5', '#3a3a38', 0.9]} />
       <directionalLight position={[8, 20, 12]} intensity={1.5} />
       <directionalLight position={[-10, 6, -8]} intensity={0.5} />
@@ -183,6 +186,19 @@ function distalArrowTexture(): Texture | null {
   return t;
 }
 
+/** Shifts the projection so the scene centre sits in the uncovered part of the canvas. */
+function ViewInset({ bottom }: { bottom: number }) {
+  const camera = useThree((s) => s.camera) as PerspectiveCamera;
+  const size = useThree((s) => s.size);
+  useEffect(() => {
+    const shift = Math.min(bottom, size.height * 0.6) / 2;
+    if (shift > 0) camera.setViewOffset(size.width, size.height, 0, shift, size.width, size.height);
+    else camera.clearViewOffset();
+    camera.updateProjectionMatrix();
+  }, [camera, size.width, size.height, bottom]);
+  return null;
+}
+
 /** Smoothly moves the camera to a preset angle around the finger. */
 function CameraRig({ model, preset }: { model: AnatomyModel; preset: ExplorerViewProps['preset'] }) {
   const camera = useThree((s) => s.camera) as PerspectiveCamera;
@@ -205,7 +221,9 @@ function CameraRig({ model, preset }: { model: AnatomyModel; preset: ExplorerVie
     // Avoid looking exactly along world-up (OrbitControls singularity).
     if (Math.abs(dirWorld.y) > 0.985) dirWorld.x += 0.1;
     dirWorld.normalize();
-    const toPos = center.clone().addScaledVector(dirWorld, CAMERA_DISTANCE * calibration.scale);
+    // Narrow portrait screens see less horizontally: back off so the finger fits.
+    const fit = Math.min(1.6, Math.max(1, 1 / camera.aspect));
+    const toPos = center.clone().addScaledVector(dirWorld, CAMERA_DISTANCE * fit * calibration.scale);
     anim.current = {
       fromPos: camera.position.clone(),
       toPos,

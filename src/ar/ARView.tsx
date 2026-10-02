@@ -176,7 +176,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
         </div>
       )}
       {phase === 'running' && customTarget && (
-        <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full bg-slate-900/70 px-3 py-1 text-xs text-slate-200">
+        <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 portrait:top-28 rounded-full bg-slate-900/70 px-3 py-1 text-xs text-slate-200">
           {t('ar.customMarker')}
         </div>
       )}

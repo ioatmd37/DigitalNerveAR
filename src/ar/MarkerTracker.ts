@@ -58,6 +58,8 @@ export class MarkerTracker {
   private frozen = false;
   private stopped = false;
   private readonly onResize = () => this.resize();
+  // The viewer layout can change without a window resize (panel collapse).
+  private readonly resizeObserver = new ResizeObserver(this.onResize);
   private readonly disposeEnvironment: () => void;
 
   constructor(
@@ -84,6 +86,7 @@ export class MarkerTracker {
 
     window.addEventListener('resize', this.onResize);
     window.addEventListener('orientationchange', this.onResize);
+    this.resizeObserver.observe(container);
   }
 
   get isTracking(): boolean {
@@ -273,6 +276,7 @@ export class MarkerTracker {
     this.stopped = true;
     window.removeEventListener('resize', this.onResize);
     window.removeEventListener('orientationchange', this.onResize);
+    this.resizeObserver.disconnect();
     this.renderer.setAnimationLoop(null);
     try {
       this.controller?.stopProcessVideo();

@@ -160,6 +160,11 @@ body {
   }
 }
 
+/* Denser type for overlays floating over the AR view; still readable. */
+@utility compact {
+  zoom: 0.88;
+}
+
 input[type='range'] {
   accent-color: #e8e5de;
   height: 2rem;

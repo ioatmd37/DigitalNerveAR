@@ -33,7 +33,7 @@ export function OscePanel() {
         <p className="text-sm leading-relaxed text-slate-300">{t('osce.intro')}</p>
         <p className="text-xs text-slate-400">{loc(OSCE_RUBRIC.title)}</p>
         <button className="btn btn-primary w-full" onClick={startOsce}>
-          ▶ {t('osce.start')}
+          {t('osce.start')}
         </button>
         <section className="rounded-2xl bg-slate-800/70 p-3">
           <h3 className="mb-1 text-sm font-bold text-slate-200">{t('osce.history')}</h3>
@@ -72,7 +72,7 @@ export function OscePanel() {
             resetOsce();
             startOsce();
           }}>
-          ↻ {t('osce.restart')}
+          {t('osce.restart')}
         </button>
         <button className="btn btn-ghost btn-sm w-full" onClick={resetOsce}>
           {t('common.back')}
@@ -87,9 +87,10 @@ export function OscePanel() {
 function Disclaimer() {
   const { t } = useT();
   return (
-    <p className="rounded-xl bg-amber-400/15 px-3 py-2 text-xs font-semibold text-amber-200 ring-1 ring-amber-500/40">
-      ⚠ {t('osce.disclaimer')}
-    </p>
+    <p className="flex items-start gap-2 text-xs text-amber-300">
+        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" aria-hidden />
+        {t('osce.disclaimer')}
+      </p>
   );
 }
 
@@ -104,8 +105,8 @@ function Timer() {
   const ms = startedAt ? now - startedAt : 0;
   const over = ms > OSCE_RUBRIC.timeLimitMin * 60_000;
   return (
-    <p className={`rounded-xl px-3 py-2 text-center font-mono text-lg font-black ${over ? 'bg-rose-900 text-rose-100' : 'bg-slate-800 text-white'}`}>
-      ⏱ {t('osce.time', { time: formatDuration(ms), limit: OSCE_RUBRIC.timeLimitMin })}
+    <p className={`rounded-xl px-3 py-2 text-center font-mono text-lg font-semibold ${over ? 'bg-rose-900 text-rose-100' : 'bg-slate-800 text-white'}`}>
+      {t('osce.time', { time: formatDuration(ms), limit: OSCE_RUBRIC.timeLimitMin })}
     </p>
   );
 }
@@ -113,7 +114,7 @@ function Timer() {
 function StepCard({ title, done, children }: { title: string; done: boolean; children: ReactNode }) {
   const { t } = useT();
   return (
-    <section className={`space-y-2 rounded-2xl p-3 ring-1 ${done ? 'bg-emerald-950/30 ring-emerald-700/60' : 'bg-slate-800/60 ring-slate-700'}`}>
+    <section className={`space-y-2 rounded-2xl p-3 border ${done ? 'bg-emerald-950/30 border-emerald-700/60' : 'bg-slate-800/60 border-slate-700'}`}>
       <h3 className="flex items-center justify-between text-sm font-bold text-white">
         <span>{title}</span>
         {done && <span className="text-xs font-semibold text-emerald-300">✓ {t('osce.confirmed')}</span>}
@@ -135,14 +136,14 @@ function Choice<T extends string | number>({
   label: string;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-1.5">
+    <div role="radiogroup" aria-label={label} className="seg flex w-full">
       {options.map((o) => (
         <button
           key={String(o.value)}
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`btn btn-sm ${value === o.value ? 'btn-primary' : 'btn-secondary'}`}
+          className="seg-item min-h-10 flex-1"
         >
           {o.label}
         </button>
@@ -214,7 +215,7 @@ function Running() {
       </StepCard>
 
       <StepCard title={t('osce.step4')} done={Object.keys(osce.sides).length === 2}>
-        <p className="text-xs text-cyan-200">👆 {t('osce.step4Hint')}</p>
+        <p className="text-xs text-cyan-200">{t('osce.step4Hint')}</p>
         <div role="radiogroup" aria-label={t('needle.side')} className="grid grid-cols-2 gap-2">
           {SIDES.map((side) => (
             <button
@@ -235,10 +236,10 @@ function Running() {
         <Slider label={t('osce.injectVolume')} unit=" ml" min={0.5} max={3} step={0.5} value={osce.injectVolumeMl} onChange={st.osceSetInjectVolume} />
         <div className="grid grid-cols-2 gap-2">
           <button className="btn btn-secondary" disabled={!e.inserted} onClick={() => st.osceAspirate()}>
-            ⇡ {t('needle.aspirate')}
+            {t('needle.aspirate')}
           </button>
           <button className="btn btn-primary" disabled={!e.inserted || needle.injected} onClick={inject}>
-            ◍ {t('needle.inject')}
+            {t('needle.inject')}
           </button>
         </div>
         {message && (
@@ -251,18 +252,18 @@ function Running() {
             ✓ {t('osce.sideDone', { side: sideName(s), ml: osce.sides[s]!.injectedMl })}
           </p>
         ))}
-        <Toggle label={t('needle.showAnatomy')} icon="👁" color="#94a3b8" checked={needle.showAnatomy} onChange={st.setNeedleShowAnatomy} />
+        <Toggle label={t('needle.showAnatomy')} color="#94a3b8" checked={needle.showAnatomy} onChange={st.setNeedleShowAnatomy} />
       </StepCard>
 
       <StepCard title={t('osce.step5')} done={osce.sensationAt !== null}>
         <button className="btn btn-secondary btn-sm w-full" onClick={st.osceSensationTest}>
-          ☝ {t('osce.testSensation')}
+          {t('osce.testSensation')}
         </button>
         {osce.sensationAt !== null && <p className="text-xs text-slate-300">{t('osce.sensationDone')}</p>}
       </StepCard>
 
       <button className="btn btn-success w-full" onClick={st.finishOsce}>
-        ✓ {t('osce.finish')}
+        {t('osce.finish')}
       </button>
     </div>
   );
@@ -276,7 +277,7 @@ function Results() {
   return (
     <section className="space-y-2">
       <h3 className="panel-title">{t('osce.results')}</h3>
-      <p className="text-2xl font-black text-white">{t('osce.autoScore', { score: score.autoScore, max: score.autoMax })}</p>
+      <p className="text-2xl font-semibold text-white">{t('osce.autoScore', { score: score.autoScore, max: score.autoMax })}</p>
       <p className="text-sm text-slate-300">{t('osce.elapsed', { time: formatDuration(score.elapsedMs) })}</p>
       <ul className="space-y-1.5">
         {score.items.map((r) => {

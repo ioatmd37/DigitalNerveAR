@@ -12,7 +12,7 @@ export function GuidedPanel() {
   const last = step === GUIDED_STEPS.length - 1;
   return (
     <div>
-      <p className="mb-2 text-xs uppercase tracking-wide text-slate-400">{t('guided.intro')}</p>
+      <p className="mb-2 text-xs text-slate-400">{t('guided.intro')}</p>
       <ol className="mb-3 flex gap-1.5" aria-label={t('common.step', { current: step + 1, total: GUIDED_STEPS.length })}>
         {GUIDED_STEPS.map((s, i) => (
           <li key={s.id} className="flex-1">
@@ -36,20 +36,20 @@ export function GuidedPanel() {
       <p className="leading-relaxed text-slate-200">{td(current.bodyKey)}</p>
       {current.id === 'spread' && (
         <button className="btn btn-ghost btn-sm mt-3" onClick={replay}>
-          ↻ {t('guided.replay')}
+          {t('guided.replay')}
         </button>
       )}
       <div className="mt-4 flex gap-2">
         <button className="btn btn-secondary flex-1" disabled={step === 0} onClick={() => setStep(step - 1)}>
-          ← {t('common.previous')}
+          {t('common.previous')}
         </button>
         {last ? (
           <button className="btn btn-primary flex-1" onClick={() => setMode('quiz')}>
-            {t('modes.quiz')} →
+            {t('modes.quiz')}
           </button>
         ) : (
           <button className="btn btn-primary flex-1" onClick={() => setStep(step + 1)}>
-            {t('common.next')} →
+            {t('common.next')}
           </button>
         )}
       </div>

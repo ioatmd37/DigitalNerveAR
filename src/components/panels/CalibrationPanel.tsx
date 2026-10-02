@@ -87,7 +87,7 @@ export function CalibrationPanel({ onStartAssessment }: { onStartAssessment: () 
         <Slider label={t('calibration.splay')} unit="°" {...L.splayDeg} value={f.splayDeg} onChange={(splayDeg) => updateFinger(finger, { splayDeg })} />
         <Slider label={t('calibration.flexion')} unit="°" {...L.flexionDeg} value={f.flexionDeg} onChange={(flexionDeg) => updateFinger(finger, { flexionDeg })} />
         <button className="btn btn-ghost btn-sm w-full" onClick={() => resetFinger(finger)}>
-          ↺ {t('calibration.resetFinger', { finger: fingerName })}
+          {t('calibration.resetFinger', { finger: fingerName })}
         </button>
       </section>
 
@@ -99,19 +99,19 @@ export function CalibrationPanel({ onStartAssessment }: { onStartAssessment: () 
             flash(t('calibration.savedToast'));
           }}
         >
-          💾 {t('calibration.save')} {dirty ? '•' : '✓'}
+          {t('calibration.save')}
         </button>
         <button className="btn btn-ghost btn-sm" onClick={resetCalibration}>
-          ↺ {t('calibration.reset')}
+          {t('calibration.reset')}
         </button>
         <button className="btn btn-ghost btn-sm" onClick={revertCalibration} disabled={!saved || !dirty}>
-          ⤺ {t('calibration.revert')}
+          {t('calibration.revert')}
         </button>
         <button className="btn btn-ghost btn-sm" onClick={() => downloadText('mannequin-calibration.json', exportCalibration(c))}>
-          ⇩ {t('calibration.export')}
+          {t('calibration.export')}
         </button>
         <button className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()}>
-          ⇧ {t('calibration.import')}
+          {t('calibration.import')}
         </button>
         <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={onImport} />
       </div>
@@ -135,7 +135,7 @@ export function CalibrationPanel({ onStartAssessment }: { onStartAssessment: () 
           </button>
         </div>
         <button className="btn btn-ghost w-full" onClick={onStartAssessment}>
-          ⏱ {t('modes.assessment')}
+          {t('modes.assessment')}
         </button>
       </section>
     </div>

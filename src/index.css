@@ -1,8 +1,70 @@
+@import '@fontsource/ibm-plex-sans-thai/400.css';
+@import '@fontsource/ibm-plex-sans-thai/500.css';
+@import '@fontsource/ibm-plex-sans-thai/600.css';
+@import '@fontsource/ibm-plex-sans-thai/700.css';
+@import '@fontsource/ibm-plex-mono/500.css';
 @import 'tailwindcss';
 
+/*
+ * Visual language: a quiet clinical instrument, not a showcase.
+ * - Graphite neutrals (no blue tint), one light "paper" tone for selection
+ *   and primary actions, colour reserved for meaning (anatomy colours,
+ *   green/amber/red feedback).
+ * - IBM Plex Sans Thai for both scripts, Plex Mono for numbers.
+ * - Small radii, 1px rules instead of glows and shadows.
+ *
+ * The Tailwind `slate`, `cyan` and `violet` scales are remapped here so
+ * the whole UI follows these tokens.
+ */
 @theme {
-  --font-sans: 'Noto Sans Thai', 'Sarabun', 'Leelawadee UI', 'Thonburi', system-ui, -apple-system, 'Segoe UI', Roboto,
-    sans-serif;
+  --font-sans: 'IBM Plex Sans Thai', 'Noto Sans Thai', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --color-slate-50: #f6f6f5;
+  --color-slate-100: #ebebea;
+  --color-slate-200: #d8d8d6;
+  --color-slate-300: #b4b4b1;
+  --color-slate-400: #8c8c88;
+  --color-slate-500: #686864;
+  --color-slate-600: #454542;
+  --color-slate-700: #303030;
+  --color-slate-800: #232323;
+  --color-slate-900: #191919;
+  --color-slate-950: #111111;
+
+  /* "Paper": selection and primary actions. */
+  --color-cyan-100: #fbfaf7;
+  --color-cyan-200: #ece9e2;
+  --color-cyan-300: #e3dfd6;
+  --color-cyan-400: #f5f3ee;
+  --color-cyan-500: #e8e5de;
+  --color-cyan-600: #d4d0c6;
+  --color-cyan-700: #3a3a37;
+  --color-cyan-800: #34342f;
+  --color-cyan-900: #262624;
+  --color-cyan-950: #1d1d1b;
+
+  --color-violet-600: #303030;
+  --color-violet-700: #2a2a2a;
+  --color-violet-800: #262626;
+  --color-violet-900: #232323;
+
+  /* Feedback colours, slightly desaturated. */
+  --color-emerald-300: #8fd3b0;
+  --color-emerald-500: #3f9f74;
+  --color-emerald-600: #2f8a62;
+  --color-amber-300: #e9c26b;
+  --color-amber-400: #e0b04d;
+  --color-amber-500: #d29b2c;
+  --color-rose-300: #ef9a9a;
+  --color-rose-600: #b8403f;
+  --color-rose-700: #9c3534;
+
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.4375rem;
+  --radius-2xl: 0.5rem;
+  --radius-3xl: 0.625rem;
+
   --color-nerve: #facc15;
   --color-artery: #ef4444;
   --color-vein: #3b82f6;
@@ -20,54 +82,77 @@ body,
 #root {
   height: 100%;
   margin: 0;
-  background: #0b1220;
-  color: #e2e8f0;
+  background: #111111;
+  color: #ebebea;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
 
 body {
   font-family: var(--font-sans);
+  font-feature-settings: 'tnum' 1;
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer components {
-  /* Large touch targets (≥48px) for tablet and gloved use. */
+  /* Touch targets stay ≥44px for tablets and gloved hands. */
   .btn {
-    @apply inline-flex min-h-12 select-none items-center justify-center gap-2 rounded-xl px-4 py-2 text-base font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-cyan-300;
+    @apply inline-flex min-h-11 select-none items-center justify-center gap-2 rounded-md px-4 py-2 text-[15px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-200;
   }
   .btn-primary {
     @apply bg-cyan-500 text-slate-950 hover:bg-cyan-400;
   }
   .btn-secondary {
-    @apply bg-slate-700 text-slate-50 hover:bg-slate-600;
+    @apply border border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-600 hover:bg-slate-700;
   }
   .btn-ghost {
-    @apply bg-transparent text-slate-200 ring-1 ring-slate-600 hover:bg-slate-800;
+    @apply bg-transparent text-slate-300 hover:bg-slate-800 hover:text-slate-100;
   }
   .btn-danger {
-    @apply bg-rose-600 text-white hover:bg-rose-500;
+    @apply border border-rose-700 bg-transparent text-rose-300 hover:bg-rose-700 hover:text-white;
   }
   .btn-success {
-    @apply bg-emerald-500 text-slate-950 hover:bg-emerald-400;
+    @apply bg-emerald-600 text-white hover:bg-emerald-500;
   }
   .btn-sm {
-    @apply min-h-10 px-3 text-sm;
+    @apply min-h-9 px-3 text-sm;
   }
   .card {
-    @apply rounded-2xl bg-slate-900/90 shadow-xl ring-1 ring-slate-700/70;
+    @apply rounded-lg border border-slate-700 bg-slate-900;
   }
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold;
+    @apply inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-medium;
   }
   .panel-title {
-    @apply mb-2 text-base font-bold text-slate-100;
+    @apply mb-2 text-sm font-semibold text-slate-100;
   }
   .muted {
     @apply text-sm text-slate-400;
   }
+  /* Segmented control (finger, language, view presets, choices). */
+  .seg {
+    @apply inline-flex shrink-0 rounded-md border border-slate-700 bg-slate-900 p-0.5;
+  }
+  .seg-item {
+    @apply min-h-8 rounded px-2.5 text-sm font-medium text-slate-300 transition-colors hover:text-slate-100;
+  }
+  .seg-item[aria-checked='true'],
+  .seg-item[aria-pressed='true'] {
+    @apply bg-cyan-500 text-slate-950;
+  }
+  /* Underlined tabs. */
+  .tab {
+    @apply relative shrink-0 whitespace-nowrap px-3 py-3 text-sm font-medium text-slate-400 transition-colors hover:text-slate-100;
+  }
+  .tab[aria-selected='true'] {
+    @apply text-slate-50 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-slate-50;
+  }
+  .num {
+    @apply font-mono tabular-nums;
+  }
 }
 
 input[type='range'] {
-  accent-color: #22d3ee;
+  accent-color: #e8e5de;
   height: 2rem;
 }

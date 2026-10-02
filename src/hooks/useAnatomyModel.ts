@@ -38,6 +38,16 @@ export function useAnatomyModel(): AnatomyModel | null {
   }, [model, language]);
 
   useEffect(() => {
+    // Labels are drawn to canvases; redraw once the bundled fonts are ready.
+    if (!model || typeof document === 'undefined' || !document.fonts) return;
+    let live = true;
+    document.fonts.ready.then(() => live && model.refreshLabels());
+    return () => {
+      live = false;
+    };
+  }, [model]);
+
+  useEffect(() => {
     model?.applyViewState(view);
   }, [model, view]);
 

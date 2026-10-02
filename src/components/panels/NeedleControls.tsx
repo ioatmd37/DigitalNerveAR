@@ -5,10 +5,10 @@ import { useAppStore } from '../../store/useAppStore';
 import { Slider } from '../Slider';
 
 const LEVEL_STYLE = {
-  neutral: { box: 'bg-slate-800 ring-slate-600', icon: '•' },
-  good: { box: 'bg-emerald-950/70 ring-emerald-500', icon: '✓' },
-  caution: { box: 'bg-amber-950/70 ring-amber-500', icon: '!' },
-  danger: { box: 'bg-rose-950/70 ring-rose-500', icon: '✕' },
+  neutral: { box: 'bg-slate-800 border-slate-600', icon: '•' },
+  good: { box: 'bg-emerald-950/70 border-emerald-500', icon: '✓' },
+  caution: { box: 'bg-amber-950/70 border-amber-500', icon: '!' },
+  danger: { box: 'bg-rose-950/70 border-rose-500', icon: '✕' },
 } as const;
 
 /** Live model feedback for the virtual needle (shared by Needle Practice and the OSCE station). */
@@ -21,8 +21,8 @@ export function NeedleStatusCard() {
   // Path findings other than the one already shown for the tip.
   const pathOnly = e.pathEvents.filter((s) => s !== e.tipStatus);
   return (
-    <div className={`rounded-2xl p-3 ring-1 ${LEVEL_STYLE[level].box}`} role="status" aria-live="polite">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t('needle.tip')}</p>
+    <div className={`rounded-2xl p-3 border ${LEVEL_STYLE[level].box}`} role="status" aria-live="polite">
+      <p className="text-xs font-semibold text-slate-400">{t('needle.tip')}</p>
       <p className="flex items-start gap-2 text-base font-bold text-white">
         <span aria-hidden>{LEVEL_STYLE[level].icon}</span>
         {statusText(e.tipStatus)}
@@ -42,12 +42,12 @@ export function NeedleStatusCard() {
       )}
       {n.aspiration !== 'none' && (
         <p className={`mt-1 text-sm font-semibold ${n.aspiration === 'blood' ? 'text-rose-300' : 'text-emerald-300'}`}>
-          {n.aspiration === 'blood' ? `🩸 ${t('needle.aspBlood')}` : `✓ ${t('needle.aspClear')}`}
+          {n.aspiration === 'blood' ? t('needle.aspBlood') : `✓ ${t('needle.aspClear')}`}
         </p>
       )}
       {n.injected && (
         <p className={`mt-1 text-sm font-semibold ${level === 'good' ? 'text-cyan-200' : 'text-rose-300'}`}>
-          {level === 'good' ? `◍ ${t('needle.injected')}` : `✕ ${t('needle.injectedBad')}`}
+          {level === 'good' ? `${t('needle.injected')}` : `✕ ${t('needle.injectedBad')}`}
         </p>
       )}
     </div>

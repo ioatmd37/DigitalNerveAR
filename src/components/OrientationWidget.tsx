@@ -25,15 +25,15 @@ export function OrientationWidget() {
   );
   if (!open) {
     return (
-      <button className="btn btn-secondary btn-sm pointer-events-auto shadow-lg" onClick={() => setOpen(true)}>
-        ✥ {t('orientation.title')}
+      <button className="btn btn-secondary btn-sm pointer-events-auto" onClick={() => setOpen(true)}>
+        {t('orientation.title')}
       </button>
     );
   }
   return (
     <div className="card pointer-events-auto max-h-full w-52 overflow-y-auto p-3 text-xs">
       <div className="mb-1 flex items-center justify-between">
-        <span className="font-bold text-slate-100">✥ {t('orientation.title')}</span>
+        <span className="font-bold text-slate-100">{t('orientation.title')}</span>
         <button className="rounded px-2 text-lg leading-none text-slate-400 hover:text-white" onClick={() => setOpen(false)} aria-label={t('common.close')}>
           ×
         </button>
@@ -59,7 +59,7 @@ export function OrientationWidget() {
           strokeLinecap="round"
         />
         {/* Marker sticker over the middle-finger knuckle. */}
-        <rect x="92" y="80" width="16" height="16" fill="#0f172a" stroke="#facc15" strokeWidth="2" />
+        <rect x="92" y="80" width="16" height="16" fill="#111111" stroke="#facc15" strokeWidth="2" />
         {/* Arrows */}
         <g stroke="#e2e8f0" strokeWidth="2.5" fill="#e2e8f0">
           <line x1="100" y1="140" x2="100" y2="112" />

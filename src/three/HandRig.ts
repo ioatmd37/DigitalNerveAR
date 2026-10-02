@@ -170,7 +170,7 @@ export class HandRig {
     }
 
     // One-sided table (faces dorsally) so volar views from below are not blocked.
-    const table = new Mesh(new PlaneGeometry(40, 40), new MeshStandardMaterial({ color: '#1e293b', roughness: 0.95 }));
+    const table = new Mesh(new PlaneGeometry(40, 40), new MeshStandardMaterial({ color: '#1d1d1c', roughness: 0.95 }));
     table.position.set(0.7, -4, -3.0);
     add(table);
   }

@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from 'react';
+import { DisclaimerBanner } from '../components/Disclaimer';
+import { Icon } from '../components/Icon';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { useT } from '../i18n/useT';
 import { useAppStore } from '../store/useAppStore';
@@ -22,15 +24,15 @@ export function InstructorLoginScreen() {
 
   return (
     <div className="flex min-h-full flex-col bg-slate-950">
-      <div className="bg-amber-400 px-4 py-2 text-center text-sm font-bold text-slate-950">⚠ {t('safety.short')}</div>
-      <div className="flex items-center justify-between p-3">
-        <button className="btn btn-secondary btn-sm" onClick={() => setScreen('landing')}>
-          ← {t('common.back')}
+      <div className="flex h-12 items-center justify-between border-b border-slate-800 px-3">
+        <button className="btn btn-ghost btn-sm -ml-1 gap-1 px-2" onClick={() => setScreen('landing')}>
+          <Icon name="back" />
+          {t('common.back')}
         </button>
         <LanguageToggle compact />
       </div>
-      <form onSubmit={submit} className="card mx-auto mt-8 w-[min(92vw,420px)] p-6">
-        <h1 className="mb-1 text-2xl font-bold text-white">🎓 {t('instructor.loginTitle')}</h1>
+      <form onSubmit={submit} className="mx-auto mt-16 w-[min(92vw,380px)]">
+        <h1 className="mb-1 text-2xl font-semibold text-slate-50">{t('instructor.loginTitle')}</h1>
         <p className="mb-4 text-sm text-slate-400">{t('instructor.loginHint')}</p>
         <label className="mb-1 block text-sm font-semibold text-slate-200" htmlFor="passcode">
           {t('instructor.passcode')}
@@ -46,16 +48,19 @@ export function InstructorLoginScreen() {
             setCode(e.target.value);
             setError(false);
           }}
-          className="mb-3 min-h-14 w-full rounded-xl bg-slate-800 px-4 text-2xl tracking-[0.4em] text-white ring-1 ring-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          className="num mb-3 min-h-12 w-full rounded-md border border-slate-700 bg-slate-900 px-4 text-xl tracking-[0.4em] text-white focus:border-slate-400 focus:outline-none"
         />
         {error && (
           <p className="mb-3 text-sm font-semibold text-rose-300" role="alert">
-            ✕ {t('instructor.wrong')}
+            {t('instructor.wrong')}
           </p>
         )}
         <button type="submit" className="btn btn-primary w-full" disabled={!code}>
           {t('instructor.unlock')}
         </button>
+        <div className="mt-10">
+          <DisclaimerBanner variant="landing" />
+        </div>
       </form>
     </div>
   );

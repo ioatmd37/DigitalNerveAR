@@ -1,3 +1,5 @@
+import { DisclaimerBanner } from '../components/Disclaimer';
+import { Icon } from '../components/Icon';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { CalibrationBadge } from '../components/StatusBadges';
 import { QUIZ_QUESTIONS } from '../config/quiz';
@@ -22,30 +24,47 @@ export function InstructorScreen() {
 
   return (
     <div className="min-h-full bg-slate-950">
-      <div className="bg-amber-400 px-4 py-2 text-center text-sm font-bold text-slate-950">⚠ {t('safety.short')}</div>
-      <div className="mx-auto max-w-3xl space-y-5 p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="mr-auto text-2xl font-black text-white">🎓 {t('instructor.title')}</h1>
-          <CalibrationBadge />
-          <LanguageToggle compact />
+      <header className="flex h-12 items-center gap-3 border-b border-slate-800 px-3">
+        <button className="btn btn-ghost btn-sm -ml-1 gap-1 px-2" onClick={() => setScreen('landing')}>
+          <Icon name="back" />
+          <span className="hidden sm:inline">{t('common.home')}</span>
+        </button>
+        <h1 className="flex-1 text-sm font-semibold text-slate-100">{t('instructor.title')}</h1>
+        <LanguageToggle compact />
+      </header>
+      <div className="mx-auto max-w-2xl space-y-8 px-5 py-8">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+          <DisclaimerBanner variant="landing" />
+          <span className="text-slate-400">
+            <CalibrationBadge />
+          </span>
         </div>
 
-        <section className="grid gap-3 sm:grid-cols-2">
-          <button className="btn btn-primary min-h-16" onClick={() => open('ar')}>
-            ◉ {t('instructor.openAr')}
-          </button>
-          <button className="btn btn-secondary min-h-16" onClick={() => open('explorer')}>
-            ⌬ {t('instructor.openExplorer')}
-          </button>
-          <button className="btn min-h-14 bg-violet-700 text-white hover:bg-violet-600" onClick={() => startAssessment('ar')}>
-            ⏱ {t('instructor.assessmentAr')}
-          </button>
-          <button className="btn min-h-14 bg-violet-900 text-white hover:bg-violet-800" onClick={() => startAssessment('explorer')}>
-            ⏱ {t('instructor.assessmentExplorer')}
-          </button>
+        <section>
+          <h2 className="panel-title">{t('calibration.title')}</h2>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button className="btn btn-primary" onClick={() => open('ar')}>
+              {t('instructor.openAr')}
+            </button>
+            <button className="btn btn-secondary" onClick={() => open('explorer')}>
+              {t('instructor.openExplorer')}
+            </button>
+          </div>
         </section>
 
-        <section className="card p-5">
+        <section>
+          <h2 className="panel-title">{t('modes.assessment')}</h2>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button className="btn btn-secondary" onClick={() => startAssessment('ar')}>
+              {t('instructor.assessmentAr')}
+            </button>
+            <button className="btn btn-secondary" onClick={() => startAssessment('explorer')}>
+              {t('instructor.assessmentExplorer')}
+            </button>
+          </div>
+        </section>
+
+        <section className="border-t border-slate-800 pt-6">
           <h2 className="panel-title">{t('instructor.quizSummary')}</h2>
           <p className="text-slate-200">
             {t('instructor.attempts', { count: attempts.length, best: bestScore(attempts), total: QUIZ_QUESTIONS.length })}
@@ -54,14 +73,14 @@ export function InstructorScreen() {
 
         <MarkerCompiler />
 
-        <section className="flex flex-wrap gap-3">
+        <section className="flex flex-wrap gap-3 border-t border-slate-800 pt-6">
           <button
             className="btn btn-danger"
             onClick={() => {
               if (window.confirm(t('instructor.clearConfirm'))) clearAll();
             }}
           >
-            🗑 {t('instructor.clearData')}
+            {t('instructor.clearData')}
           </button>
           <button
             className="btn btn-ghost"
@@ -70,7 +89,7 @@ export function InstructorScreen() {
               setScreen('landing');
             }}
           >
-            🔒 {t('instructor.lock')}
+            {t('instructor.lock')}
           </button>
         </section>
       </div>

@@ -25,6 +25,7 @@ const en = {
     explore: 'Explore 3D Model',
     instructor: 'Instructor Mode',
     printMarker: 'Print marker',
+    instructorHint: 'Calibration, assessment and marker tools',
     guides: 'Setup guides are in the /docs folder of the project.',
     calibrationSaved: 'Saved calibration found on this device',
     calibrationDefault: 'Using default calibration',
@@ -63,6 +64,11 @@ const en = {
     quiz: 'Knowledge Check',
     assessment: 'Assessment Mode',
     calibration: 'Calibration',
+  },
+  modeGroups: {
+    learn: 'Learn',
+    practice: 'Practice',
+    instructor: 'Instructor',
   },
   modeHelp: {
     surface: 'Only the simplified finger surface is shown. Internal anatomy is hidden. The green patches are the two dorsolateral learning zones of this mannequin model.',

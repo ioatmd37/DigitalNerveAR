@@ -25,11 +25,12 @@ export function NeedlePanel() {
 
   return (
     <div className="space-y-3">
-      <p className="rounded-xl bg-amber-400/15 px-3 py-2 text-xs font-semibold text-amber-200 ring-1 ring-amber-500/40">
-        ⚠ {t('needle.disclaimer')}
+      <p className="flex items-start gap-2 text-xs text-amber-300">
+        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" aria-hidden />
+        {t('needle.disclaimer')}
       </p>
       <p className="text-sm leading-relaxed text-slate-300">{t('needle.intro')}</p>
-      <p className="text-sm text-cyan-200">👆 {t('needle.howTo')}</p>
+      <p className="text-sm text-cyan-200">{t('needle.howTo')}</p>
 
       <div role="radiogroup" aria-label={t('needle.side')} className="grid grid-cols-2 gap-2">
         {SIDES.map((side) => (
@@ -50,19 +51,19 @@ export function NeedlePanel() {
 
       <div className="grid grid-cols-2 gap-2">
         <button className="btn btn-secondary" disabled={!e.inserted} onClick={aspirate}>
-          ⇡ {t('needle.aspirate')}
+          {t('needle.aspirate')}
         </button>
         <button className="btn btn-primary" disabled={!e.inserted || n.injected} onClick={inject}>
-          ◍ {t('needle.inject')}
+          {t('needle.inject')}
         </button>
         <button className="btn btn-ghost btn-sm col-span-2" onClick={restartNeedle}>
-          ↻ {t('needle.restart')}
+          {t('needle.restart')}
         </button>
       </div>
 
       <Toggle
         label={t('needle.showAnatomy')}
-        icon="👁"
+       
         color="#94a3b8"
         checked={n.showAnatomy}
         onChange={setNeedleShowAnatomy}
@@ -75,7 +76,7 @@ export function NeedlePanel() {
             <ResultCard key={side} title={t(`needle.${side}`)} result={r} />
           ))}
         </div>
-        <p className="mt-2 text-right text-lg font-black text-white">{t('needle.total', { score: total, max: 8 })}</p>
+        <p className="mt-2 text-right text-lg font-semibold text-white">{t('needle.total', { score: total, max: 8 })}</p>
       </section>
     </div>
   );

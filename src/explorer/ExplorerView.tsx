@@ -59,8 +59,8 @@ export function ExplorerView({ preset, showMarker }: ExplorerViewProps) {
       onPointerMissed={() => view.interactive && selectStructure(null)}
       gl={{ antialias: true, alpha: false }}
     >
-      <color attach="background" args={['#0b1220']} />
-      <hemisphereLight args={['#f8fafc', '#334155', 0.9]} />
+      <color attach="background" args={['#151515']} />
+      <hemisphereLight args={['#f6f6f5', '#3a3a38', 0.9]} />
       <directionalLight position={[8, 20, 12]} intensity={1.5} />
       <directionalLight position={[-10, 6, -8]} intensity={0.5} />
       {model && (

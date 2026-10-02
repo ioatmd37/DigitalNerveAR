@@ -91,7 +91,7 @@ export function QuizPanel() {
   if (phase === 'result') {
     return (
       <div>
-        <p className="text-3xl font-black text-white">{t('quiz.score', { score: lastScore ?? 0, total: QUIZ_QUESTIONS.length })}</p>
+        <p className="text-3xl font-semibold text-white">{t('quiz.score', { score: lastScore ?? 0, total: QUIZ_QUESTIONS.length })}</p>
         <ul className="mt-3 space-y-1 text-sm">
           {QUIZ_QUESTIONS.map((qq, i) => {
             const ok = isCorrect(qq, answers[qq.id]);
@@ -108,7 +108,7 @@ export function QuizPanel() {
           })}
         </ul>
         <button className="btn btn-primary mt-4 w-full" onClick={start}>
-          ↻ {t('quiz.retry')}
+          {t('quiz.retry')}
         </button>
         {history}
       </div>
@@ -127,8 +127,8 @@ export function QuizPanel() {
           const isChosen = chosen === i;
           const isAnswer = i === q.correctIndex;
           let cls = 'bg-slate-800 hover:bg-slate-700 text-slate-100';
-          if (answered && isAnswer) cls = 'bg-emerald-600 text-white ring-2 ring-emerald-300';
-          else if (answered && isChosen) cls = 'bg-rose-700 text-white ring-2 ring-rose-300';
+          if (answered && isAnswer) cls = 'bg-emerald-600 text-white border border-emerald-300';
+          else if (answered && isChosen) cls = 'bg-rose-700 text-white border border-rose-300';
           else if (answered) cls = 'bg-slate-800 text-slate-400';
           return (
             <button
@@ -137,7 +137,7 @@ export function QuizPanel() {
               disabled={answered}
               className={`flex min-h-12 items-center gap-3 rounded-xl px-4 py-2 text-left font-semibold transition disabled:cursor-default ${cls}`}
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black/25 text-sm">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-black/25 text-sm">
                 {answered && isAnswer ? '✓' : answered && isChosen ? '✕' : String.fromCharCode(65 + i)}
               </span>
               {td(key)}
@@ -147,7 +147,7 @@ export function QuizPanel() {
       </div>
       {answered && (
         <div
-          className={`mt-3 rounded-xl p-3 text-sm ring-1 ${correct ? 'bg-emerald-950/60 ring-emerald-700' : 'bg-rose-950/60 ring-rose-700'}`}
+          className={`mt-3 rounded-xl p-3 text-sm border ${correct ? 'bg-emerald-950/60 border-emerald-700' : 'bg-rose-950/60 border-rose-700'}`}
           role="status"
         >
           <p className="font-bold">{correct ? `✓ ${t('quiz.correct')}` : `✕ ${t('quiz.incorrect')}`}</p>
@@ -155,7 +155,7 @@ export function QuizPanel() {
         </div>
       )}
       <button className="btn btn-primary mt-4 w-full" disabled={!answered} onClick={next}>
-        {index < QUIZ_QUESTIONS.length - 1 ? `${t('common.next')} →` : t('quiz.finish')}
+        {index < QUIZ_QUESTIONS.length - 1 ? `${t('common.next')}` : t('quiz.finish')}
       </button>
     </div>
   );

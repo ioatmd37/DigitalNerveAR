@@ -42,6 +42,8 @@ export interface AnatomyModel {
   addExtension(ext: ModelExtension): void;
   /** Restart the simulated spread animation. */
   restartInjectate(): void;
+  /** Redraw label textures (e.g. once web fonts have loaded). */
+  refreshLabels(): void;
   /** Advance animations; `elapsed` in seconds. */
   update(elapsed: number): void;
   /** Local point (anatomy frame) to frame the camera on. */
@@ -219,6 +221,10 @@ export abstract class BaseAnatomyModel implements AnatomyModel {
     if (language === this.language && this.labelsBuilt) return;
     this.language = language;
     this.labelsBuilt = true;
+    this.rebuildLabels();
+  }
+
+  refreshLabels(): void {
     this.rebuildLabels();
   }
 

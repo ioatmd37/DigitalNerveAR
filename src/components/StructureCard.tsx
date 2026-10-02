@@ -15,7 +15,7 @@ export function StructureCard() {
     <div className="card pointer-events-auto max-h-full w-full max-w-sm overflow-y-auto p-4" role="dialog" aria-label={n.primary}>
       <div className="flex items-start gap-3">
         <span
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-lg font-black text-slate-950 ring-2 ring-white/40"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg font-semibold text-slate-950 border border-white/40"
           style={{ backgroundColor: s.color }}
           aria-hidden
         >
@@ -37,13 +37,13 @@ export function StructureCard() {
         </button>
       </div>
       <p className="mt-3 text-sm leading-relaxed text-slate-100">{loc(s.description)}</p>
-      <div className="mt-3 rounded-xl bg-cyan-950/60 p-3 text-sm ring-1 ring-cyan-800">
+      <div className="mt-3 rounded-xl bg-cyan-950/60 p-3 text-sm border border-cyan-800">
         <p className="font-semibold text-cyan-200">ℹ {t('structureCard.note')}</p>
         <p className="mt-1 leading-relaxed text-slate-100">{loc(s.educationalNote)}</p>
       </div>
       {s.warningNote && (
-        <div className="mt-2 rounded-xl bg-rose-950/60 p-3 text-sm ring-1 ring-rose-800">
-          <p className="font-semibold text-rose-200">⚠ {t('structureCard.warning')}</p>
+        <div className="mt-2 rounded-xl bg-rose-950/60 p-3 text-sm border border-rose-800">
+          <p className="font-semibold text-rose-200">{t('structureCard.warning')}</p>
           <p className="mt-1 leading-relaxed text-slate-100">{loc(s.warningNote)}</p>
         </div>
       )}

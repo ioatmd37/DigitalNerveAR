@@ -153,7 +153,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
       />
       {(phase === 'loading' || phase === 'camera') && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-          <div className="rounded-2xl bg-slate-900/85 px-5 py-4 text-center text-slate-100 shadow-xl">
+          <div className="rounded-2xl bg-slate-900/85 px-5 py-4 text-center text-slate-100">
             <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-cyan-400 border-t-transparent" />
             <p className="text-base">{phase === 'loading' ? t('ar.loadingTracker') : t('ar.requesting')}</p>
           </div>
@@ -161,7 +161,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
       )}
       {phase === 'error' && errorKind && (
         <div className="absolute inset-0 flex items-center justify-center p-6">
-          <div className="max-w-md rounded-2xl bg-slate-900/95 p-6 text-slate-100 shadow-2xl" role="alert">
+          <div className="max-w-md rounded-2xl bg-slate-900/95 p-6 text-slate-100" role="alert">
             <h2 className="mb-2 text-xl font-bold text-rose-300">{t('ar.errorTitle')}</h2>
             <p className="mb-5 leading-relaxed">{errorText[errorKind]}</p>
             <div className="flex flex-wrap gap-3">

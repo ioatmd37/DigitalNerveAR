@@ -11,9 +11,9 @@ export function FingerSelector({ compact = false }: { compact?: boolean }) {
     <div
       role="radiogroup"
       aria-label={t('fingers.title')}
-      className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-slate-800/90 p-1 ring-1 ring-slate-600"
+      className="seg items-center"
     >
-      {!compact && <span className="px-2 text-sm font-semibold text-slate-300">☝ {t('fingers.title')}</span>}
+      {!compact && <span className="px-2 text-sm text-slate-400">{t('fingers.title')}</span>}
       {FINGERS.map((f) => {
         const on = f.id === selected;
         return (
@@ -23,9 +23,7 @@ export function FingerSelector({ compact = false }: { compact?: boolean }) {
             aria-checked={on}
             title={language === 'th' ? `${f.nameTh} (${f.nameEn})` : `${f.nameEn} (${f.nameTh})`}
             onClick={() => select(f.id)}
-            className={`min-h-9 rounded-lg px-2.5 text-sm font-semibold transition ${
-              on ? 'bg-cyan-500 text-slate-950' : 'text-slate-200 hover:bg-slate-700'
-            }`}
+            className="seg-item"
           >
             {language === 'th' ? f.shortTh : f.shortEn}
           </button>

@@ -71,7 +71,7 @@ export interface LabelTextureOptions {
   compact?: boolean;
 }
 
-const LABEL_FONT = '"Noto Sans Thai", "Sarabun", "Leelawadee UI", "Thonburi", system-ui, sans-serif';
+const LABEL_FONT = '"IBM Plex Sans Thai", "Noto Sans Thai", "Sarabun", "Leelawadee UI", "Thonburi", system-ui, sans-serif';
 
 /** Rounded dark label with a colored badge containing the structure symbol. */
 export function createLabelTexture(opts: LabelTextureOptions): { texture: Texture; aspect: number } | null {
@@ -86,31 +86,36 @@ export function createLabelTexture(opts: LabelTextureOptions): { texture: Textur
   const w1 = pg.measureText(opts.primary).width;
   pg.font = `500 ${secondarySize}px ${LABEL_FONT}`;
   const w2 = opts.secondary ? pg.measureText(opts.secondary).width : 0;
-  const badge = opts.icon ? height * 0.62 : 0;
+  const badge = opts.icon ? height * 0.5 : 0;
   const pad = 22;
   const width = Math.ceil(Math.min(1400, pad * 2 + (badge ? badge + 18 : 0) + Math.max(w1, w2)));
 
   const c = createCanvas(width, height)!;
   const g = c.getContext('2d')!;
-  const r = 22;
-  g.fillStyle = 'rgba(15, 23, 42, 0.82)';
+  // Flat dark plate, hairline border, thin colour bar on the left.
+  const r = 10;
+  g.fillStyle = 'rgba(17, 17, 17, 0.88)';
   g.beginPath();
   g.roundRect(0, 0, width, height, r);
   g.fill();
-  g.strokeStyle = opts.color;
-  g.lineWidth = 5;
+  g.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+  g.lineWidth = 2;
   g.beginPath();
-  g.roundRect(2.5, 2.5, width - 5, height - 5, r - 2);
+  g.roundRect(1, 1, width - 2, height - 2, r - 1);
   g.stroke();
+  g.fillStyle = opts.color;
+  g.beginPath();
+  g.roundRect(0, 0, 9, height, [r, 0, 0, r]);
+  g.fill();
 
-  let x = pad;
+  let x = pad + 6;
   if (opts.icon) {
     const cy = height / 2;
     g.fillStyle = opts.color;
     g.beginPath();
-    g.arc(x + badge / 2, cy, badge / 2, 0, Math.PI * 2);
+    g.roundRect(x, cy - badge / 2, badge, badge, 6);
     g.fill();
-    g.fillStyle = '#0f172a';
+    g.fillStyle = '#111111';
     g.font = `800 ${Math.round(badge * 0.55)}px ${LABEL_FONT}`;
     g.textAlign = 'center';
     g.textBaseline = 'middle';
@@ -119,13 +124,13 @@ export function createLabelTexture(opts: LabelTextureOptions): { texture: Textur
   }
   g.textAlign = 'left';
   g.textBaseline = 'middle';
-  g.fillStyle = '#f8fafc';
-  g.font = `700 ${primarySize}px ${LABEL_FONT}`;
+  g.fillStyle = '#f6f6f5';
+  g.font = `600 ${primarySize}px ${LABEL_FONT}`;
   const primaryY = opts.secondary ? height * 0.37 : height / 2;
   g.fillText(opts.primary, x, primaryY);
   if (opts.secondary) {
-    g.fillStyle = '#cbd5e1';
-    g.font = `500 ${secondarySize}px ${LABEL_FONT}`;
+    g.fillStyle = '#b4b4b1';
+    g.font = `400 ${secondarySize}px ${LABEL_FONT}`;
     g.fillText(opts.secondary, x, height * 0.72);
   }
   const texture = new CanvasTexture(c);

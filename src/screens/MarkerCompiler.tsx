@@ -53,7 +53,7 @@ export function MarkerCompiler() {
 
   return (
     <section className="card space-y-3 p-5">
-      <h2 className="panel-title">🖼 {t('instructor.markerTools')}</h2>
+      <h2 className="panel-title">{t('instructor.markerTools')}</h2>
       <p className="text-sm text-slate-400">{t('instructor.markerToolsHint')}</p>
       <label className="btn btn-secondary w-full cursor-pointer">
         {t('compiler.choose')}
@@ -67,7 +67,7 @@ export function MarkerCompiler() {
           }}
         />
       </label>
-      {preview && <img src={preview} alt="" className="mx-auto max-h-40 rounded-lg ring-1 ring-slate-700" />}
+      {preview && <img src={preview} alt="" className="mx-auto max-h-40 rounded-lg border border-slate-700" />}
       <button className="btn btn-primary w-full" disabled={!file || progress !== null} onClick={compile}>
         {progress !== null ? t('compiler.compiling', { progress }) : t('compiler.compile')}
       </button>
@@ -76,7 +76,7 @@ export function MarkerCompiler() {
         <div className="grid gap-2 sm:grid-cols-2">
           <p className="text-sm font-semibold text-emerald-300 sm:col-span-2">✓ {t('compiler.done')}</p>
           <button className="btn btn-secondary" onClick={() => downloadBlob('targets.mind', new Blob([bufferOf(result)]))}>
-            ⇩ {t('compiler.download')}
+            {t('compiler.download')}
           </button>
           <button
             className="btn btn-success"
@@ -85,7 +85,7 @@ export function MarkerCompiler() {
               setHasCustom(true);
             }}
           >
-            ✓ {t('compiler.useOnDevice')}
+            {t('compiler.useOnDevice')}
           </button>
         </div>
       )}

@@ -147,6 +147,14 @@ body {
   .tab[aria-selected='true'] {
     @apply text-slate-50 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-slate-50;
   }
+  /* Small section label: spaced mono caps in English; Thai has no case and
+     letter-spacing breaks its stacked marks, so it stays plain. */
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.14em] text-slate-500;
+  }
+  :lang(th) .eyebrow {
+    @apply font-sans text-[13px] font-medium tracking-normal;
+  }
   .num {
     @apply font-mono tabular-nums;
   }

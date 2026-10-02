@@ -4,6 +4,7 @@ import { appConfig } from '../config/appConfig';
 import { useAnatomyModel } from '../hooks/useAnatomyModel';
 import { useHandRig } from '../hooks/useHandRig';
 import { placeNeedleAt } from '../hooks/useNeedle';
+import { usesNeedle } from '../logic/needle';
 import { useViewState } from '../hooks/useViewState';
 import { useT } from '../i18n/useT';
 import { useAppStore } from '../store/useAppStore';
@@ -124,7 +125,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
       ray.camera = tracker.camera;
       tracker.scene.updateMatrixWorld();
       const hits = ray.intersectObject(model.root, true);
-      if (useAppStore.getState().mode === 'needle') {
+      if (usesNeedle(useAppStore.getState().mode)) {
         const p = model.pickSkinPoint(hits);
         if (p) placeNeedleAt(p);
         return;

@@ -17,6 +17,7 @@ import { useAppStore } from '../store/useAppStore';
 import { useHandRig } from '../hooks/useHandRig';
 import { applyRoomEnvironment } from '../three/environment';
 import { placeNeedleAt } from '../hooks/useNeedle';
+import { usesNeedle } from '../logic/needle';
 import type { AnatomyModel } from '../three/anatomy/AnatomyModel';
 import { assetUrl } from '../utils/assets';
 
@@ -97,7 +98,7 @@ function SceneContent({
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     if (!interactive) return;
     e.stopPropagation();
-    if (useAppStore.getState().mode === 'needle') {
+    if (usesNeedle(useAppStore.getState().mode)) {
       const p = model.pickSkinPoint(e.intersections);
       if (p) placeNeedleAt(p);
       return;

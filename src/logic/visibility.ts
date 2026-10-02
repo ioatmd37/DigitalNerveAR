@@ -87,7 +87,8 @@ export function computeViewState(input: VisibilityInput): ViewState {
         animateInjectate: step.layers.includes('injectate'),
       };
     }
-    case 'needle': {
+    case 'needle':
+    case 'osce': {
       const show = input.needleShowAnatomy ?? true;
       return {
         layers: layerVisibility(

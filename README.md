@@ -26,6 +26,7 @@ practising a digital nerve block **on a whole right-hand training mannequin** (i
 - [Using a tablet or phone on the local network](#using-a-tablet-or-phone-on-the-local-network)
 - [Deploying to GitHub Pages](#deploying-to-github-pages)
 - [Needle Practice (virtual needle)](#needle-practice-virtual-needle)
+- [OSCE Station (virtual, faculty rubric)](#osce-station-virtual-faculty-rubric)
 - [Printing and using the image marker](#printing-and-using-the-image-marker)
 - [Calibrating the mannequin](#calibrating-the-mannequin)
 - [Architecture and developer notes](#architecture-and-developer-notes)
@@ -184,6 +185,34 @@ Turn off **Show anatomy** for blind practice. Results are kept for the current s
 the simplified layout in `src/three/anatomy/layout.ts`, evaluated by `src/logic/needle.ts` (unit-tested). It describes
 **this teaching model only**: it is not a judgement of real anatomy or real technique, and not guidance for patients.
 With a GLB model, the feedback still uses the procedural layout.
+
+## OSCE Station (virtual, faculty rubric)
+
+The **📋 OSCE Station** tab runs the Digital nerve block OSCE station as a virtual exercise on the mannequin model. It is
+scored with the faculty rubric in **`src/config/osceRubric.ts`**, where faculty can edit the item text, the
+10/6/0-style points, accepted equipment and drugs, volume limits, the time limit and the 60/100 pass mark.
+
+Steps the learner performs (the order and the time are recorded):
+
+1. Choose the syringe and needle size. 2. Choose the drug. 3. Draw up a volume. 4. For each side, choose the side,
+   tap the finger to place the needle, advance it, aspirate, set the volume and inject. 5. Test fingertip numbness.
+   Then finish.
+
+| Rubric item | How the app scores it |
+| --- | --- |
+| 1.1 Equipment, 1.2 Drug, 1.3 Draw ≤ 5 ml | From the choices made |
+| 1.4 Landmark, 1.5 Needle to near the palmar side | Virtual needle: entry in the landmark zone; tip at the model target with no red events, on both sides |
+| 1.6 Aspirate before injecting | Aspirated (no blood) at the injection position before injecting; "remembered after" counts as incomplete |
+| 1.7 1–2 ml per site | Injected volume per side (limited by what was drawn) |
+| 1.8 Fingertip numbness test | Done after both sides were injected |
+| 2.1 Sequence and time | Order equipment → drug → draw → inject → test, within the time limit; gentleness is left to the instructor |
+| 2.2 Both ulnar and radial | Both sides injected |
+| 1.9 Aseptic, 1.10 Re-capping, 2.3 Needle safety, contamination deductions | **Not observable by the app.** Shown as "assessed by the instructor" (15 points) |
+
+The result screen shows each item with its level (complete / incomplete / not done / instructor), the reason, the
+automatic score out of 85, and the time used. Attempts are stored on this device only. This is a **practice aid**: the
+automatic score is not an official OSCE result, and the real station is judged by the examiner on the physical
+mannequin.
 
 ## Printing and using the image marker
 

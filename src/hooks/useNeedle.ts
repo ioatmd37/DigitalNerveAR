@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Vector3 } from 'three';
-import { entryFromPoint, evaluateNeedle, RED_STATUSES, sideOfTheta, type NeedleEvaluation } from '../logic/needle';
+import { entryFromPoint, evaluateNeedle, RED_STATUSES, sideOfTheta, usesNeedle, type NeedleEvaluation } from '../logic/needle';
 import { useAppStore } from '../store/useAppStore';
 import type { AnatomyModel } from '../three/anatomy/AnatomyModel';
 import { NeedleSim } from '../three/needle/NeedleSim';
@@ -31,12 +31,12 @@ export function useNeedleSim(model: AnatomyModel | null): void {
 
   useEffect(() => {
     if (!sim) return;
-    sim.setVisible(mode === 'needle');
+    sim.setVisible(usesNeedle(mode));
     sim.sync(needle, evaluation);
   }, [sim, mode, needle, evaluation]);
 
   useEffect(() => {
-    if (mode !== 'needle') return;
+    if (!usesNeedle(mode)) return;
     const events = [evaluation.tipStatus, ...evaluation.pathEvents].filter(
       (s) => RED_STATUSES.includes(s) || s === 'bone',
     );

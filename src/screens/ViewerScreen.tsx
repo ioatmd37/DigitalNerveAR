@@ -9,6 +9,7 @@ import { CalibrationPanel } from '../components/panels/CalibrationPanel';
 import { GuidedPanel } from '../components/panels/GuidedPanel';
 import { LayerPanel } from '../components/panels/LayerPanel';
 import { NeedlePanel } from '../components/panels/NeedlePanel';
+import { OscePanel } from '../components/panels/OscePanel';
 import { QuizPanel } from '../components/panels/QuizPanel';
 import { SurfacePanel } from '../components/panels/SurfacePanel';
 import { CalibrationBadge, TrackingBadge } from '../components/StatusBadges';
@@ -28,6 +29,7 @@ const LEARNER_TABS: { id: PanelTab; icon: string }[] = [
   { id: 'layers', icon: '☰' },
   { id: 'guided', icon: '➜' },
   { id: 'needle', icon: '💉' },
+  { id: 'osce', icon: '📋' },
   { id: 'quiz', icon: '?' },
 ];
 
@@ -68,6 +70,8 @@ export function ViewerScreen({ kind }: { kind: 'ar' | 'explorer' }) {
         return <GuidedPanel />;
       case 'needle':
         return <NeedlePanel />;
+      case 'osce':
+        return <OscePanel />;
       case 'quiz':
         return <QuizPanel />;
       case 'assessment':

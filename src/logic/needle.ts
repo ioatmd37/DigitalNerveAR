@@ -234,3 +234,8 @@ export function scoreAttempt(n: NeedleState, e: NeedleEvaluation): NeedleResult 
   };
   return { ...r, score: Object.values(r).filter(Boolean).length };
 }
+
+/** Learning modes that show and use the virtual needle. */
+export function usesNeedle(mode: string): boolean {
+  return mode === 'needle' || mode === 'osce';
+}

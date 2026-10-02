@@ -5,6 +5,8 @@ import { DEFAULT_LAYER_VISIBILITY, LAYER_IDS } from '../config/anatomy';
 import { DEFAULT_FINGER, defaultFingerCalibration, FINGER_IDS } from '../config/hand';
 import { clampCalibration, cloneCalibration } from '../logic/calibration';
 import { defaultNeedleState, type NeedleResult, type NeedleSide, type NeedleState, type NeedleStatus } from '../logic/needle';
+import { initialOsceState, remainingMl, scoreOsce, toAttempt, type OsceAttempt, type OsceState } from '../logic/osce';
+import { evaluateNeedle } from '../logic/needle';
 import { appendAttempt } from '../logic/quiz';
 import { clampGuidedStep } from '../logic/visibility';
 import type {
@@ -55,6 +57,20 @@ export interface AppActions {
   aspirateNeedle: (blood: boolean) => void;
   injectNeedle: (result: NeedleResult) => void;
 
+  startOsce: () => void;
+  osceChooseEquipment: (syringeMl: number, needleG: number) => void;
+  osceChooseDrug: (drugId: string) => void;
+  osceDraw: (ml: number) => void;
+  osceSetInjectVolume: (ml: number) => void;
+  /** Returns true if blood was aspirated. */
+  osceAspirate: () => boolean;
+  /** Returns an error code, or null when the injection was recorded. */
+  osceInject: () => 'notInserted' | 'notEnoughDrug' | 'notDrawn' | null;
+  osceSensationTest: () => void;
+  finishOsce: () => void;
+  resetOsce: () => void;
+  clearOsceAttempts: () => void;
+
   selectFinger: (finger: FingerId) => void;
   /** Patch whole-hand calibration (marker size, position, rotation, scale). */
   updateCalibration: (patch: Partial<Omit<CalibrationSettings, 'version' | 'fingers'>>) => void;
@@ -88,11 +104,18 @@ interface TransientState {
   injectateNonce: number;
   /** Virtual needle practice (session only, not persisted). */
   needle: NeedleState;
+  /** Virtual OSCE station (session only). */
+  osce: OsceState;
+  /** Completed virtual OSCE attempts (persisted, this device only). */
+  osceAttempts: OsceAttempt[];
 }
 
 export type AppState = SessionState & TransientState & AppActions;
 
-type PersistedState = Pick<AppState, 'language' | 'savedCalibration' | 'quizAttempts' | 'showLabels' | 'selectedFinger'>;
+type PersistedState = Pick<
+  AppState,
+  'language' | 'savedCalibration' | 'quizAttempts' | 'showLabels' | 'selectedFinger' | 'osceAttempts'
+>;
 
 function initialState(): SessionState & TransientState {
   return {
@@ -107,6 +130,8 @@ function initialState(): SessionState & TransientState {
     feedbackHighlight: [],
     injectateNonce: 0,
     needle: defaultNeedleState('radial'),
+    osce: initialOsceState(),
+    osceAttempts: [],
     selectedFinger: DEFAULT_FINGER,
     calibration: cloneCalibration(DEFAULT_CALIBRATION),
     savedCalibration: null,
@@ -202,6 +227,76 @@ export const useAppStore = create<AppState>()(
           return fresh.length ? { needle: { ...s.needle, events: [...s.needle.events, ...fresh] } } : {};
         }),
       aspirateNeedle: (blood) => set((s) => ({ needle: { ...s.needle, aspiration: blood ? 'blood' : 'clear' } })),
+      startOsce: () =>
+        set(() => ({
+          mode: 'osce',
+          activeTab: 'osce',
+          selectedStructure: null,
+          needle: { ...defaultNeedleState('radial'), showAnatomy: false },
+          osce: { ...initialOsceState(), phase: 'running', startedAt: Date.now(), log: [{ type: 'start', t: Date.now() }] },
+        })),
+      osceChooseEquipment: (syringeMl, needleG) =>
+        set((s) => ({ osce: { ...s.osce, syringeMl, needleG, log: [...s.osce.log, { type: 'equipment', t: Date.now() }] } })),
+      osceChooseDrug: (drugId) =>
+        set((s) => ({ osce: { ...s.osce, drugId, log: [...s.osce.log, { type: 'drug', t: Date.now() }] } })),
+      osceDraw: (ml) => set((s) => ({ osce: { ...s.osce, drawnMl: ml, log: [...s.osce.log, { type: 'draw', t: Date.now() }] } })),
+      osceSetInjectVolume: (injectVolumeMl) => set((s) => ({ osce: { ...s.osce, injectVolumeMl } })),
+      osceAspirate: () => {
+        const s = get();
+        const e = evaluateNeedle(s.needle);
+        if (!e.inserted) return false;
+        const blood = e.tipStatus === 'artery';
+        const side = s.needle.side;
+        const rec = s.osce.sides[side];
+        set({
+          needle: { ...s.needle, aspiration: blood ? 'blood' : 'clear' },
+          osce: {
+            ...s.osce,
+            sides: rec && s.needle.injected ? { ...s.osce.sides, [side]: { ...rec, aspiratedAfter: true } } : s.osce.sides,
+            log: [...s.osce.log, { type: 'aspirate', t: Date.now(), side }],
+          },
+        });
+        return blood;
+      },
+      osceInject: () => {
+        const s = get();
+        const e = evaluateNeedle(s.needle);
+        if (!e.inserted) return 'notInserted';
+        if (s.osce.drawnMl <= 0) return 'notDrawn';
+        const side = s.needle.side;
+        if (remainingMl(s.osce, side) + 1e-9 < s.osce.injectVolumeMl) return 'notEnoughDrug';
+        const t = Date.now();
+        set({
+          needle: { ...s.needle, injected: true },
+          osce: {
+            ...s.osce,
+            sides: {
+              ...s.osce.sides,
+              [side]: {
+                injectedMl: s.osce.injectVolumeMl,
+                aspiratedBefore: s.needle.aspiration === 'clear',
+                aspiratedAfter: false,
+                entryOk: e.entryOk,
+                tipStatus: e.tipStatus,
+                redEvents: [...new Set([...s.needle.events, ...e.pathEvents])],
+                at: t,
+              },
+            },
+            log: [...s.osce.log, { type: 'inject', t, side }],
+          },
+        });
+        return null;
+      },
+      osceSensationTest: () =>
+        set((s) => ({ osce: { ...s.osce, sensationAt: Date.now(), log: [...s.osce.log, { type: 'sensation', t: Date.now() }] } })),
+      finishOsce: () =>
+        set((s) => {
+          const t = Date.now();
+          const osce: OsceState = { ...s.osce, phase: 'finished', finishedAt: t, log: [...s.osce.log, { type: 'finish', t }] };
+          return { osce, osceAttempts: [toAttempt(scoreOsce(osce, t), new Date(t)), ...s.osceAttempts].slice(0, 30) };
+        }),
+      resetOsce: () => set({ osce: initialOsceState() }),
+      clearOsceAttempts: () => set({ osceAttempts: [] }),
       injectNeedle: (result) =>
         set((s) => ({
           needle: { ...s.needle, injected: true, results: { ...s.needle.results, [s.needle.side]: result } },
@@ -327,6 +422,7 @@ export const useAppStore = create<AppState>()(
         quizAttempts: s.quizAttempts,
         showLabels: s.showLabels,
         selectedFinger: s.selectedFinger,
+        osceAttempts: s.osceAttempts,
       }),
       // Older persisted state is handled in `merge` (v1 calibrations are dropped).
       migrate: (persisted) => persisted as PersistedState,
@@ -340,6 +436,7 @@ export const useAppStore = create<AppState>()(
           showLabels: typeof p.showLabels === 'boolean' ? p.showLabels : current.showLabels,
           selectedFinger: p.selectedFinger && FINGER_IDS.includes(p.selectedFinger) ? p.selectedFinger : current.selectedFinger,
           quizAttempts: Array.isArray(p.quizAttempts) ? p.quizAttempts : [],
+          osceAttempts: Array.isArray(p.osceAttempts) ? p.osceAttempts : [],
           savedCalibration: saved,
           calibration: saved ? cloneCalibration(saved) : current.calibration,
         };

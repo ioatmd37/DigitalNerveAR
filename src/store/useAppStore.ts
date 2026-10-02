@@ -7,6 +7,7 @@ import { clampCalibration, cloneCalibration } from '../logic/calibration';
 import { defaultNeedleState, type NeedleResult, type NeedleSide, type NeedleState, type NeedleStatus } from '../logic/needle';
 import { initialOsceState, remainingMl, scoreOsce, toAttempt, type OsceAttempt, type OsceState } from '../logic/osce';
 import { evaluateNeedle } from '../logic/needle';
+import { digitFor } from '../three/anatomy/layout';
 import { appendAttempt } from '../logic/quiz';
 import { clampGuidedStep } from '../logic/visibility';
 import type {
@@ -213,13 +214,13 @@ export const useAppStore = create<AppState>()(
       setNeedleShowAnatomy: (showAnatomy) => set((s) => ({ needle: { ...s.needle, showAnatomy } })),
       selectNeedleSide: (side) =>
         set((s) => ({
-          needle: { ...defaultNeedleState(side), showAnatomy: s.needle.showAnatomy, results: s.needle.results },
+          needle: { ...defaultNeedleState(side, digitFor(s.selectedFinger)), showAnatomy: s.needle.showAnatomy, results: s.needle.results },
         })),
       restartNeedle: () =>
         set((s) => {
           const results = { ...s.needle.results };
           delete results[s.needle.side];
-          return { needle: { ...defaultNeedleState(s.needle.side), showAnatomy: s.needle.showAnatomy, results } };
+          return { needle: { ...defaultNeedleState(s.needle.side, digitFor(s.selectedFinger)), showAnatomy: s.needle.showAnatomy, results } };
         }),
       recordNeedleEvents: (events) =>
         set((s) => {
@@ -228,11 +229,11 @@ export const useAppStore = create<AppState>()(
         }),
       aspirateNeedle: (blood) => set((s) => ({ needle: { ...s.needle, aspiration: blood ? 'blood' : 'clear' } })),
       startOsce: () =>
-        set(() => ({
+        set((s) => ({
           mode: 'osce',
           activeTab: 'osce',
           selectedStructure: null,
-          needle: { ...defaultNeedleState('radial'), showAnatomy: false },
+          needle: { ...defaultNeedleState('radial', digitFor(s.selectedFinger)), showAnatomy: false },
           osce: { ...initialOsceState(), phase: 'running', startedAt: Date.now(), log: [{ type: 'start', t: Date.now() }] },
         })),
       osceChooseEquipment: (syringeMl, needleG) =>
@@ -243,7 +244,7 @@ export const useAppStore = create<AppState>()(
       osceSetInjectVolume: (injectVolumeMl) => set((s) => ({ osce: { ...s.osce, injectVolumeMl } })),
       osceAspirate: () => {
         const s = get();
-        const e = evaluateNeedle(s.needle);
+        const e = evaluateNeedle(s.needle, digitFor(s.selectedFinger));
         if (!e.inserted) return false;
         const blood = e.tipStatus === 'artery';
         const side = s.needle.side;
@@ -260,7 +261,7 @@ export const useAppStore = create<AppState>()(
       },
       osceInject: () => {
         const s = get();
-        const e = evaluateNeedle(s.needle);
+        const e = evaluateNeedle(s.needle, digitFor(s.selectedFinger));
         if (!e.inserted) return 'notInserted';
         if (s.osce.drawnMl <= 0) return 'notDrawn';
         const side = s.needle.side;
@@ -302,8 +303,16 @@ export const useAppStore = create<AppState>()(
           needle: { ...s.needle, injected: true, results: { ...s.needle.results, [s.needle.side]: result } },
         })),
 
-      selectFinger: (selectedFinger) =>
-        set({ selectedFinger: FINGER_IDS.includes(selectedFinger) ? selectedFinger : DEFAULT_FINGER, selectedStructure: null }),
+      selectFinger: (finger) =>
+        set((s) => {
+          const selectedFinger = FINGER_IDS.includes(finger) ? finger : DEFAULT_FINGER;
+          // A different digit layout (finger / little / thumb) invalidates the needle position and results.
+          const needle =
+            digitFor(selectedFinger) === digitFor(s.selectedFinger)
+              ? s.needle
+              : { ...defaultNeedleState(s.needle.side, digitFor(selectedFinger)), showAnatomy: s.needle.showAnatomy };
+          return { selectedFinger, selectedStructure: null, needle };
+        }),
       updateCalibration: (patch) =>
         set((s) => ({
           calibration: clampCalibration({

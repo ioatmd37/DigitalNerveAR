@@ -10,6 +10,7 @@ import type { FingerId } from '../types';
  */
 /** Approximate finger axes in the SVG drawing below (right hand, dorsal view). */
 const FINGER_LINES: Record<FingerId, { tip: [number, number]; base: [number, number]; w: number }> = {
+  thumb: { tip: [36, 60], base: [56, 92], w: 15 },
   index: { tip: [75, 41], base: [75, 78], w: 18 },
   middle: { tip: [101, 21], base: [100, 74], w: 18 },
   ring: { tip: [127, 32], base: [123, 78], w: 15 },

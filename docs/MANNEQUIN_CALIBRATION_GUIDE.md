@@ -6,7 +6,8 @@
 
 The app is designed for a **whole right-hand mannequin** (for example an IV/injection training hand on a foam wrist
 block). A small **marker sticker** sits on the **back of the hand over the middle-finger knuckle**. The learner picks a
-finger (**index, middle, ring or little**), and the anatomy overlay appears on that finger. The thumb is not modelled.
+digit (**thumb, index, middle, ring or little**), and the anatomy overlay appears on that digit. The thumb uses its
+own two-phalanx model.
 
 Calibration is saved per device (browser `localStorage`) and can be exported and imported as JSON.
 
@@ -77,7 +78,7 @@ sits on the knuckle and the **nail fold** sits on the nail.
 
 ### B. Each finger you use
 
-Select the finger (**Index / Middle / Ring / Little**) and fine-tune:
+Select the digit (**Thumb / Index / Middle / Ring / Little**) and fine-tune:
 
 | Control | Meaning |
 | --- | --- |
@@ -85,10 +86,12 @@ Select the finger (**Index / Middle / Ring / Little**) and fine-tune:
 | **Knuckle shift X/Y/Z** | Moves only this finger's knuckle (ulnar+, distal+, dorsal+), cm |
 | **Splay** | Sideways angle of this finger (+ toward the thumb) |
 | **Flexion** | Bend at the MCP joint (+ toward the palm). Mannequin fingers are often slightly flexed |
+| **Roll** | Rotation about the digit's own long axis (− turns the nail toward the thumb side). Mainly for the **thumb**, which is pronated: start at −55° and turn until the virtual nail faces the same way as the mannequin's thumbnail |
 | **Reset finger to default** | Restores this finger's defaults only |
 
 Use **Surface Landmarks** mode with **3D labels** on, and match the **MCP knuckle**, **PIP crease**, **DIP crease**
-and **nail fold** to the mannequin. Correct a wrong fingertip position with **length** or **flexion**, not scale.
+and **nail fold** to the mannequin (thumb: **MCP knuckle**, **IP crease**, **nail fold** and the **first web space** on its
+ulnar side). The thumb's knuckle sits well proximal and volar to the finger knuckles, so expect larger knuckle shifts. Correct a wrong fingertip position with **length** or **flexion**, not scale.
 
 4. Tap **Save calibration**. The badge shows **Calibration: Saved**.
 5. Optional: **Export JSON** and keep it with the mannequin (e.g. `hand-A-calibration.json`), so other tablets can

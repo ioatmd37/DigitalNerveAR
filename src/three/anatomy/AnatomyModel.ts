@@ -14,8 +14,7 @@ import {
   Vector3,
   type Texture,
 } from 'three';
-import { getStructure, LAYER_IDS } from '../../config/anatomy';
-import { MODEL_REFERENCE } from '../../config/appConfig';
+import { LAYER_IDS, structureFor } from '../../config/anatomy';
 import type { AnatomyStructure, Language, LayerId, StructureId, ViewState } from '../../types';
 import { createLabelTexture } from './textures';
 
@@ -126,7 +125,14 @@ export abstract class BaseAnatomyModel implements AnatomyModel {
   private readonly ownedTextures = new Set<Texture>();
   private readonly extensions: ModelExtension[] = [];
 
-  protected constructor() {
+  /**
+   * @param reference model size that measured dimensions are compared with
+   * @param thumb use the thumb wording of structures
+   */
+  protected constructor(
+    private readonly reference: { lengthCm: number; widthCm: number } = { lengthCm: 8.5, widthCm: 2.0 },
+    protected readonly thumb = false,
+  ) {
     this.root.name = 'AnatomyModelRoot';
     this.anatomyFrame.name = 'AnatomyFrame';
     this.labelGroup.name = 'Labels';
@@ -146,7 +152,7 @@ export abstract class BaseAnatomyModel implements AnatomyModel {
     labelAnchor: Vector3,
     labelPosition: Vector3,
   ): StructureEntry {
-    const def = getStructure(id);
+    const def = structureFor(id, this.thumb);
     const group = new Group();
     group.name = id;
     group.userData[STRUCTURE_ID_KEY] = id;
@@ -230,9 +236,9 @@ export abstract class BaseAnatomyModel implements AnatomyModel {
 
   setDimensions(lengthCm: number, widthCm: number): void {
     this.dims.set(
-      widthCm / MODEL_REFERENCE.fingerWidthCm,
-      lengthCm / MODEL_REFERENCE.fingerLengthCm,
-      widthCm / MODEL_REFERENCE.fingerWidthCm,
+      widthCm / this.reference.widthCm,
+      lengthCm / this.reference.lengthCm,
+      widthCm / this.reference.widthCm,
     );
     this.anatomyFrame.scale.copy(this.dims);
     for (const entry of this.structures.values()) {

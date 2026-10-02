@@ -12,7 +12,7 @@ import {
   TorusGeometry,
   Vector3,
 } from 'three';
-import { FLATTEN, surfaceNormal } from '../anatomy/geometry';
+import { FINGER, type Digit } from '../anatomy/layout';
 import { disposeObject, type ModelExtension } from '../anatomy/AnatomyModel';
 import { NEEDLE_LENGTH_CM, statusLevel, type NeedleEvaluation, type NeedleState } from '../../logic/needle';
 
@@ -45,7 +45,7 @@ export class NeedleSim implements ModelExtension {
   private lastElapsed = 0;
   private injected = false;
 
-  constructor() {
+  constructor(private readonly digit: Digit = FINGER) {
     this.object.name = 'VirtualNeedle';
     this.object.visible = false;
     const steel = new MeshStandardMaterial({ color: '#cbd5e1', metalness: 0.9, roughness: 0.25 });
@@ -104,7 +104,7 @@ export class NeedleSim implements ModelExtension {
     this.trace.geometry.setFromPoints([e.entry, e.tip]);
     this.trace.visible = e.inserted;
 
-    const n = surfaceNormal(state.entryThetaDeg);
+    const n = this.digit.surfaceNormal(state.entryThetaDeg);
     this.entryRing.position.copy(e.entry).addScaledVector(n, 0.03);
     this.entryRing.quaternion.setFromUnitVectors(new Vector3(0, 0, 1), n);
     (this.entryRing.material as MeshBasicMaterial).color.set(e.entryOk ? '#22c55e' : '#fde047');
@@ -122,7 +122,7 @@ export class NeedleSim implements ModelExtension {
     // Conceptual spread: grows over ~2.5 s then gently pulses.
     const t = Math.min(1, (elapsed - this.injectStart) / 2.5);
     const r = 0.1 + 0.45 * t + 0.03 * Math.sin(elapsed * 3);
-    this.spread.scale.set(r, r * 1.8, r * FLATTEN);
+    this.spread.scale.set(r, r * 1.8, r * this.digit.flatten);
     this.spreadMat.opacity = 0.5 - 0.2 * t;
   }
 

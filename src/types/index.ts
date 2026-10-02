@@ -55,6 +55,8 @@ export type StructureId =
   | 'extensor_tendon'
   | 'nerve_radial'
   | 'nerve_ulnar'
+  | 'dorsal_nerve_radial'
+  | 'dorsal_nerve_ulnar'
   | 'artery_radial'
   | 'artery_ulnar'
   | 'vein_radial'
@@ -72,6 +74,7 @@ export type StructureId =
   | 'landmark_web_space'
   | 'landmark_pip_crease'
   | 'landmark_dip_crease'
+  | 'landmark_ip_crease'
   | 'landmark_nail_fold'
   | 'orientation_gizmo';
 
@@ -91,6 +94,8 @@ export interface AnatomyStructure {
   warningNote?: LocalizedText;
   /** Whether a 3D label is shown for this structure when labels are on. */
   showLabel: boolean;
+  /** Thumb-specific wording where the thumb differs from the fingers. */
+  thumb?: Partial<Pick<AnatomyStructure, 'nameTh' | 'nameEn' | 'description' | 'educationalNote' | 'warningNote'>>;
 }
 
 export type LearningMode = 'surface' | 'anatomy' | 'layers' | 'guided' | 'needle' | 'osce' | 'quiz' | 'assessment';
@@ -104,8 +109,8 @@ export interface Vec3 {
   z: number;
 }
 
-/** Fingers that can carry the overlay (the thumb has a different anatomy and is not modelled). */
-export type FingerId = 'index' | 'middle' | 'ring' | 'little';
+/** Digits that can carry the overlay. The thumb uses its own two-phalanx model. */
+export type FingerId = 'thumb' | 'index' | 'middle' | 'ring' | 'little';
 
 /** Per-finger fine-tuning, relative to the finger's default position on the hand. */
 export interface FingerCalibration {
@@ -115,6 +120,8 @@ export interface FingerCalibration {
   flexionDeg: number;
   /** Total sideways angle of the finger, degrees (+ = fingertip toward the thumb/radial). */
   splayDeg: number;
+  /** Rotation about the digit's own long axis, degrees (− = nail turned toward radial; the thumb is pronated). */
+  rollDeg: number;
   /** Measured length from the proximal finger crease (web) to the fingertip, cm. */
   lengthCm: number;
   /** Measured radial-to-ulnar width at the proximal phalanx, cm. */

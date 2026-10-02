@@ -1,14 +1,27 @@
-import { getLayer, getStructure } from '../config/anatomy';
+import { getLayer, structureFor } from '../config/anatomy';
+import { DIGIT_SUPPLY, getFinger, type SupplyKind } from '../config/hand';
 import { useT } from '../i18n/useT';
 import { useAppStore } from '../store/useAppStore';
+import { digitFor } from '../three/anatomy/layout';
+import type { StructureId } from '../types';
+
+/** Which supply entry describes a structure (nerves and arteries only). */
+function supplyOf(id: StructureId): { kind: SupplyKind; side: 'radial' | 'ulnar' } | null {
+  const m = /^(nerve|dorsal_nerve|artery)_(radial|ulnar)$/.exec(id);
+  if (!m) return null;
+  const kind: SupplyKind = m[1] === 'nerve' ? 'palmarNerve' : m[1] === 'dorsal_nerve' ? 'dorsalNerve' : 'artery';
+  return { kind, side: m[2] as 'radial' | 'ulnar' };
+}
 
 /** Label card for the tapped structure: Thai + English names, notes, warnings. */
 export function StructureCard() {
   const { t, loc, names } = useT();
   const id = useAppStore((s) => s.selectedStructure);
   const select = useAppStore((s) => s.selectStructure);
+  const finger = useAppStore((s) => s.selectedFinger);
   if (!id) return null;
-  const s = getStructure(id);
+  const s = structureFor(id, digitFor(finger).isThumb);
+  const supply = supplyOf(id);
   const n = names(s);
   const layer = getLayer(s.layer);
   return (
@@ -37,6 +50,12 @@ export function StructureCard() {
         </button>
       </div>
       <p className="mt-3 text-sm leading-relaxed text-slate-100">{loc(s.description)}</p>
+      {supply && (
+        <p className="mt-2 text-sm leading-relaxed text-slate-300">
+          <span className="text-slate-400">{t('structureCard.origin', { digit: names(getFinger(finger)).primary })}: </span>
+          {loc(DIGIT_SUPPLY[finger][supply.kind][supply.side])}
+        </p>
+      )}
       <div className="mt-3 rounded-xl bg-cyan-950/60 p-3 text-sm border border-cyan-800">
         <p className="font-semibold text-cyan-200">ℹ {t('structureCard.note')}</p>
         <p className="mt-1 leading-relaxed text-slate-100">{loc(s.educationalNote)}</p>

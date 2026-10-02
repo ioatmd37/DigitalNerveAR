@@ -26,38 +26,8 @@ import { COLORS } from '../../config/anatomy';
 import { translate } from '../../config/locales';
 import type { Language, StructureId } from '../../types';
 import { BaseAnatomyModel, disposeSprite, STRUCTURE_ID_KEY } from './AnatomyModel';
-import {
-  createEnvelopeGeometry,
-  createLoftGeometry,
-  createSurfacePatch,
-  createTaperedTube,
-  FLATTEN,
-  JOINTS,
-  normalizeUV,
-  skinRadiusAt,
-  surfaceNormal,
-  surfacePoint,
-} from './geometry';
-import {
-  anatomyPaths,
-  AVOID_ZONE,
-  BONE_Z,
-  BONE_Z_SCALE,
-  BONES,
-  DORSOLATERAL_DEG,
-  ENTRY_Y,
-  EXTENSOR,
-  extensorHalfWidth,
-  extensorZ,
-  needleTarget,
-  SAFE_ZONE,
-  SIDE_SIGN,
-  taper,
-  TENDON,
-  trunkCenter,
-  type AnatomyPath,
-  type Side,
-} from './layout';
+import { createLoftGeometry, createTaperedTube, normalizeUV } from './geometry';
+import { BONE_Z, BONE_Z_SCALE, DORSOLATERAL_DEG, FINGER, SIDE_SIGN, SIDES, type AnatomyPath, type Digit, type Side } from './layout';
 import {
   createDotTexture,
   createFiberTexture,
@@ -68,8 +38,9 @@ import {
 } from './textures';
 
 /**
- * Procedural, SIMPLIFIED right-hand finger (index/middle/ring/little share
- * one generic digit, scaled per finger) built from three.js primitives.
+ * Procedural, SIMPLIFIED right-hand digit built from three.js primitives.
+ * The layout comes from a `Digit` (finger, little finger or thumb; see
+ * `layout.ts`) and is scaled to the measured mannequin digit.
  *
  * Object hierarchy (names are stable and match structure ids, so a GLB
  * model can replace any structure by using the same node names):
@@ -79,8 +50,8 @@ import {
  *   │  ├─ Layer:skin             → skin, nail
  *   │  ├─ Layer:subcutaneous     → subcutaneous
  *   │  ├─ Layer:bone             → metacarpal_head, phalanx_*
- *   │  ├─ Layer:tendon           → flexor_tendon
- *   │  ├─ Layer:nerves           → nerve_radial, nerve_ulnar
+ *   │  ├─ Layer:tendon           → flexor_tendon, extensor_tendon
+ *   │  ├─ Layer:nerves           → nerve_*, dorsal_nerve_*
  *   │  ├─ Layer:arteries         → artery_radial, artery_ulnar
  *   │  ├─ Layer:veins            → vein_radial, vein_ulnar
  *   │  ├─ Layer:safeZones        → safe_zone_radial, safe_zone_ulnar
@@ -166,8 +137,15 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
   private gizmoLabels: Sprite[] = [];
   private gizmo = new Group();
 
-  constructor(language: Language = 'th') {
-    super();
+  /** Label positions are laid out for the 8.5 cm finger; shorter digits compress them. */
+  private readonly ly: (y: number) => number;
+
+  constructor(
+    language: Language = 'th',
+    readonly digit: Digit = FINGER,
+  ) {
+    super(digit.reference, digit.isThumb);
+    this.ly = (y) => (y * digit.tipY) / 8.5;
     this.buildSkin();
     this.buildSubcutaneous();
     this.buildBones();
@@ -185,7 +163,8 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
   // ------------------------------------------------------------------ skin
 
   private buildSkin(): void {
-    const tex = createSkinTextures();
+    const d = this.digit;
+    const tex = createSkinTextures(d);
     if (tex) {
       this.trackTexture(tex.map);
       this.trackTexture(tex.bump);
@@ -203,25 +182,27 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       depthWrite: false,
       side: FrontSide,
     });
-    const envelope = mesh(createEnvelopeGeometry(1), skinMat, 'skin_envelope');
+    const envelope = mesh(d.createEnvelopeGeometry(1), skinMat, 'skin_envelope');
     envelope.renderOrder = 2;
 
-    // Metacarpal region of the hand (faded) for context.
+    // Metacarpal region of the hand (faded) for context; for the thumb, the thenar side of its ray.
     const stubMat = phys('#e2b192', { roughness: 0.7, sheen: 0.4, sheenColor: '#ffd2bd', transparent: true, opacity: 0.18, depthWrite: false });
     stubMat.userData.opacityFactor = 0.5;
     const stub = mesh(
-      createLoftGeometry([
-        { y: -4.0, a: 1.32, b: 0.8 },
-        { y: -2.4, a: 1.28, b: 0.86 },
-        { y: -1.0, a: 1.14, b: 0.92 },
-        { y: -0.55, a: 1.08, b: 0.9 },
-      ]),
+      createLoftGeometry(
+        [
+          { y: -4.0, a: 1.32, b: 0.8 },
+          { y: -2.4, a: 1.28, b: 0.86 },
+          { y: -1.0, a: 1.14, b: 0.92 },
+          { y: -0.55, a: 1.08, b: 0.9 },
+        ].map((r) => ({ ...r, y: r.y + (d.isThumb ? -0.7 : 0), a: r.a * d.k, b: r.b * d.k * (d.isThumb ? 1.1 : 1) })),
+      ),
       stubMat,
       'hand_stub',
     );
     stub.renderOrder = 2;
 
-    this.addStructure('skin', [envelope, stub], surfacePoint(2, 90), surfacePoint(2, 90, 3));
+    this.addStructure('skin', [envelope, stub], d.surfacePoint(2, 90), d.surfacePoint(2, 90, 3));
 
     const nailTex = this.trackTexture(createNailTexture());
     const nailMat = phys(nailTex ? '#ffffff' : COLORS.nail, {
@@ -233,22 +214,24 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       transparent: true,
       opacity: 0.97,
     });
-    const nail = mesh(normalizeUV(createSurfacePatch(JOINTS.nailFold, 8.18, 56, 124, 1.03, 16, 20)), nailMat, 'nail_plate');
+    // The thumb nail is broader (it spans more of the dorsum).
+    const [n0, n1] = d.isThumb ? [50, 130] : [56, 124];
+    const nail = mesh(normalizeUV(d.createSurfacePatch(d.joints.nailFold, d.nailEndY, n0, n1, 1.03, 16, 20)), nailMat, 'nail_plate');
     nail.renderOrder = 3;
-    this.addStructure('nail', [nail], surfacePoint(7.6, 90, 1.02), new Vector3(0, 8.6, 2.2));
+    this.addStructure('nail', [nail], d.surfacePoint(d.tipY - 0.9, 90, 1.02), new Vector3(0, d.tipY + 0.1, 2.2));
   }
 
   private buildSubcutaneous(): void {
     const mat = phys(COLORS.subcutaneous, { transparent: true, opacity: 0.28, depthWrite: false, roughness: 0.85, sheen: 0.3 });
-    const layer = mesh(createEnvelopeGeometry(0.9, 48, 90), mat, 'subcutaneous_shell');
+    const layer = mesh(this.digit.createEnvelopeGeometry(0.9, 48, 90), mat, 'subcutaneous_shell');
     layer.renderOrder = 1;
-    this.addStructure('subcutaneous', [layer], surfacePoint(7.2, 20, 0.9), new Vector3(LABEL_X, 7.6, 0.4));
+    this.addStructure('subcutaneous', [layer], this.digit.surfacePoint(this.ly(7.2), 20, 0.9), new Vector3(LABEL_X, this.ly(7.6), 0.4));
   }
 
   // ----------------------------------------------------------------- bones
 
   private buildBones(): void {
-    for (const b of BONES) {
+    for (const b of this.digit.bones) {
       const mat = phys(COLORS.bone, { roughness: 0.5, clearcoat: 0.15, sheen: 0.2 });
       const len = b.y1 - b.y0;
       const pts = b.profile.map(([t, r]) => new Vector2(Math.max(r, 0.0001), t * len));
@@ -257,7 +240,17 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       m.position.set(0, b.y0, BONE_Z);
       m.scale.set(1, 1, BONE_Z_SCALE);
       const anchor = new Vector3(b.r * 0.85, (b.y0 + b.y1) / 2, 0.3);
-      this.addStructure(b.id, [m], anchor, new Vector3(LABEL_X, 6.4, 1.3));
+      const content: Object3D[] = [m];
+      if (b.id === 'metacarpal_head' && this.digit.isThumb) {
+        // The two sesamoid bones on the palmar side of the thumb MCP joint.
+        for (const sx of [-1, 1]) {
+          const sesamoid = mesh(new SphereGeometry(0.17, 16, 12), mat, `sesamoid_${sx < 0 ? 'radial' : 'ulnar'}`);
+          sesamoid.position.set(sx * 0.36, b.y1 - 0.25, BONE_Z - 0.55);
+          sesamoid.scale.set(1, 1.35, 0.85);
+          content.push(sesamoid);
+        }
+      }
+      this.addStructure(b.id, content, anchor, new Vector3(LABEL_X, this.ly(6.4), 1.3));
     }
   }
 
@@ -266,56 +259,61 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
   private buildTendon(): void {
     const fiber = this.trackTexture(createFiberTexture());
     const mat = phys(COLORS.tendon, { roughness: 0.35, sheen: 0.6, sheenColor: '#ffffff', bumpMap: fiber, bumpScale: 0.6 });
+    const d = this.digit;
     const parts: Object3D[] = this.pathsOf('flexor_tendon').map((p) => pathMesh(p, mat));
 
-    // Translucent flexor sheath with annular pulleys (A1–A5).
+    // Translucent flexor sheath with its pulleys (fingers A1–A5; thumb A1, oblique, A2).
     const sheathMat = phys('#dbeafe', { transparent: true, opacity: 0.16, depthWrite: false, roughness: 0.3 });
+    const [s0, s1] = d.sheath;
     const sheathPts = Array.from({ length: 30 }, (_, i) => {
-      const y = -0.9 + (7.3 * i) / 29;
-      return new Vector3(0, y, TENDON.z * taper(y) - 0.03);
+      const y = s0 + ((s1 - s0) * i) / 29;
+      return new Vector3(0, y, d.tendonZ * d.taper(y) - 0.03);
     });
-    const sheath = mesh(createTaperedTube(sheathPts, (t) => 0.3 - 0.08 * t, 80, 18, 1.25, 0.95), sheathMat, 'flexor_sheath');
+    const sheath = mesh(createTaperedTube(sheathPts, (t) => (0.3 - 0.08 * t) * d.k, 80, 18, 1.25, 0.95), sheathMat, 'flexor_sheath');
     sheath.renderOrder = 1;
     parts.push(sheath);
     const pulleyMat = phys('#f5f5f4', { roughness: 0.45, side: DoubleSide, sheen: 0.4 });
-    for (const [name, y, h] of [
-      ['A1', -0.55, 0.45],
-      ['A2', 1.25, 1.3],
-      ['A3', 4.1, 0.28],
-      ['A4', 5.15, 0.7],
-      ['A5', 6.35, 0.22],
-    ] as const) {
-      const r = 0.3 * taper(y);
+    for (const [name, y, h] of d.pulleys) {
+      const r = 0.3 * d.k * d.taper(y);
       const ring = mesh(new CylinderGeometry(r, r, h, 28, 1, true, Math.PI * 0.3, Math.PI * 1.4), pulleyMat, `pulley_${name}`);
-      ring.position.set(0, y, TENDON.z * taper(y) - 0.03);
+      ring.position.set(0, y, d.tendonZ * d.taper(y) - 0.03);
       ring.scale.set(1.25, 1, 0.95);
       parts.push(ring);
     }
-    this.addStructure('flexor_tendon', parts, new Vector3(0, 5.2, -0.45), new Vector3(1.6, 8.2, -1.8));
+    const fy = d.joints.ip[0] + 0.6;
+    this.addStructure('flexor_tendon', parts, new Vector3(0, fy, d.tendonZ * d.taper(fy)), new Vector3(1.6, this.ly(8.2), -1.8));
 
-    // Extensor mechanism: a thin dorsal band over the phalanges.
+    // Extensors: the finger hood is a thin dorsal band; the thumb has separate EPL and EPB tendons.
     const extMat = phys('#efe9db', { roughness: 0.4, sheen: 0.5, bumpMap: fiber, bumpScale: 0.5 });
-    const extPts = Array.from({ length: 48 }, (_, i) => {
-      const y = EXTENSOR.y0 + ((EXTENSOR.y1 - EXTENSOR.y0) * i) / 47;
-      return new Vector3(0, y, extensorZ(y));
-    });
-    const ext = mesh(
-      createTaperedTube(extPts, (t) => extensorHalfWidth(EXTENSOR.y0 + (EXTENSOR.y1 - EXTENSOR.y0) * t), 120, 16, 1, EXTENSOR.halfThickness / EXTENSOR.halfWidth),
-      extMat,
-      'extensor_band',
-    );
-    this.addStructure('extensor_tendon', [ext], new Vector3(0, 3.0, extensorZ(3.0) + 0.05), new Vector3(-1.4, 5.2, 2.4));
+    const extParts: Object3D[] = this.pathsOf('extensor_tendon').map((p) => pathMesh(p, extMat));
+    const band = d.extensorBand;
+    if (band) {
+      const extPts = Array.from({ length: 48 }, (_, i) => {
+        const y = band.y0 + ((band.y1 - band.y0) * i) / 47;
+        return new Vector3(0, y, d.extensorZ(y));
+      });
+      extParts.push(
+        mesh(
+          createTaperedTube(extPts, (t) => d.extensorHalfWidth(band.y0 + (band.y1 - band.y0) * t), 120, 16, 1, band.halfThickness / band.halfWidth),
+          extMat,
+          'extensor_band',
+        ),
+      );
+    }
+    const ey = d.isThumb ? 1.6 : 3.0;
+    this.addStructure('extensor_tendon', extParts, new Vector3(0, ey, d.extensorZ(ey) + 0.05), new Vector3(-1.4, this.ly(5.2), 2.4));
   }
 
   // --------------------------------------------------------- neurovascular
 
   private pathsOf(structure: StructureId): AnatomyPath[] {
-    return anatomyPaths().filter((p) => p.structure === structure);
+    return this.digit.paths().filter((p) => p.structure === structure);
   }
 
   private buildNeurovascular(): void {
     const fiber = this.trackTexture(createFiberTexture());
-    for (const side of ['radial', 'ulnar'] as Side[]) {
+    const d = this.digit;
+    for (const side of SIDES) {
       const sx = SIDE_SIGN[side];
       const nerveMat = phys(COLORS.nerve, {
         emissive: COLORS.nerve,
@@ -337,27 +335,37 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       this.addStructure(
         nerve,
         this.pathsOf(nerve).map((p) => pathMesh(p, nerveMat)),
-        trunkCenter('nerve', side, 3.0),
-        new Vector3(LABEL_X * sx, 3.3, -1.0),
+        d.trunkCenter('nerve', side, this.ly(3.0)),
+        new Vector3(LABEL_X * sx, this.ly(3.3), -1.0),
       );
       this.addStructure(
         artery,
         this.pathsOf(artery).map((p) => pathMesh(p, arteryMat)),
-        trunkCenter('artery', side, 5.0),
-        new Vector3(LABEL_X * sx, 4.9, -0.3),
+        d.trunkCenter('artery', side, this.ly(5.0)),
+        new Vector3(LABEL_X * sx, this.ly(4.9), -0.3),
+      );
+      // Dorsal digital nerve (superficial radial / dorsal ulnar branch), slimmer and subcutaneous.
+      const dorsal = `dorsal_nerve_${side}` as StructureId;
+      const dorsalPaths = this.pathsOf(dorsal);
+      const dTrunk = dorsalPaths[0].points;
+      this.addStructure(
+        dorsal,
+        dorsalPaths.map((p) => pathMesh(p, nerveMat)),
+        dTrunk[Math.floor(dTrunk.length * 0.7)].clone(),
+        new Vector3(LABEL_X * sx * 0.95, this.ly(2.4), 2.0),
       );
     }
   }
 
   private buildVeins(): void {
-    for (const side of ['radial', 'ulnar'] as Side[]) {
+    for (const side of SIDES) {
       const vein = `vein_${side}` as StructureId;
       const mat = phys(COLORS.vein, { roughness: 0.35, clearcoat: 0.5, clearcoatRoughness: 0.3 });
       this.addStructure(
         vein,
         this.pathsOf(vein).map((p) => pathMesh(p, mat)),
-        surfacePoint(5.8, side === 'radial' ? 118 : 62, 0.9),
-        new Vector3(LABEL_X * SIDE_SIGN[side] * 0.85, 7.0, 1.5),
+        this.digit.surfacePoint(this.ly(5.8), side === 'radial' ? 118 : 62, 0.9),
+        new Vector3(LABEL_X * SIDE_SIGN[side] * 0.85, this.ly(7.0), 1.5),
       );
     }
   }
@@ -365,8 +373,11 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
   // ----------------------------------------------------------------- zones
 
   private buildZones(): void {
+    const d = this.digit;
+    const SAFE_ZONE = d.safeZone;
+    const AVOID_ZONE = d.avoidZone;
     const dots = this.trackTexture(createDotTexture(COLORS.safe));
-    for (const side of ['radial', 'ulnar'] as Side[]) {
+    for (const side of SIDES) {
       const c = DORSOLATERAL_DEG[side];
       const mat = new MeshBasicMaterial({
         color: dots ? '#ffffff' : COLORS.safe,
@@ -376,12 +387,12 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
         side: DoubleSide,
         depthWrite: false,
       });
-      const patch = mesh(createSurfacePatch(SAFE_ZONE.y0, SAFE_ZONE.y1, c - SAFE_ZONE.halfWidthDeg, c + SAFE_ZONE.halfWidthDeg, 1.035), mat, `safe_zone_${side}_patch`);
+      const patch = mesh(d.createSurfacePatch(SAFE_ZONE.y0, SAFE_ZONE.y1, c - SAFE_ZONE.halfWidthDeg, c + SAFE_ZONE.halfWidthDeg, 1.035), mat, `safe_zone_${side}_patch`);
       patch.renderOrder = 5;
       this.addStructure(
         `safe_zone_${side}` as StructureId,
         [patch],
-        surfacePoint(1.6, c, 1.04),
+        d.surfacePoint(Math.min(1.6, SAFE_ZONE.y1 - 0.2), c, 1.04),
         new Vector3(LABEL_X * SIDE_SIGN[side], 1.7, 1.5),
       );
     }
@@ -395,7 +406,7 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       side: DoubleSide,
       depthWrite: false,
     });
-    const outer = mesh(createSurfacePatch(AVOID_ZONE.y0, AVOID_ZONE.y1, AVOID_ZONE.theta0, AVOID_ZONE.theta1, 1.03, 40, 28), outerMat, 'avoid_zone_surface');
+    const outer = mesh(d.createSurfacePatch(AVOID_ZONE.y0, AVOID_ZONE.y1, AVOID_ZONE.theta0, AVOID_ZONE.theta1, 1.03, 40, 28), outerMat, 'avoid_zone_surface');
     outer.renderOrder = 5;
     // Faint inner volume so the zone reads as a region, not only a surface.
     const innerMat = new MeshBasicMaterial({
@@ -405,27 +416,24 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       side: DoubleSide,
       depthWrite: false,
     });
-    const inner = mesh(createSurfacePatch(AVOID_ZONE.y0, AVOID_ZONE.y1, AVOID_ZONE.theta0, AVOID_ZONE.theta1, 0.97, 40, 28), innerMat, 'avoid_zone_volume');
+    const inner = mesh(d.createSurfacePatch(AVOID_ZONE.y0, AVOID_ZONE.y1, AVOID_ZONE.theta0, AVOID_ZONE.theta1, 0.97, 40, 28), innerMat, 'avoid_zone_volume');
     inner.renderOrder = 4;
-    this.addStructure('avoid_zone_volar', [outer, inner], surfacePoint(3.2, 270, 1.03), new Vector3(0, 3.0, -2.6));
+    this.addStructure('avoid_zone_volar', [outer, inner], d.surfacePoint(this.ly(3.2), 270, 1.03), new Vector3(0, this.ly(3.0), -2.6));
   }
 
   // --------------------------------------------------- entry points / path
 
-  /** Where the model arrow tip stops: beside the bone, near the bundle. */
-  static needleTarget(side: Side): Vector3 {
-    return needleTarget(side);
-  }
-
-  static entryPoint(side: Side): Vector3 {
-    return surfacePoint(ENTRY_Y, DORSOLATERAL_DEG[side], 1.0);
+  /** Model entry point for a side (on the skin, dorsolateral). */
+  entryPoint(side: Side): Vector3 {
+    return this.digit.surfacePoint(this.digit.entryY, DORSOLATERAL_DEG[side], 1.0);
   }
 
   private buildEntryAndNeedle(): void {
-    for (const side of ['radial', 'ulnar'] as Side[]) {
+    const d = this.digit;
+    for (const side of SIDES) {
       const theta = DORSOLATERAL_DEG[side];
-      const p = surfacePoint(ENTRY_Y, theta, 1.06);
-      const n = surfaceNormal(theta);
+      const p = d.surfacePoint(d.entryY, theta, 1.06);
+      const n = d.surfaceNormal(theta);
       const mat = std(COLORS.entry, { emissive: COLORS.entry, emissiveIntensity: 0.4 });
       const ring = mesh(new TorusGeometry(0.2, 0.04, 10, 36), mat, `entry_point_${side}_ring`);
       const dot = mesh(new SphereGeometry(0.06, 12, 8), mat, `entry_point_${side}_dot`);
@@ -439,8 +447,8 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
         new Vector3(LABEL_X * SIDE_SIGN[side], 0.1, 2.4),
       );
 
-      const entry = ProceduralFingerModel.entryPoint(side);
-      const target = ProceduralFingerModel.needleTarget(side);
+      const entry = this.entryPoint(side);
+      const target = d.needleTarget(side);
       const outward = entry.clone().sub(target).normalize();
       const start = entry.clone().addScaledVector(outward, 2.2);
       const arr = arrow(start, target, COLORS.needle, 0.035, `needle_path_${side}_arrow`);
@@ -457,9 +465,9 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
 
   private buildInjectate(): void {
     const geo = new SphereGeometry(1, 24, 16);
-    for (const side of ['radial', 'ulnar'] as Side[]) {
+    for (const side of SIDES) {
       const sx = SIDE_SIGN[side];
-      const center = new Vector3(0.68 * sx, ENTRY_Y + 0.2, -0.3);
+      const center = this.digit.injectateCenter(side);
       const content: Object3D[] = [];
       for (let i = 0; i < 3; i++) {
         const material = new MeshBasicMaterial({
@@ -499,7 +507,7 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       // Grow-and-fade halos; staggered phases give a continuous "spread" feel.
       const p = animate ? (((t / PERIOD + b.phase) % 1) + 1) % 1 : 0.75 - b.phase * 0.3;
       const r = 0.12 + 0.55 * p;
-      b.mesh.scale.set(r, r * 1.9, r * FLATTEN);
+      b.mesh.scale.set(r * this.digit.k, r * 1.9, r * this.digit.flatten * this.digit.k);
       b.material.opacity = animate ? 0.5 * (1 - p) + 0.05 : 0.18;
     }
   }
@@ -507,31 +515,31 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
   // ------------------------------------------------------------- landmarks
 
   private buildLandmarks(): void {
+    const d = this.digit;
     const dotGeo = new SphereGeometry(0.1, 16, 10);
     const make = (name: string) =>
       mesh(dotGeo, std(COLORS.landmark, { emissive: '#ffffff', emissiveIntensity: 0.25 }), name);
 
     const mcp = make('landmark_mcp_dot');
-    mcp.position.copy(surfacePoint(JOINTS.mcp, 90, 1.03));
+    mcp.position.copy(d.surfacePoint(d.joints.mcp, 90, 1.03));
     this.addStructure('landmark_mcp', [mcp], mcp.position.clone(), new Vector3(0, -1.8, 2.3));
 
+    // Web space beside the digit: radial side for the fingers, the first web (ulnar side) for the thumb.
+    const webSide = d.webLandmark;
     const web = make('landmark_web_space_dot');
-    web.position.copy(surfacePoint(0.15, 180, 1.03));
-    this.addStructure('landmark_web_space', [web], web.position.clone(), new Vector3(-LABEL_X, -1.5, -0.2));
+    web.position.copy(d.surfacePoint(0.15, webSide === 'radial' ? 180 : 0, 1.03));
+    this.addStructure('landmark_web_space', [web], web.position.clone(), new Vector3(LABEL_X * SIDE_SIGN[webSide], -1.5, -0.2));
 
-    for (const [id, y] of [
-      ['landmark_pip_crease', JOINTS.pip],
-      ['landmark_dip_crease', JOINTS.dip],
-    ] as [StructureId, number][]) {
-      const r = skinRadiusAt(y) * 1.02;
+    for (const [id, y] of d.creases) {
+      const r = d.skinRadiusAt(y) * 1.02;
       // Volar crease line: a 144° torus arc. The torus starts in the XY plane
       // at +X; rotating −90° about X puts the arc on the volar (−Z) side,
       // rotating 18° about Y centres it on the volar midline, and the Z
-      // scale matches the flattened finger cross-section.
+      // scale matches the flattened cross-section.
       const creaseGeo = new TorusGeometry(r, 0.035, 8, 40, Math.PI * 0.8);
       creaseGeo.rotateX(-Math.PI / 2);
       creaseGeo.rotateY(Math.PI / 10);
-      creaseGeo.scale(1, 1, FLATTEN);
+      creaseGeo.scale(1, 1, d.flatten);
       const crease = mesh(
         creaseGeo,
         std(COLORS.landmark, { emissive: '#ffffff', emissiveIntensity: 0.2 }),
@@ -539,13 +547,13 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
       );
       crease.position.set(0, y, 0);
       const dot = make(`${id}_dot`);
-      dot.position.copy(surfacePoint(y, 270, 1.03));
+      dot.position.copy(d.surfacePoint(y, 270, 1.03));
       this.addStructure(id, [crease, dot], dot.position.clone(), new Vector3(LABEL_X, y, -0.6));
     }
 
     const nail = make('landmark_nail_fold_dot');
-    nail.position.copy(surfacePoint(JOINTS.nailFold, 90, 1.05));
-    this.addStructure('landmark_nail_fold', [nail], nail.position.clone(), new Vector3(-LABEL_X, 7.4, 1.4));
+    nail.position.copy(d.surfacePoint(d.joints.nailFold, 90, 1.05));
+    this.addStructure('landmark_nail_fold', [nail], nail.position.clone(), new Vector3(-LABEL_X, d.joints.nailFold + 0.5, 1.4));
   }
 
   // ----------------------------------------------------------- orientation
@@ -597,6 +605,6 @@ export class ProceduralFingerModel extends BaseAnatomyModel {
   }
 
   getFocusPoint(): Vector3 {
-    return new Vector3(0, 3.2, 0);
+    return new Vector3(0, this.ly(3.2), 0);
   }
 }

@@ -7,6 +7,7 @@ import {
   TextureLoader,
   Vector3,
   type PerspectiveCamera,
+  type Scene,
   type Texture,
 } from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
@@ -33,6 +34,12 @@ const PRESET_DIRECTIONS: Record<ViewPreset, [number, number, number]> = {
   ulnar: [1, -0.2, 0.2],
   oblique: [-1, -0.55, 1],
 };
+
+/**
+ * The thumb points distally-radially, so the finger oblique (from proximal)
+ * would look along it through the palm; view it from above its nail side.
+ */
+const THUMB_OBLIQUE: [number, number, number] = [-0.55, 0.25, 1];
 
 const CAMERA_DISTANCE = 19;
 
@@ -207,13 +214,26 @@ function CameraRig({ model, preset }: { model: AnatomyModel; preset: ExplorerVie
     null,
   );
   const calibration = useAppStore((s) => s.calibration);
+  const finger = useAppStore((s) => s.selectedFinger);
+  /** Set when a re-frame is requested; resolved on the next frame, after the hand rig has placed the model. */
+  const pending = useRef(false);
 
   useEffect(() => {
+    pending.current = true;
+    // Re-frame only when a preset is requested, the digit changes, or on first mount.
+  }, [preset.nonce, preset.name, model, controls, finger]);
+
+  /** Returns false until the model is in the scene (a new hand rig is added a render later). */
+  const frameTarget = (): boolean => {
+    let top = model.root;
+    while (top.parent) top = top.parent;
+    if (!(top as Scene).isScene) return false;
     const frame = model.anatomyFrame;
     frame.updateWorldMatrix(true, false);
     const focus = model.getFocusPoint();
     const center = frame.localToWorld(focus.clone());
-    const [x, y, z] = PRESET_DIRECTIONS[preset.name];
+    const thumb = useAppStore.getState().selectedFinger === 'thumb';
+    const [x, y, z] = thumb && preset.name === 'oblique' ? THUMB_OBLIQUE : PRESET_DIRECTIONS[preset.name];
     const dirWorld = frame
       .localToWorld(focus.clone().add(new Vector3(x, y, z)))
       .sub(center)
@@ -231,11 +251,11 @@ function CameraRig({ model, preset }: { model: AnatomyModel; preset: ExplorerVie
       toTarget: center,
       t: 0,
     };
-    // Re-frame only when a preset is requested (or on first mount).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preset.nonce, preset.name, model, controls]);
+    return true;
+  };
 
   useFrame((_, delta) => {
+    if (pending.current && frameTarget()) pending.current = false;
     const a = anim.current;
     if (!a) return;
     a.t = Math.min(1, a.t + delta / 0.6);

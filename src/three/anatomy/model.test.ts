@@ -5,7 +5,7 @@ import { computeViewState } from '../../logic/visibility';
 import { DEFAULT_LAYER_VISIBILITY } from '../../config/anatomy';
 import { findStructureId } from './AnatomyModel';
 import { ProceduralFingerModel } from './ProceduralFingerModel';
-import { skinRadiusAt, surfacePoint } from './geometry';
+import { FINGER, LITTLE, THUMB } from './layout';
 
 function byName(root: Object3D, name: string): Object3D | undefined {
   return root.getObjectByName(name);
@@ -19,14 +19,54 @@ function worldCenter(o: Object3D): Vector3 {
 describe('ProceduralFingerModel', () => {
   const model = new ProceduralFingerModel('en');
 
-  it('has a named node for every configured structure, grouped by layer', () => {
-    for (const s of STRUCTURES) {
-      const node = byName(model.root, s.id);
-      expect(node, s.id).toBeDefined();
-      expect(node!.parent!.name).toBe(`Layer:${s.layer}`);
-      expect(findStructureId(node!)).toBe(s.id);
+  it('has a named node for every structure of each digit, grouped by layer', () => {
+    for (const digit of [FINGER, LITTLE, THUMB]) {
+      const m = digit === FINGER ? model : new ProceduralFingerModel('en', digit);
+      for (const s of STRUCTURES) {
+        const node = byName(m.root, s.id);
+        if (!digit.has(s.id)) {
+          expect(node, `${digit.id}:${s.id}`).toBeUndefined();
+          continue;
+        }
+        expect(node, `${digit.id}:${s.id}`).toBeDefined();
+        expect(node!.parent!.name).toBe(`Layer:${s.layer}`);
+        expect(findStructureId(node!)).toBe(s.id);
+      }
+      for (const id of LAYER_IDS) expect(byName(m.root, `Layer:${id}`)).toBeDefined();
     }
-    for (const id of LAYER_IDS) expect(byName(model.root, `Layer:${id}`)).toBeDefined();
+  });
+
+  it('models the thumb with two phalanges, FPL only and EPL/EPB', () => {
+    const thumb = new ProceduralFingerModel('en', THUMB);
+    expect(byName(thumb.root, 'phalanx_middle')).toBeUndefined();
+    expect(byName(thumb.root, 'landmark_ip_crease')).toBeDefined();
+    expect(byName(thumb.root, 'fpl')).toBeDefined();
+    expect(byName(thumb.root, 'fds')).toBeUndefined();
+    expect(byName(thumb.root, 'epl')).toBeDefined();
+    expect(byName(thumb.root, 'epb')).toBeDefined();
+    expect(byName(thumb.root, 'sesamoid_radial')).toBeDefined();
+    // First web space on the thumb's ulnar side; no web branch on its radial border.
+    expect(worldCenter(byName(thumb.root, 'landmark_web_space')!).x).toBeGreaterThan(0);
+    expect(byName(thumb.root, 'nerve_radial_common_branch')).toBeUndefined();
+    expect(byName(thumb.root, 'nerve_ulnar_common_branch')).toBeDefined();
+    // Dorsal nerves reach the nail fold on the thumb.
+    const dorsal = THUMB.paths().find((p) => p.name === 'dorsal_nerve_radial_trunk')!;
+    expect(dorsal.points[dorsal.points.length - 1].y).toBeGreaterThanOrEqual(THUMB.joints.nailFold);
+    thumb.dispose();
+  });
+
+  it('models the little finger without an ulnar web and with longer dorsal nerves', () => {
+    const little = new ProceduralFingerModel('en', LITTLE);
+    expect(byName(little.root, 'nerve_ulnar_common_branch')).toBeUndefined();
+    expect(byName(little.root, 'nerve_radial_common_branch')).toBeDefined();
+    const end = (d: typeof FINGER) => {
+      const p = d.paths().find((x) => x.name === 'dorsal_nerve_ulnar_trunk')!;
+      return p.points[p.points.length - 1].y;
+    };
+    expect(end(LITTLE)).toBeGreaterThan(end(FINGER));
+    expect(end(LITTLE)).toBeLessThan(FINGER.joints.ip[1] + 0.1); // to about the DIP
+    expect(end(FINGER)).toBeLessThan(FINGER.joints.ip[0] + 0.5); // to about the PIP
+    little.dispose();
   });
 
   it('is a RIGHT index finger: radial structures on −X (thumb side), ulnar on +X', () => {
@@ -53,17 +93,17 @@ describe('ProceduralFingerModel', () => {
 
   it('keeps the model needle tip outside the nerve', () => {
     for (const side of ['radial', 'ulnar'] as const) {
-      const tip = ProceduralFingerModel.needleTarget(side);
+      const tip = FINGER.needleTarget(side);
       const nerve = new Vector3(0.6 * (side === 'radial' ? -1 : 1), tip.y, -0.5);
       expect(tip.distanceTo(nerve)).toBeGreaterThan(0.2);
-      const entry = ProceduralFingerModel.entryPoint(side);
+      const entry = model.entryPoint(side);
       expect(entry.z).toBeGreaterThan(0); // dorsolateral entry
     }
   });
 
   it('distal is +Y: the nail is near the tip', () => {
     expect(worldCenter(byName(model.root, 'nail')!).y).toBeGreaterThan(6.5);
-    expect(skinRadiusAt(8.5)).toBe(0);
+    expect(FINGER.skinRadiusAt(8.5)).toBe(0);
   });
 
   it('applies layer visibility from the view state', () => {
@@ -99,8 +139,8 @@ describe('ProceduralFingerModel', () => {
     });
     model.root.updateMatrixWorld(true);
     // Ray from the radial side straight toward the radial nerve.
-    const target = new Vector3(-0.6 * (skinRadiusAt(3) / skinRadiusAt(0)), 3, -0.5 * (skinRadiusAt(3) / skinRadiusAt(0)));
-    const origin = surfacePoint(3, 200, 4);
+    const target = new Vector3(-0.6 * (FINGER.skinRadiusAt(3) / FINGER.skinRadiusAt(0)), 3, -0.5 * (FINGER.skinRadiusAt(3) / FINGER.skinRadiusAt(0)));
+    const origin = FINGER.surfacePoint(3, 200, 4);
     const ray = new Raycaster(origin, target.clone().sub(origin).normalize());
     const hits = ray.intersectObject(model.root, true);
     expect(model.pick(hits)).toBe('nerve_radial');
@@ -116,7 +156,7 @@ describe('ProceduralFingerModel', () => {
       animateInjectate: false,
     });
     model.root.updateMatrixWorld(true);
-    const origin = surfacePoint(3, 180, 4);
+    const origin = FINGER.surfacePoint(3, 180, 4);
     const ray = new Raycaster(origin, new Vector3(1, 0, 0));
     expect(model.pick(ray.intersectObject(model.root, true))).toBe('skin');
   });

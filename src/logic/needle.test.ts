@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { needleTarget } from '../three/anatomy/layout';
+import { FINGER, LITTLE, THUMB } from '../three/anatomy/layout';
 import {
   classifyPoint,
   defaultNeedleState,
@@ -50,7 +50,7 @@ describe('virtual needle (mannequin model)', () => {
     expect(classifyPoint(new Vector3(-0.68 * 0.96, 1, -0.29 * 0.96))).toBe('artery');
     expect(classifyPoint(new Vector3(0.6 * 0.96, 1, -0.5 * 0.96))).toBe('nerve');
     expect(classifyPoint(new Vector3(0, 3, -0.47))).toBe('tendon');
-    expect(classifyPoint(needleTarget('ulnar'))).toBe('target');
+    expect(classifyPoint(FINGER.needleTarget('ulnar'))).toBe('target');
   });
 
   it('going much too deep exits through the far skin (red event)', () => {
@@ -83,5 +83,25 @@ describe('virtual needle (mannequin model)', () => {
     expect(r.aspiratedFirst).toBe(false);
     expect(r.noRedEvents).toBe(false);
     expect(r.score).toBe(2);
+  });
+
+  it('works on the thumb and little-finger layouts too', () => {
+    for (const d of [THUMB, LITTLE]) {
+      for (const side of ['radial', 'ulnar'] as const) {
+        expect(classifyPoint(d.needleTarget(side), d)).toBe('target');
+        const start = { ...defaultNeedleState(side, d) };
+        const e = evaluateNeedle(start, d);
+        expect(e.entryOk).toBe(true);
+        expect(e.tipStatus).toBe('outside');
+      }
+      // Volar midline at the proximal phalanx is inside the flexor tendon / avoid zone.
+      const volar = d.surfacePoint(1.2, 270, 0.55);
+      expect(['tendon', 'avoidZone']).toContain(classifyPoint(volar, d));
+    }
+  });
+
+  it('flags the thumb extensor (EPL) on the dorsal midline', () => {
+    const dorsal = new Vector3(0.1, 1.5, THUMB.extensorZ(1.5) + 0.02);
+    expect(classifyPoint(dorsal, THUMB)).toBe('tendon');
   });
 });

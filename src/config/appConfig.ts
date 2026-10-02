@@ -45,12 +45,6 @@ export const appConfig = {
   },
 } as const;
 
-/** Reference dimensions of the procedural model (cm). */
-export const MODEL_REFERENCE = {
-  fingerLengthCm: 8.5,
-  fingerWidthCm: 2.0,
-} as const;
-
 /**
  * Default: the marker sticker is centred on the dorsal skin over the
  * middle-finger MCP knuckle, TOP arrow toward the fingertips, mounted on a
@@ -77,6 +71,7 @@ export const CALIBRATION_LIMITS = {
   fingerOffset: { min: -5, max: 5, step: 0.05 },
   flexionDeg: { min: -45, max: 60, step: 1 },
   splayDeg: { min: -40, max: 40, step: 1 },
+  rollDeg: { min: -120, max: 60, step: 1 },
   fingerLengthCm: { min: 4, max: 12, step: 0.1 },
   fingerWidthCm: { min: 1, max: 3, step: 0.05 },
 } as const;

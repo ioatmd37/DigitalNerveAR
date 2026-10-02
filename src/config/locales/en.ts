@@ -134,7 +134,7 @@ const en = {
   },
   fingers: {
     title: 'Finger',
-    hint: 'Choose which mannequin finger shows the overlay. The thumb is not modelled.',
+    hint: 'Choose which mannequin digit shows the overlay. The thumb uses its own two-phalanx model.',
   },
   layerPanel: {
     title: 'Layers',
@@ -146,12 +146,15 @@ const en = {
   anatomy: {
     legendTitle: 'Structures (tap to identify)',
     showVeins: 'Show digital veins',
+    digitNotesTitle: '{digit}: key points',
+    variationNote: 'Typical pattern; nerve and vessel variations are common.',
   },
   structureCard: {
     layer: 'Layer',
     note: 'Educational note',
     warning: 'Caution (model)',
     simplified: 'Simplified teaching model — not patient-specific anatomy.',
+    origin: 'Usual origin ({digit})',
   },
   orientation: {
     title: 'Orientation (right hand)',
@@ -162,7 +165,7 @@ const en = {
     proximal: 'Proximal',
     distal: 'Distal',
     radialHint: 'thumb side',
-    ulnarHint: 'middle-finger side',
+    ulnarHint: 'little-finger side',
     dorsalHint: 'nail side',
     volarHint: 'palm side',
     distalHint: 'toward fingertip',
@@ -184,7 +187,7 @@ const en = {
     done: 'Sequence complete. Review any step, or try the Knowledge Check.',
     s1: {
       title: 'Identify orientation and landmarks',
-      body: 'In this mannequin model, find the nail (dorsal side), the MCP knuckle (proximal) and the fingertip (distal). On the right hand, the radial side faces the thumb and the ulnar side faces the middle finger. Match the orientation axes to the physical mannequin.',
+      body: 'In this mannequin model, find the nail (dorsal side), the MCP knuckle (proximal) and the fingertip (distal). On the right hand, the radial side faces the thumb and the ulnar side faces the little finger. Match the orientation axes to the physical mannequin.',
     },
     s2: {
       title: 'Identify the radial and ulnar neurovascular bundles',
@@ -316,7 +319,7 @@ const en = {
     q2: {
       prompt: 'Which side of a right-hand finger is radial?',
       o1: 'The thumb side',
-      o2: 'The middle-finger side',
+      o2: 'The little-finger side',
       o3: 'The palm side',
       o4: 'The nail side',
       explain: 'Radial is the thumb side. On the right hand viewed from the dorsal side with fingers pointing away, radial is on the left.',
@@ -406,6 +409,7 @@ const en = {
     fz: 'Knuckle shift Z (dorsal +)',
     splay: 'Splay (+ toward thumb)',
     flexion: 'Flexion (+ bends toward palm)',
+    roll: 'Roll about its axis (− nail toward thumb side)',
     resetFinger: 'Reset {finger} to default',
     save: 'Save calibration',
     reset: 'Reset to defaults',

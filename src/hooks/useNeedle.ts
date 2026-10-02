@@ -3,12 +3,14 @@ import type { Vector3 } from 'three';
 import { entryFromPoint, evaluateNeedle, RED_STATUSES, sideOfTheta, usesNeedle, type NeedleEvaluation } from '../logic/needle';
 import { useAppStore } from '../store/useAppStore';
 import type { AnatomyModel } from '../three/anatomy/AnatomyModel';
+import { digitFor } from '../three/anatomy/layout';
 import { NeedleSim } from '../three/needle/NeedleSim';
 
 /** Current needle evaluation (memoized on the needle state). */
 export function useNeedleEvaluation(): NeedleEvaluation {
   const needle = useAppStore((s) => s.needle);
-  return useMemo(() => evaluateNeedle(needle), [needle]);
+  const digit = digitFor(useAppStore((s) => s.selectedFinger));
+  return useMemo(() => evaluateNeedle(needle, digit), [needle, digit]);
 }
 
 /**
@@ -24,7 +26,7 @@ export function useNeedleSim(model: AnatomyModel | null): void {
 
   useEffect(() => {
     if (!model) return;
-    const s = new NeedleSim();
+    const s = new NeedleSim(digitFor(useAppStore.getState().selectedFinger));
     model.addExtension(s); // disposed together with the model
     setSim(s);
   }, [model]);
@@ -47,7 +49,7 @@ export function useNeedleSim(model: AnatomyModel | null): void {
 /** Move the needle entry to a tapped skin point (anatomy frame); withdraws the needle. */
 export function placeNeedleAt(point: Vector3): void {
   const st = useAppStore.getState();
-  const entry = entryFromPoint(point);
+  const entry = entryFromPoint(point, digitFor(st.selectedFinger));
   const side = sideOfTheta(entry.entryThetaDeg);
   if (side !== st.needle.side) st.selectNeedleSide(side);
   useAppStore.getState().setNeedle({ ...entry, depthCm: 0 });

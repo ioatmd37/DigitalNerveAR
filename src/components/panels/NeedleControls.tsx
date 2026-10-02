@@ -1,6 +1,7 @@
+import { useDigit } from '../../hooks/useDigit';
 import { useNeedleEvaluation } from '../../hooks/useNeedle';
 import { useT } from '../../i18n/useT';
-import { MAX_DEPTH_CM, statusLevel, type NeedleStatus } from '../../logic/needle';
+import { MAX_DEPTH_CM, maxEntryY, statusLevel, type NeedleStatus } from '../../logic/needle';
 import { useAppStore } from '../../store/useAppStore';
 import { Slider } from '../Slider';
 
@@ -57,6 +58,7 @@ export function NeedleStatusCard() {
 /** Depth, angle, tilt and entry sliders for the virtual needle. */
 export function NeedleSliders() {
   const { t } = useT();
+  const digit = useDigit();
   const n = useAppStore((s) => s.needle);
   const setNeedle = useAppStore((s) => s.setNeedle);
   return (
@@ -72,7 +74,7 @@ export function NeedleSliders() {
       />
       <Slider label={t('needle.aim')} unit="°" min={-60} max={75} step={1} value={n.aimDeg} onChange={(aimDeg) => setNeedle({ aimDeg })} />
       <Slider label={t('needle.tilt')} unit="°" min={-45} max={45} step={1} value={n.tiltDeg} onChange={(tiltDeg) => setNeedle({ tiltDeg })} />
-      <Slider label={t('needle.entryY')} unit=" cm" min={-0.8} max={7.5} step={0.05} value={n.entryY} onChange={(entryY) => setNeedle({ entryY, depthCm: 0 })} />
+      <Slider label={t('needle.entryY')} unit=" cm" min={-0.8} max={maxEntryY(digit)} step={0.05} value={n.entryY} onChange={(entryY) => setNeedle({ entryY, depthCm: 0 })} />
       <Slider
         label={t('needle.entryTheta')}
         unit="°"

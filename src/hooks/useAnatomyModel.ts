@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { createAnatomyModel } from '../three/anatomy/createAnatomyModel';
 import type { AnatomyModel } from '../three/anatomy/AnatomyModel';
+import { digitFor } from '../three/anatomy/layout';
 import { useNeedleSim } from './useNeedle';
 import { useViewState } from './useViewState';
 
@@ -14,12 +15,14 @@ export function useAnatomyModel(): AnatomyModel | null {
   const [model, setModel] = useState<AnatomyModel | null>(null);
   const language = useAppStore((s) => s.language);
   const injectateNonce = useAppStore((s) => s.injectateNonce);
+  // The model is rebuilt when the digit layout changes (finger / little finger / thumb).
+  const digit = digitFor(useAppStore((s) => s.selectedFinger));
   const view = useViewState();
 
   useEffect(() => {
     let disposed = false;
     let created: AnatomyModel | null = null;
-    createAnatomyModel(useAppStore.getState().language).then((m) => {
+    createAnatomyModel(useAppStore.getState().language, digit).then((m) => {
       if (disposed) {
         m.dispose();
         return;
@@ -29,9 +32,12 @@ export function useAnatomyModel(): AnatomyModel | null {
     });
     return () => {
       disposed = true;
-      created?.dispose();
+      if (created) {
+        setModel((cur) => (cur === created ? null : cur));
+        created.dispose();
+      }
     };
-  }, []);
+  }, [digit]);
 
   useEffect(() => {
     model?.setLanguage(language);

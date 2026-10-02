@@ -8,7 +8,7 @@ import type { AnatomyLayer, AnatomyStructure, LayerId, LayerVisibility, Structur
  * without reading 3D code.
  *
  * Coordinate convention used by the model (anatomical frame):
- *   +X = ulnar (toward middle finger)   −X = radial (toward thumb)
+ *   +X = ulnar (toward little finger)   −X = radial (toward thumb)
  *   +Y = distal (toward fingertip)      −Y = proximal (toward hand)
  *   +Z = dorsal (nail side)             −Z = volar (palm side)
  */
@@ -76,7 +76,7 @@ export const STRUCTURES: AnatomyStructure[] = [
     showLabel: false,
     description: {
       th: 'เปลือกผิวหนังโปร่งแสงของนิ้วมือขวาที่เลือกในหุ่นจำลอง',
-      en: 'Semi-transparent skin envelope of the selected mannequin right-hand finger.',
+      en: 'Semi-transparent skin envelope of the selected mannequin right-hand digit.',
     },
     educationalNote: {
       th: `ใช้ผิวหนังเพื่อเชื่อมโยงจุดสังเกตภายนอกกับโครงสร้างภายใน ${SIMPLIFIED_TH}`,
@@ -135,6 +135,18 @@ export const STRUCTURES: AnatomyStructure[] = [
     educationalNote: {
       th: 'ใช้เป็นจุดอ้างอิงด้านต้น (proximal) ของนิ้ว',
       en: 'A proximal reference point for the finger.',
+    },
+    thumb: {
+      nameTh: 'หัวกระดูกฝ่ามือชิ้นที่ 1',
+      nameEn: 'First metacarpal head',
+      description: {
+        th: 'ปลายกระดูกฝ่ามือชิ้นที่ 1 ที่ข้อ MCP ของนิ้วโป้ง มีกระดูกงา (sesamoid) 2 ชิ้นอยู่ด้านฝ่ามือ',
+        en: 'Distal end of the first metacarpal at the thumb MCP joint, with two sesamoid bones on its palmar side.',
+      },
+      educationalNote: {
+        th: 'ข้อ MCP ของนิ้วโป้งอยู่ต้นกว่าและค่อนไปทางฝ่ามือมากกว่าข้อโคนนิ้วอื่น',
+        en: 'The thumb MCP lies more proximal and more volar than the other knuckles.',
+      },
     },
   },
   {
@@ -206,6 +218,14 @@ export const STRUCTURES: AnatomyStructure[] = [
       th: 'อยู่ภายในบริเวณควรหลีกเลี่ยงด้านฝ่ามือของโมเดล',
       en: 'Located inside the model’s volar avoid zone.',
     },
+    thumb: {
+      nameTh: 'เอ็นงอนิ้วโป้งยาว (FPL)',
+      nameEn: 'Flexor pollicis longus (FPL)',
+      description: {
+        th: 'นิ้วโป้งมีเอ็นงอยาวเพียงเส้นเดียว (FPL) เกาะที่ฐานกระดูกท่อนปลาย อยู่ในปลอกเอ็นที่มี pulley A1, oblique และ A2 ไม่มีเอ็น FDS',
+        en: 'The thumb has a single long flexor (FPL) inserting on the distal phalanx base, in a sheath with A1, oblique and A2 pulleys. There is no FDS.',
+      },
+    },
   },
   {
     id: 'extensor_tendon',
@@ -224,6 +244,14 @@ export const STRUCTURES: AnatomyStructure[] = [
       th: 'ในโมเดลนี้ เอ็นเหยียดอยู่แนวกลางด้านหลัง ส่วนบริเวณฝึกอยู่ด้านหลัง-ข้าง ไม่ใช่แนวกลาง',
       en: 'In this model the extensor lies in the dorsal midline; the learning zones are dorsolateral, not midline.',
     },
+    thumb: {
+      nameTh: 'เอ็นเหยียดนิ้วโป้ง (EPL, EPB)',
+      nameEn: 'Thumb extensors (EPL, EPB)',
+      description: {
+        th: 'EPL วิ่งด้านหลังไปเกาะฐานกระดูกท่อนปลาย ส่วน EPB อยู่ค่อนไปทางเรเดียลและเกาะฐานกระดูกท่อนต้น (แบบย่อ)',
+        en: 'EPL runs dorsally to the distal phalanx base; EPB lies more radially and inserts on the proximal phalanx base (simplified).',
+      },
+    },
   },
   {
     id: 'nerve_radial',
@@ -235,8 +263,8 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: true,
     description: {
-      th: 'เส้นประสาทดิจิทัลฝั่งนิ้วโป้ง (เรเดียล) แสดงเป็นท่อสีเหลือง',
-      en: 'Digital nerve on the thumb (radial) side, shown as a yellow tube.',
+      th: 'เส้นประสาท palmar digital ด้านเรเดียลของนิ้ว (ฝั่งนิ้วโป้ง) แสดงเป็นท่อสีเหลือง',
+      en: 'Palmar digital nerve on the radial side of the digit (toward the thumb), shown as a yellow tube.',
     },
     educationalNote: {
       th: 'ในโมเดลนี้ เส้นประสาทอยู่ด้านข้างค่อนไปทางฝ่ามือ และอยู่ด้านฝ่ามือของหลอดเลือดแดง',
@@ -245,6 +273,12 @@ export const STRUCTURES: AnatomyStructure[] = [
     warningNote: {
       th: 'โครงสร้างสำคัญ — อยู่ในบริเวณควรหลีกเลี่ยงของโมเดล',
       en: 'Critical structure — lies within the model avoid zone.',
+    },
+    thumb: {
+      description: {
+        th: 'เส้นประสาท palmar digital ที่ขอบเรเดียลของนิ้วโป้ง (มาจากเส้นประสาทมีเดียน) ด้านนี้ไม่มีง่ามนิ้ว',
+        en: 'Palmar digital nerve on the radial border of the thumb (median nerve); there is no web on this side.',
+      },
     },
   },
   {
@@ -257,16 +291,58 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: true,
     description: {
-      th: 'เส้นประสาทดิจิทัลฝั่งนิ้วกลาง (อัลนา) แสดงเป็นท่อสีเหลือง',
-      en: 'Digital nerve on the middle-finger (ulnar) side, shown as a yellow tube.',
+      th: 'เส้นประสาท palmar digital ด้านอัลนาของนิ้ว (ฝั่งนิ้วก้อย) แสดงเป็นท่อสีเหลือง',
+      en: 'Palmar digital nerve on the ulnar side of the digit (toward the little finger), shown as a yellow tube.',
     },
     educationalNote: {
-      th: 'ในโมเดลนี้ มีเส้นประสาทหนึ่งเส้นในแต่ละข้างของนิ้ว',
-      en: 'In this model there is one digital nerve on each side of the finger.',
+      th: 'ในโมเดลนี้ มีเส้นประสาทด้านฝ่ามือหนึ่งเส้นและด้านหลังหนึ่งเส้นในแต่ละข้างของนิ้ว',
+      en: 'In this model each side of the digit has one palmar and one dorsal digital nerve.',
     },
     warningNote: {
       th: 'โครงสร้างสำคัญ — อยู่ในบริเวณควรหลีกเลี่ยงของโมเดล',
       en: 'Critical structure — lies within the model avoid zone.',
+    },
+    thumb: {
+      description: {
+        th: 'เส้นประสาท palmar digital ด้านอัลนาของนิ้วโป้ง (ฝั่งง่ามนิ้วแรก มาจากเส้นประสาทมีเดียน)',
+        en: 'Palmar digital nerve on the ulnar side of the thumb (first web space side; median nerve).',
+      },
+    },
+  },
+  {
+    id: 'dorsal_nerve_radial',
+    nameTh: 'เส้นประสาทดิจิทัลด้านหลัง (เรเดียล)',
+    nameEn: 'Dorsal digital nerve (radial)',
+    icon: 'N',
+    color: COLORS.nerve,
+    layer: 'nerves',
+    defaultVisible: true,
+    showLabel: true,
+    description: {
+      th: 'เส้นประสาทดิจิทัลด้านหลังฝั่งเรเดียล วิ่งในชั้นใต้ผิวหนังด้านหลัง-ข้าง เส้นเล็กกว่าเส้นด้านฝ่ามือ',
+      en: 'Dorsal digital nerve on the radial side, running dorsolaterally in the subcutaneous tissue; thinner than the palmar nerve.',
+    },
+    educationalNote: {
+      th: 'ในโมเดลนี้ แต่ละข้างของนิ้วมีทั้งเส้นประสาทด้านหลังและด้านฝ่ามือ จุดกำเนิดต่างกันตามนิ้ว (ดูบรรทัด "ที่มา")',
+      en: 'In this model each side of the digit has both a dorsal and a palmar nerve; their origin differs by digit (see the origin line).',
+    },
+  },
+  {
+    id: 'dorsal_nerve_ulnar',
+    nameTh: 'เส้นประสาทดิจิทัลด้านหลัง (อัลนา)',
+    nameEn: 'Dorsal digital nerve (ulnar)',
+    icon: 'N',
+    color: COLORS.nerve,
+    layer: 'nerves',
+    defaultVisible: true,
+    showLabel: false,
+    description: {
+      th: 'เส้นประสาทดิจิทัลด้านหลังฝั่งอัลนา วิ่งในชั้นใต้ผิวหนังด้านหลัง-ข้าง',
+      en: 'Dorsal digital nerve on the ulnar side, running dorsolaterally in the subcutaneous tissue.',
+    },
+    educationalNote: {
+      th: 'ระยะที่เส้นประสาทด้านหลังไปถึงต่างกันตามนิ้ว: นิ้วโป้งถึงโคนเล็บ นิ้วก้อยถึงราวข้อ DIP นิ้วอื่นถึงราวข้อ PIP',
+      en: 'How far the dorsal nerves reach differs: the thumb to the nail fold, the little finger to about the DIP, the others to about the PIP.',
     },
   },
   {
@@ -279,8 +355,8 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: true,
     description: {
-      th: 'หลอดเลือดแดงดิจิทัลฝั่งเรเดียล แสดงเป็นท่อสีแดง',
-      en: 'Radial-side digital artery, shown as a red tube.',
+      th: 'หลอดเลือดแดง palmar digital ฝั่งเรเดียล แสดงเป็นท่อสีแดง',
+      en: 'Radial-side palmar digital artery, shown as a red tube.',
     },
     educationalNote: {
       th: 'ในโมเดลนี้ หลอดเลือดแดงวิ่งคู่กับเส้นประสาทเป็นมัดเดียวกัน',
@@ -301,8 +377,8 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: true,
     description: {
-      th: 'หลอดเลือดแดงดิจิทัลฝั่งอัลนา แสดงเป็นท่อสีแดง',
-      en: 'Ulnar-side digital artery, shown as a red tube.',
+      th: 'หลอดเลือดแดง palmar digital ฝั่งอัลนา แสดงเป็นท่อสีแดง',
+      en: 'Ulnar-side palmar digital artery, shown as a red tube.',
     },
     educationalNote: {
       th: 'ในโมเดลนี้ หลอดเลือดแดงอยู่ด้านหลังเล็กน้อย (dorsal) เมื่อเทียบกับเส้นประสาท',
@@ -561,6 +637,18 @@ export const STRUCTURES: AnatomyStructure[] = [
     id: 'landmark_web_space',
     nameTh: 'ง่ามนิ้ว (ฝั่งเรเดียล)',
     nameEn: 'Web space (radial)',
+    thumb: {
+      nameTh: 'ง่ามนิ้วแรก (ฝั่งอัลนา)',
+      nameEn: 'First web space (ulnar side)',
+      description: {
+        th: 'ง่ามนิ้วแรกระหว่างนิ้วโป้งกับนิ้วชี้ อยู่ด้านอัลนาของนิ้วโป้ง',
+        en: 'The first web space between thumb and index, on the thumb’s ulnar side.',
+      },
+      educationalNote: {
+        th: 'ด้านเรเดียลของนิ้วโป้งไม่มีง่ามนิ้ว',
+        en: 'The radial border of the thumb has no web space.',
+      },
+    },
     icon: '•',
     color: COLORS.landmark,
     layer: 'landmarks',
@@ -603,6 +691,24 @@ export const STRUCTURES: AnatomyStructure[] = [
     educationalNote: { th: 'จุดอ้างอิงด้านปลาย', en: 'A distal reference point.' },
   },
   {
+    id: 'landmark_ip_crease',
+    nameTh: 'รอยพับข้อ IP',
+    nameEn: 'IP crease',
+    icon: '•',
+    color: COLORS.landmark,
+    layer: 'landmarks',
+    defaultVisible: true,
+    showLabel: true,
+    description: {
+      th: 'ระดับข้อต่อ interphalangeal ของนิ้วโป้ง (ระหว่างกระดูกท่อนต้นและท่อนปลาย)',
+      en: 'Level of the thumb’s single interphalangeal joint.',
+    },
+    educationalNote: {
+      th: 'นิ้วโป้งมีข้อ IP เพียงข้อเดียว บริเวณฝึกในโมเดลอยู่ด้านต้นต่อระดับนี้',
+      en: 'The thumb has only one IP joint; the model learning zones lie proximal to it.',
+    },
+  },
+  {
     id: 'landmark_nail_fold',
     nameTh: 'โคนเล็บ',
     nameEn: 'Nail fold',
@@ -628,11 +734,11 @@ export const STRUCTURES: AnatomyStructure[] = [
     showLabel: false,
     description: {
       th: 'ลูกศรแสดงทิศ Dorsal/Volar, Radial/Ulnar, Proximal/Distal ของนิ้วมือขวา',
-      en: 'Arrows showing dorsal/volar, radial/ulnar and proximal/distal for a right-hand finger.',
+      en: 'Arrows showing dorsal/volar, radial/ulnar and proximal/distal for a right-hand digit.',
     },
     educationalNote: {
-      th: 'มือขวา: ด้านเรเดียลคือฝั่งนิ้วโป้ง ด้านอัลนาคือฝั่งนิ้วกลาง',
-      en: 'Right hand: radial is the thumb side, ulnar is the middle-finger side.',
+      th: 'มือขวา: ด้านเรเดียลคือฝั่งนิ้วโป้ง ด้านอัลนาคือฝั่งนิ้วก้อย',
+      en: 'Right hand: radial is the thumb side, ulnar is the little-finger side.',
     },
   },
 ];
@@ -643,6 +749,12 @@ export function getStructure(id: StructureId): AnatomyStructure {
   const s = STRUCTURE_MAP.get(id);
   if (!s) throw new Error(`Unknown anatomy structure: ${id}`);
   return s;
+}
+
+/** Structure definition with the thumb-specific wording applied when `thumb` is true. */
+export function structureFor(id: StructureId, thumb: boolean): AnatomyStructure {
+  const s = getStructure(id);
+  return thumb && s.thumb ? { ...s, ...s.thumb } : s;
 }
 
 export function getLayer(id: LayerId): AnatomyLayer {
@@ -659,6 +771,8 @@ export function structuresInLayer(layer: LayerId): AnatomyStructure[] {
 export const LEGEND_STRUCTURES: StructureId[] = [
   'nerve_radial',
   'nerve_ulnar',
+  'dorsal_nerve_radial',
+  'dorsal_nerve_ulnar',
   'artery_radial',
   'artery_ulnar',
   'vein_radial',
@@ -675,6 +789,7 @@ export const LANDMARK_STRUCTURES: StructureId[] = [
   'landmark_web_space',
   'landmark_pip_crease',
   'landmark_dip_crease',
+  'landmark_ip_crease',
   'landmark_nail_fold',
   'safe_zone_radial',
   'safe_zone_ulnar',

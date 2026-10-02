@@ -28,13 +28,16 @@ export function cloneCalibration(c: CalibrationSettings): CalibrationSettings {
   };
 }
 
-function clampFinger(f: FingerCalibration): FingerCalibration {
+function clampFinger(id: FingerId, partial: Partial<FingerCalibration> | undefined): FingerCalibration {
+  // Fields added later (e.g. rollDeg) fall back to the digit's default.
+  const f = { ...defaultFingerCalibration(id), ...partial };
   const L = CALIBRATION_LIMITS;
   const o = L.fingerOffset;
   return {
     offset: { x: clamp(f.offset.x, o.min, o.max), y: clamp(f.offset.y, o.min, o.max), z: clamp(f.offset.z, o.min, o.max) },
     flexionDeg: clamp(f.flexionDeg, L.flexionDeg.min, L.flexionDeg.max),
     splayDeg: clamp(f.splayDeg, L.splayDeg.min, L.splayDeg.max),
+    rollDeg: clamp(f.rollDeg, L.rollDeg.min, L.rollDeg.max),
     lengthCm: clamp(f.lengthCm, L.fingerLengthCm.min, L.fingerLengthCm.max),
     widthCm: clamp(f.widthCm, L.fingerWidthCm.min, L.fingerWidthCm.max),
   };
@@ -58,7 +61,7 @@ export function clampCalibration(c: CalibrationSettings): CalibrationSettings {
     },
     scale: clamp(c.scale, L.scale.min, L.scale.max),
     fingers: Object.fromEntries(
-      FINGER_IDS.map((id) => [id, clampFinger(c.fingers?.[id] ?? defaultFingerCalibration(id))]),
+      FINGER_IDS.map((id) => [id, clampFinger(id, c.fingers?.[id])]),
     ) as Record<FingerId, FingerCalibration>,
     ...(c.savedAt ? { savedAt: c.savedAt } : {}),
   };
@@ -106,6 +109,7 @@ function readFinger(id: FingerId, v: unknown): FingerCalibration | string {
     offset,
     flexionDeg: num('flexionDeg'),
     splayDeg: num('splayDeg'),
+    rollDeg: num('rollDeg'),
     lengthCm: num('lengthCm'),
     widthCm: num('widthCm'),
   };

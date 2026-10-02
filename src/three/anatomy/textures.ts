@@ -1,5 +1,5 @@
 import { CanvasTexture, RepeatWrapping, SRGBColorSpace, type Texture } from 'three';
-import { ENVELOPE_Y0, ENVELOPE_Y1 } from './geometry';
+import type { Digit } from './layout';
 
 /**
  * Canvas-based textures. In non-DOM environments (unit tests) these return
@@ -142,12 +142,11 @@ export function createLabelTexture(opts: LabelTextureOptions): { texture: Textur
 // ------------------------------------------------------------------ realism textures
 // All procedural (no image assets). Envelope UVs: u = angle around the
 // finger (0 = ulnar, 0.25 = dorsal, 0.5 = radial, 0.75 = volar),
-// v = position along the envelope from ENVELOPE_Y0 to ENVELOPE_Y1.
+// v = position along the envelope from the digit's envelopeY0 to envelopeY1.
 
 
 const SKIN_W = 1024;
 const SKIN_H = 2048;
-const vOf = (y: number) => SKIN_H * (1 - (y - ENVELOPE_Y0) / (ENVELOPE_Y1 - ENVELOPE_Y0));
 const uOf = (thetaDeg: number) => (SKIN_W * (((thetaDeg % 360) + 360) % 360)) / 360;
 
 function seeded(seed: number) {
@@ -162,7 +161,7 @@ function seeded(seed: number) {
 }
 
 /** Draws crease lines across an angular range at height y. */
-function crease(g: CanvasRenderingContext2D, y: number, th0: number, th1: number, width: number, wobble = 4) {
+function crease(g: CanvasRenderingContext2D, vOf: (y: number) => number, y: number, th0: number, th1: number, width: number, wobble = 4) {
   g.beginPath();
   const steps = 40;
   for (let i = 0; i <= steps; i++) {
@@ -182,7 +181,9 @@ export interface SkinTextures {
 }
 
 /** Skin colour (with knuckle/pulp tint variation) + bump (pores, creases, fingerprint). */
-export function createSkinTextures(seed = 7): SkinTextures | null {
+export function createSkinTextures(d: Digit, seed = 7): SkinTextures | null {
+  const vOf = (y: number) => SKIN_H * (1 - (y - d.envelopeY0) / (d.envelopeY1 - d.envelopeY0));
+  const ip = d.joints.ip;
   const color = createCanvas(SKIN_W, SKIN_H);
   const bump = createCanvas(SKIN_W, SKIN_H);
   if (!color || !bump) return null;
@@ -212,10 +213,9 @@ export function createSkinTextures(seed = 7): SkinTextures | null {
     c.fillRect(uOf(th) - rx, vOf(y) - rx, rx * 2, rx * 2);
     c.restore();
   };
-  blush(90, -0.5, 170, 120, 0.35);
-  blush(90, 4.1, 140, 80, 0.3);
-  blush(90, 6.35, 110, 60, 0.22);
-  blush(270, 7.8, 200, 110, 0.25);
+  blush(90, d.joints.mcp, 170, 120, 0.35);
+  ip.forEach((y, i) => blush(90, y, i === 0 ? 140 : 110, i === 0 ? 80 : 60, i === 0 ? 0.3 : 0.22));
+  blush(270, d.tipY - 0.7, 200, 110, 0.25);
   // Fine mottling.
   for (let i = 0; i < 9000; i++) {
     c.fillStyle = `rgba(${150 + rnd() * 60},${90 + rnd() * 40},${70 + rnd() * 30},${0.04 + rnd() * 0.05})`;
@@ -233,34 +233,31 @@ export function createSkinTextures(seed = 7): SkinTextures | null {
   }
   b.strokeStyle = 'rgb(60,60,60)';
   b.lineCap = 'round';
-  // Volar flexion creases: proximal digital (double), PIP (double), DIP.
-  for (const [y, w] of [
+  // Volar flexion creases: proximal digital (double), PIP (double), DIP; the thumb has one IP crease.
+  const creases: [number, number][] = [
     [0.0, 7],
     [0.18, 5],
-    [3.98, 7],
-    [4.2, 6],
-    [6.35, 6],
-  ] as const) {
-    crease(b, y, 205, 335, w);
-  }
+  ];
+  if (ip.length >= 2) creases.push([ip[0] - 0.12, 7], [ip[0] + 0.1, 6], ...ip.slice(1).map((y) => [y, 6] as [number, number]));
+  else creases.push(...ip.map((y) => [y, 7] as [number, number]));
+  for (const [y, w] of creases) crease(b, vOf, y, 205, 335, w);
   // Dorsal knuckle wrinkles over PIP and DIP (short curved lines).
   b.strokeStyle = 'rgb(85,85,85)';
   for (const [yc, n, span] of [
-    [4.1, 6, 0.42],
-    [6.35, 4, 0.26],
-    [-0.5, 4, 0.36],
-  ] as const) {
+    ...ip.map((y, i) => [y, i === 0 ? 6 : 4, i === 0 ? 0.42 : 0.26] as const),
+    [d.joints.mcp, 4, 0.36] as const,
+  ]) {
     for (let i = 0; i < n; i++) {
       const y = yc - span / 2 + (span * i) / (n - 1);
       const half = 28 - Math.abs(i - (n - 1) / 2) * 5;
-      crease(b, y, 90 - half, 90 + half, 3, 2);
+      crease(b, vOf, y, 90 - half, 90 + half, 3, 2);
     }
   }
   // Fingerprint whorl on the pulp.
   b.strokeStyle = 'rgb(95,95,95)';
   b.lineWidth = 2.2;
   const cx = uOf(270);
-  const cy = vOf(7.7);
+  const cy = vOf(d.tipY - 0.8);
   for (let r = 6; r < 120; r += 7) {
     b.beginPath();
     b.ellipse(cx, cy, r * 1.15, r * 0.85, 0.15, 0, Math.PI * 2);

@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { STRUCTURES } from '../../config/anatomy';
 import type { Language, StructureId } from '../../types';
 import { STRUCTURE_ID_KEY } from './AnatomyModel';
+import { FINGER, type Digit } from './layout';
 import { ProceduralFingerModel } from './ProceduralFingerModel';
 
 const KNOWN_IDS = new Set<string>(STRUCTURES.map((s) => s.id));
@@ -16,16 +17,16 @@ const KNOWN_IDS = new Set<string>(STRUCTURES.map((s) => s.id));
  * glTF `extras.structureId` — equals a structure id from
  * `src/config/anatomy.ts` (e.g. `nerve_radial`, `phalanx_proximal`).
  *
- * GLB requirements: one right-hand finger (it is reused for every finger), cm, anatomical frame
+ * GLB requirements: one right-hand finger (it is reused for index–little; the thumb stays procedural), cm, anatomical frame
  * +X ulnar, +Y distal, +Z dorsal, finger base (web crease) at y = 0.
  */
 export class GltfAnatomyModel extends ProceduralFingerModel {
   readonly source = 'gltf' as const;
   readonly replaced: StructureId[] = [];
 
-  static async load(url: string, language: Language): Promise<GltfAnatomyModel> {
+  static async load(url: string, language: Language, digit: Digit = FINGER): Promise<GltfAnatomyModel> {
     const gltf = await new GLTFLoader().loadAsync(url);
-    const model = new GltfAnatomyModel(language);
+    const model = new GltfAnatomyModel(language, digit);
     model.adopt(gltf.scene);
     return model;
   }

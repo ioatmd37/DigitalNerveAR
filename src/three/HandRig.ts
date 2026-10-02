@@ -4,7 +4,6 @@ import {
   Group,
   LineBasicMaterial,
   LineLoop,
-  Matrix4,
   Mesh,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
@@ -17,7 +16,8 @@ import { FINGER_IDS } from '../config/hand';
 import type { CalibrationSettings, FingerId } from '../types';
 import type { AnatomyModel } from './anatomy/AnatomyModel';
 import { disposeObject } from './anatomy/AnatomyModel';
-import { createEnvelopeGeometry, createLoftGeometry, createSurfacePatch, JOINTS } from './anatomy/geometry';
+import { createLoftGeometry } from './anatomy/geometry';
+import { digitFor } from './anatomy/layout';
 import { applyFingerPlacement, applyHandCalibration, fingerPlacement } from './handPlacement';
 
 export interface HandRigOptions {
@@ -140,29 +140,19 @@ export class HandRig {
       add(m);
     }
 
-    // Thumb: the same finger envelope, shorter and wider, aimed radially and slightly volarly, nail facing dorsoradially.
-    const thumb = new Group();
-    thumb.position.set(-4.0, -6.4, -1.7);
-    orient(thumb, new Vector3(-1.7, 4.8, -0.8), new Vector3(-0.6, 0, 0.8));
-    const thumbSkin = new Mesh(createEnvelopeGeometry(1, 32, 60), skin());
-    thumbSkin.scale.set(1.15, 0.72, 1.15);
-    thumb.add(thumbSkin);
-    const thumbNail = new Mesh(createSurfacePatch(JOINTS.nailFold, 8.15, 58, 122, 1.03, 8, 10), nailMat());
-    thumbNail.scale.copy(thumbSkin.scale);
-    thumb.add(thumbNail);
-    add(thumb);
-
-    // The other three fingers.
+    // The other digits (thumb included), each with its own layout and placement.
     for (const id of FINGER_IDS) {
       if (id === selected) continue;
+      const digit = digitFor(id);
       const p = fingerPlacement(id, c);
       const g = new Group();
       g.position.copy(p.position);
       g.rotation.copy(p.rotation);
-      const m = new Mesh(createEnvelopeGeometry(1, 32, 60), skin());
+      const m = new Mesh(digit.createEnvelopeGeometry(1, 32, 60), skin());
       m.scale.copy(p.dims);
       m.position.copy(p.modelOffset);
-      const nail = new Mesh(createSurfacePatch(JOINTS.nailFold, 8.15, 58, 122, 1.03, 8, 10), nailMat());
+      const [n0, n1] = digit.isThumb ? [50, 130] : [58, 122];
+      const nail = new Mesh(digit.createSurfacePatch(digit.joints.nailFold, digit.nailEndY - 0.03, n0, n1, 1.03, 8, 10), nailMat());
       nail.scale.copy(p.dims);
       nail.position.copy(p.modelOffset);
       g.add(m, nail);
@@ -185,12 +175,4 @@ export class HandRig {
     this.markerOutline.geometry.dispose();
     (this.markerOutline.material as LineBasicMaterial).dispose();
   }
-}
-
-/** Point a group's +Y along `dir`, rolling it so its +Z faces `zHint` as closely as possible. */
-function orient(g: Object3D, dir: Vector3, zHint: Vector3): void {
-  const y = dir.clone().normalize();
-  const z = zHint.clone().addScaledVector(y, -zHint.dot(y)).normalize();
-  const x = new Vector3().crossVectors(y, z).normalize();
-  g.quaternion.setFromRotationMatrix(new Matrix4().makeBasis(x, y, z));
 }

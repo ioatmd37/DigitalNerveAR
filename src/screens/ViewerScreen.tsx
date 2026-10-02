@@ -132,7 +132,8 @@ export function ViewerScreen({ kind }: { kind: 'ar' | 'explorer' }) {
           <Icon name="back" />
           <span className="hidden sm:inline">{t('common.home')}</span>
         </button>
-        <div className="min-w-0 flex-1 truncate text-sm">
+        {/* On narrow phones the mode name lives in the dock tabs; the header keeps the digit picker. */}
+        <div className="min-w-0 flex-1 truncate text-sm max-[440px]:invisible">
           <span className="hidden text-slate-400 md:inline">{t('app.shortTitle')} / </span>
           <span className="font-semibold text-slate-100">{t(`modes.${mode}`)}</span>
         </div>

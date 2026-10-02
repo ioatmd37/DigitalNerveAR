@@ -102,14 +102,14 @@ describe('calibration (v2: whole hand + per-finger)', () => {
     scale: 1.1,
     fingers: {
       ...DEFAULT_CALIBRATION.fingers,
-      ring: { offset: { x: 0.2, y: -0.1, z: 0 }, flexionDeg: 10, splayDeg: -7, lengthCm: 7.9, widthCm: 1.7 },
+      ring: { offset: { x: 0.2, y: -0.1, z: 0 }, flexionDeg: 10, splayDeg: -7, rollDeg: 0, lengthCm: 7.9, widthCm: 1.7 },
     },
   };
 
   it('defaults to a 2 cm sticker on the middle-finger knuckle', () => {
     expect(DEFAULT_CALIBRATION.version).toBe(2);
     expect(DEFAULT_CALIBRATION.markerSizeCm).toBe(2);
-    expect(Object.keys(DEFAULT_CALIBRATION.fingers).sort()).toEqual(['index', 'little', 'middle', 'ring']);
+    expect(Object.keys(DEFAULT_CALIBRATION.fingers).sort()).toEqual(['index', 'little', 'middle', 'ring', 'thumb']);
   });
 
   it('round-trips through export/import', () => {
@@ -129,7 +129,16 @@ describe('calibration (v2: whole hand + per-finger)', () => {
     if (parsed.ok) {
       expect(parsed.value.markerSizeCm).toBe(DEFAULT_CALIBRATION.markerSizeCm);
       expect(parsed.value.fingers.little).toEqual(DEFAULT_CALIBRATION.fingers.little);
+      expect(parsed.value.fingers.thumb).toEqual(DEFAULT_CALIBRATION.fingers.thumb);
     }
+  });
+
+  it('fills fields added later (thumb roll) from the digit defaults', () => {
+    const { rollDeg: _drop, ...noRoll } = DEFAULT_CALIBRATION.fingers.thumb;
+    void _drop;
+    const c = clampCalibration({ ...DEFAULT_CALIBRATION, fingers: { ...DEFAULT_CALIBRATION.fingers, thumb: noRoll as never } });
+    expect(c.fingers.thumb.rollDeg).toBe(DEFAULT_CALIBRATION.fingers.thumb.rollDeg);
+    expect(c.fingers.thumb.rollDeg).toBeLessThan(0); // pronated: nail toward radial
   });
 
   it('rejects malformed input and old v1 files with a helpful error', () => {

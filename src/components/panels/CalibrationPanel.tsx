@@ -86,6 +86,7 @@ export function CalibrationPanel({ onStartAssessment }: { onStartAssessment: () 
         <Slider label={t('calibration.fz')} unit=" cm" {...L.fingerOffset} value={f.offset.z} onChange={(z) => updateFinger(finger, { offset: { ...f.offset, z } })} />
         <Slider label={t('calibration.splay')} unit="°" {...L.splayDeg} value={f.splayDeg} onChange={(splayDeg) => updateFinger(finger, { splayDeg })} />
         <Slider label={t('calibration.flexion')} unit="°" {...L.flexionDeg} value={f.flexionDeg} onChange={(flexionDeg) => updateFinger(finger, { flexionDeg })} />
+        <Slider label={t('calibration.roll')} unit="°" {...L.rollDeg} value={f.rollDeg} onChange={(rollDeg) => updateFinger(finger, { rollDeg })} />
         <button className="btn btn-ghost btn-sm w-full" onClick={() => resetFinger(finger)}>
           {t('calibration.resetFinger', { finger: fingerName })}
         </button>

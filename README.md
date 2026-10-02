@@ -38,11 +38,22 @@ practising a digital nerve block **on a whole right-hand training mannequin** (i
 ## Project overview
 
 A small marker sticker is fixed on the **back of a right-hand mannequin, over the middle-finger knuckle**. The learner
-chooses a finger (**index, middle, ring or little**; the thumb is not modelled) and points a tablet or phone camera at
-the hand. When the marker is recognised, a 3D, layered, **simplified** digital anatomy model is overlaid on the
-selected finger. The model shows skin, subcutaneous tissue, phalanges, the flexor tendon, the radial and ulnar digital
-nerves and arteries, optional dorsal veins, dorsolateral learning zones, a volar avoid zone, model needle entry markers,
+chooses a digit (**thumb, index, middle, ring or little**) and points a tablet or phone camera at the hand. When the marker is recognised, a 3D, layered, **simplified** digital anatomy model is overlaid on the
+selected digit. The model shows skin, subcutaneous tissue, phalanges, the flexor and extensor tendons, the radial and
+ulnar palmar digital nerves and arteries, the dorsal digital nerves, optional dorsal veins, dorsolateral learning zones, a volar avoid zone, model needle entry markers,
 direction arrows, and an animated conceptual "spread" visualisation.
+
+**Digit layouts** (`src/three/anatomy/layout.ts`, shared by the 3D model and the needle evaluator):
+
+| Digit | What differs |
+| --- | --- |
+| Index, middle, ring | Three phalanges; FDS + FDP with A1–A5 pulleys; extensor hood; webs on both sides; dorsal digital nerves (superficial radial; ulnar side of the ring finger from the dorsal branch of the ulnar nerve) reach about the PIP |
+| Little | Same skeleton; **no web on the ulnar side** (that bundle comes straight from the hypothenar region); dorsal digital nerves (dorsal branch of the ulnar nerve) reach about the **DIP**; palmar dorsal branches only to the distal phalanx |
+| Thumb | **Two phalanges, one IP joint**; first metacarpal with two sesamoids; **FPL only** (no FDS) with A1, oblique and A2 pulleys; **EPL and EPB** instead of a hood; first web on its **ulnar** side only; dorsal digital nerves (superficial radial) reach the **nail fold**; pronated about its long axis (calibration **Roll**) |
+
+The structure card shows each nerve's and artery's usual origin for the selected digit (median / ulnar / radial
+nerve; superficial arch, radialis indicis, princeps pollicis), and the Anatomy panel lists key points per digit.
+Variations are common; this is a teaching model.
 
 A **3D Explorer** provides the same content without a camera. Calibration can be previewed there too, because a faint
 virtual hand with the marker sticker is drawn around the selected finger.
@@ -369,8 +380,8 @@ Manual acceptance checks (camera/marker) are listed in [docs/AR_MARKER_SETUP_GUI
 
 ## Future roadmap
 
-- Faculty-reviewed high-fidelity GLB hand model (with dorsal digital nerve branches and anatomical variants).
-- Left-hand mode and other fingers or blocks (e.g. thumb, web-space and transthecal techniques as separate modules).
+- Faculty-reviewed high-fidelity GLB hand model (with anatomical variants).
+- Left-hand mode and other blocks (e.g. web-space and transthecal techniques as separate modules).
 - Multi-marker or object tracking for more robust alignment, and WebXR hit-testing where supported.
 - Occlusion (depth) so the physical finger can hide virtual structures behind it.
 - Tracked physical needle (fiducial on a practice syringe) with **mannequin-only** proximity feedback.

@@ -151,6 +151,15 @@ function label(text: string, color: string, height = 1.5): Sprite | null {
   return s;
 }
 
+/** Cylinder from a to b. */
+function rodBetween(a: Vector3, b: Vector3, r: number, material: MeshStandardMaterial): Mesh {
+  const dir = b.clone().sub(a);
+  const m = new Mesh(new CylinderGeometry(r, r, dir.length(), 16), material);
+  m.position.copy(a).add(b).multiplyScalar(0.5);
+  m.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), dir.normalize());
+  return m;
+}
+
 function buildProps(labels: SetupSceneLabels): { group: Group } {
   const group = new Group();
   const add = (o: Object3D | null, x = 0, y = 0, z = 0) => {
@@ -195,11 +204,23 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   group.add(phone);
   const lensWorld = lensPos.clone().applyMatrix4(phone.matrixWorld);
 
-  // Clamp across the phone near its top (wrist) end, so the arm stays short and off the fingers.
-  const clamp = new Mesh(new RoundedBoxGeometry(PHONE.w + 1.2, 1.4, 2.2, 3, 0.3), dark);
-  clamp.position.set(0, 0.2, -3.6);
-  phone.add(clamp);
-  const clampWorld = new Vector3(0, 0.9, -3.6).applyMatrix4(phone.matrixWorld);
+  // Holder on the BACK of the phone, toward its bottom end: a cradle plate with side jaws that grip
+  // only the long edges, so nothing crosses the screen and the rear lens (top end) stays clear.
+  const holderZ = 2.4;
+  const cradle = new Mesh(new RoundedBoxGeometry(PHONE.w * 0.62, 0.35, 5.5, 3, 0.15), dark);
+  cradle.position.set(0, -PHONE.t / 2 - 0.2, holderZ);
+  const ball = new Mesh(new SphereGeometry(0.75, 20, 14), dark);
+  ball.position.set(0, -PHONE.t / 2 - 0.95, holderZ);
+  phone.add(cradle, ball);
+  for (const sx of [-1, 1]) {
+    const jaw = new Mesh(new RoundedBoxGeometry(0.45, PHONE.t + 0.55, 4.5, 2, 0.12), dark);
+    jaw.position.set(sx * (PHONE.w / 2 + 0.2), -0.15, holderZ);
+    phone.add(jaw);
+  }
+  const toWorld = (x: number, y: number, z: number) => new Vector3(x, y, z).applyMatrix4(phone.matrixWorld);
+  // Arm: from the ball head sideways, clear of the phone's edge (on the side away from the lens).
+  const ballWorld = toWorld(0, -PHONE.t / 2 - 0.95, holderZ);
+  const elbowWorld = toWorld(PHONE.w / 2 + 2.2, -PHONE.t / 2 - 0.95, holderZ);
 
   // --- Stand: a weighted base on the table beyond the wrist (on the hand's midline), a rigid
   // upright, and a rigid horizontal boom with a counterweight behind the upright. The boom carries
@@ -227,17 +248,21 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   const knob = new Mesh(new CylinderGeometry(0.9, 0.9, 1.2, 20), dark);
   knob.rotation.z = Math.PI / 2;
   add(knob, base.x + 2, boomY, base.z);
-  // Boom: from behind the upright (counterweight) to above the clamp.
-  const rearZ = baseZ + 9;
-  const frontZ = clampWorld.z;
-  const boom = new Mesh(new RoundedBoxGeometry(1.4, 1.4, rearZ - frontZ + 1.4, 3, 0.3), metal);
-  add(boom, 0, boomY, (rearZ + frontZ) / 2);
-  add(new Mesh(new RoundedBoxGeometry(4.5, 4, 5, 3, 0.6), heavy), 0, boomY, rearZ - 1.5);
-  // Drop rod and tilt head down to the phone clamp.
-  const dropTop = new Vector3(clampWorld.x, boomY, frontZ);
-  const rod = new Mesh(new CylinderGeometry(0.45, 0.45, dropTop.y - clampWorld.y - 1, 16), metal);
-  add(rod, dropTop.x, (dropTop.y + clampWorld.y + 1) / 2, frontZ);
-  add(new Mesh(new SphereGeometry(1.1, 20, 14), dark), clampWorld.x, clampWorld.y + 0.9, clampWorld.z);
+  // Boom: rigid, from a counterweight behind the upright to a point beside the phone; a drop rod
+  // comes down beside the phone (not over the screen) and turns in under it to the ball head.
+  const pivot = new Vector3(base.x, boomY, base.z);
+  const boomEnd = new Vector3(elbowWorld.x, boomY, elbowWorld.z);
+  const back = pivot.clone().sub(boomEnd).setY(0).normalize();
+  const rear = pivot.clone().addScaledVector(back, 9);
+  group.add(rodBetween(rear, boomEnd, 0.7, metal));
+  const weight = new Mesh(new RoundedBoxGeometry(4.5, 4, 5, 3, 0.6), heavy);
+  weight.position.copy(rear).addScaledVector(back, -1.5);
+  weight.lookAt(pivot);
+  group.add(weight);
+  group.add(rodBetween(boomEnd, elbowWorld, 0.45, metal));
+  group.add(rodBetween(elbowWorld, ballWorld, 0.4, metal));
+  add(new Mesh(new SphereGeometry(0.6, 16, 12), dark), elbowWorld.x, elbowWorld.y, elbowWorld.z);
+  add(new Mesh(new SphereGeometry(0.75, 16, 12), dark), boomEnd.x, boomEnd.y, boomEnd.z);
 
   // --- Camera view: a translucent pyramid from the lens to its footprint around the marker.
   const half = { x: 7.5, z: 9.5 };
@@ -281,7 +306,7 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   add(label(labels.marker, '#e8e5de', 1.7), -2, 3.6, 2);
   add(label(labels.phone, '#e8e5de', 1.7), 0, LENS_HEIGHT + 4.6, lensWorld.z - 2);
   add(label(labels.stand, '#e8e5de', 1.7), base.x, 9, base.z);
-  add(label(labels.counterweight, '#e8e5de', 1.5), 0, boomY + 3.4, rearZ + 2);
+  add(label(labels.counterweight, '#e8e5de', 1.5), rear.x, boomY + 3.4, rear.z + 1);
   // Where the operator sits: at the fingertips.
   add(label(labels.operator, '#facc15', 1.9), 0, 1.5, -24);
   const arrow = new Mesh(new CylinderGeometry(0, 1.1, 2.4, 3), new MeshBasicMaterial({ color: '#facc15' }));

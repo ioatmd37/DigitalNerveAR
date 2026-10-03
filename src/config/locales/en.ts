@@ -63,7 +63,7 @@ const en = {
       tip2: 'Stick the {size} × {size} cm marker in the centre of the back of the hand (over the middle-finger metacarpal, midway to the wrist) with its TOP arrow toward the fingertips. Spread all the digits (abduction).',
       tip3: 'Clamp the phone with its rear camera 12–20 cm above the back of the hand, between the marker and the knuckles, screen tilted slightly toward you. Keep the whole marker and the selected finger in view.',
       tip4: 'Use even, diffuse light: no glare on the sticker and no shadow from the phone or your hand.',
-      tip5: 'Use a stand with a heavy base on the hand’s midline beyond the wrist and a rigid horizontal arm (with a counterweight behind the upright), not a long gooseneck. The phone stays steady, the stand cannot tip toward the hand, and both sides of every digit stay free for the needle. Leave about 20 cm between the arm and the fingers for your hands and the syringe.',
+      tip5: 'Use a stand with a heavy base on the hand’s midline beyond the wrist and a rigid horizontal arm (with a counterweight behind the upright), not a long gooseneck. The phone stays steady, the stand cannot tip toward the hand, and both sides of every digit stay free for the needle. Leave about 20 cm between the arm and the fingers for your hands and the syringe. Hold the phone from behind (a cradle with side jaws) rather than with a clamp across the screen, keeping the screen and the rear camera clear.',
     },
     figure: {
       caption: 'Cross-section at the proximal phalanx (simplified)',

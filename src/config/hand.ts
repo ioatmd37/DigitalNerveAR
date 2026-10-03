@@ -221,8 +221,20 @@ export const DIGIT_NOTES: Record<FingerId, LocalizedText[]> = {
   ],
   index: [
     {
-      th: 'ด้านเรเดียลติดกับง่ามนิ้วแรก (ระหว่างนิ้วโป้งกับนิ้วชี้)',
-      en: 'Its radial side borders the first web space (between thumb and index).',
+      th: 'ด้านเรเดียลติดกับง่ามนิ้วแรก (ระหว่างนิ้วโป้งกับนิ้วชี้) ด้านอัลนาติดกับง่ามนิ้วที่ 2',
+      en: 'Its radial side borders the first web space (thumb–index); its ulnar side the second web space.',
+    },
+    {
+      th: 'เส้นประสาทด้านฝ่ามือทั้งสองข้างมาจากเส้นประสาทมีเดียน ด้านหลังมาจากแขนงตื้นของเส้นประสาทเรเดียลถึงราวข้อ PIP ส่วนด้านหลังของกระดูกท่อนกลาง-ปลายได้จากแขนงด้านหลังของเส้นด้านฝ่ามือ',
+      en: 'Both palmar digital nerves are median; the dorsal nerves (superficial radial) reach about the PIP, and the dorsum of the middle and distal phalanges is supplied by dorsal branches of the palmar nerves.',
+    },
+    {
+      th: 'หลอดเลือดด้านเรเดียลคือ radialis indicis (จากหลอดเลือดแดงเรเดียล) ด้านอัลนามาจาก superficial palmar arch และมักเป็นเส้นที่ใหญ่กว่า',
+      en: 'The radial-side artery is the radialis indicis (radial artery system); the ulnar-side artery comes from the superficial palmar arch and is usually the larger one.',
+    },
+    {
+      th: 'ด้านหลังมีเอ็น EDC และเอ็น extensor indicis (EIP อยู่ด้านอัลนาของ EDC ที่ข้อ MCP) รวมเข้า extensor hood; ด้านเรเดียลมีกล้ามเนื้อ first dorsal interosseous และ lumbrical ตัวที่ 1 (ไม่ได้แสดงในโมเดล)',
+      en: 'Dorsally EDC and extensor indicis (EIP, ulnar to EDC at the MCP) join the extensor hood; the first dorsal interosseous and first lumbrical lie on the radial side (not shown in the model).',
     },
   ],
   middle: [

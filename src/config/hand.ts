@@ -220,6 +220,10 @@ export const DIGIT_NOTES: Record<FingerId, LocalizedText[]> = {
       en: 'The dorsal nerves (superficial radial) reach the nail fold, so both dorsal and palmar nerves matter.',
     },
     {
+      th: 'ปลอกเอ็น FPL ของนิ้วโป้งต่อเนื่องกับ radial bursa ในฝ่ามือ',
+      en: 'The FPL sheath of the thumb continues into the radial bursa in the palm.',
+    },
+    {
       th: 'นิ้วโป้งหมุนเข้า (pronate) ประมาณ 60–90° เทียบกับนิ้วอื่น เล็บจึงหันไปทางเรเดียล ด้านอัลนาของนิ้วโป้งคือฝั่งง่ามนิ้วแรก (ฝั่งนิ้วชี้)',
       en: 'The thumb is pronated about 60–90° relative to the fingers: its nail faces radially, and its ulnar side is the first web space (toward the index).',
     },
@@ -266,6 +270,10 @@ export const DIGIT_NOTES: Record<FingerId, LocalizedText[]> = {
     {
       th: 'เส้นประสาทด้านหลัง (แขนงหลังของอัลนา) มักไปไกลถึงราวข้อ DIP มากกว่านิ้วชี้-นิ้วกลาง',
       en: 'The dorsal nerves (dorsal branch of the ulnar nerve) usually reach about the DIP joint, further than in the index and middle fingers.',
+    },
+    {
+      th: 'ปลอกเอ็นงอนิ้วของนิ้วก้อยมักต่อเนื่องกับ ulnar bursa ในฝ่ามือ (นิ้วชี้ กลาง นาง มักปิดที่ระดับข้อ MCP)',
+      en: 'The little finger’s flexor sheath usually continues into the ulnar bursa in the palm (the index, middle and ring sheaths usually end at the MCP level).',
     },
     {
       th: 'เอ็น FDS ของนิ้วก้อยอาจเล็กหรือไม่มีในบางคน; ด้านหลังมีเอ็น EDM ร่วมกับ EDC',

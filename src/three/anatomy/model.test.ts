@@ -192,3 +192,23 @@ describe('ProceduralFingerModel', () => {
     expect(() => m.dispose()).not.toThrow();
   });
 });
+
+describe('teacher technique overlays', () => {
+  it('show a proximal escape into the bursa only on the thumb and little finger', async () => {
+    const { TransthecalOverlay } = await import('../teaching/TransthecalOverlay');
+    const has = (d: typeof FINGER) => !!new TransthecalOverlay(d).object.getObjectByName('bursa_leak');
+    expect(has(THUMB)).toBe(true);
+    expect(has(LITTLE)).toBe(true);
+    expect(has(FINGER)).toBe(false);
+    expect(has(INDEX)).toBe(false);
+  });
+
+  it('lists digit cautions for the thumb and little finger in both techniques', async () => {
+    const { TECHNIQUE_DIGIT_CAUTIONS, TECHNIQUE_FAILURES } = await import('../../config/techniqueCautions');
+    for (const t of ['simple', 'transthecal'] as const) {
+      expect(TECHNIQUE_FAILURES[t].length).toBeGreaterThan(2);
+      expect(TECHNIQUE_DIGIT_CAUTIONS[t].thumb?.length).toBeGreaterThan(0);
+      expect(TECHNIQUE_DIGIT_CAUTIONS[t].little?.length).toBeGreaterThan(0);
+    }
+  });
+});

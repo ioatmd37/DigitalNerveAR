@@ -256,6 +256,13 @@ soreness, dorsal top-up). Overlay: `src/three/teaching/TransthecalOverlay.ts`; s
 `src/config/transthecalSteps.ts`; text: `transthecal.*`. Both scenes share `TechniquePanel` and are gated by the same
 instructor check in the store.
 
+Both panels list **cautions for the selected digit** and **why the block may be incomplete**
+(`src/config/techniqueCautions.ts`): for example the thumb's dorsal nerves reaching the nail fold, the little finger's
+dorsal nerves reaching the DIP, the thumb's FPL sheath continuing into the radial bursa and the little finger's sheath
+into the ulnar bursa (solution escaping into the palm; shown in the transthecal scene on those digits), the ring
+finger's split median/ulnar supply, wrong depth or a needle still in the tendon, too little volume or time, and
+scarred or infected tissue.
+
 ## Printing and using the image marker
 
 - The marker image is `public/marker/marker.png` and its compiled MindAR target is `public/marker/targets.mind`. Both are

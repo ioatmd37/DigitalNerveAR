@@ -155,7 +155,7 @@ const en = {
     },
     s5: {
       title: 'Inject with pressure just proximal',
-      body: 'Inject about 2 mL slowly while pressing firmly just proximal to the entry, so the solution runs distally along the sheath. The sheath can be felt filling along the finger.',
+      body: 'Inject about 2 mL slowly while pressing firmly just proximal to the entry, so the solution runs distally along the sheath. The sheath can be felt filling along the finger. On the thumb and little finger the sheath usually continues into the radial or ulnar bursa, so part of the solution may escape into the palm (shown on those digits).',
     },
     s6: {
       title: 'Diffusion and teaching points',
@@ -163,6 +163,10 @@ const en = {
     },
     reference: 'Further reading: Chiu DTW. Transthecal digital block: flexor tendon sheath used for anesthetic infusion. J Hand Surg Am, 1990.',
     modelNote: 'Drugs and volumes are named for teaching context only. Not guidance for real patients.',
+  },
+  technique: {
+    digitCautions: 'Cautions for the {digit}',
+    failures: 'Why the block may be incomplete',
   },
   common: {
     back: 'Back',

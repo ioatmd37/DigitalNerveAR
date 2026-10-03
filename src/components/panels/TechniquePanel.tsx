@@ -1,4 +1,6 @@
+import { getFinger } from '../../config/hand';
 import { SIMPLE_STEPS } from '../../config/simpleSteps';
+import { TECHNIQUE_DIGIT_CAUTIONS, TECHNIQUE_FAILURES } from '../../config/techniqueCautions';
 import { TRANSTHECAL_STEPS } from '../../config/transthecalSteps';
 import { useT } from '../../i18n/useT';
 import { useAppStore } from '../../store/useAppStore';
@@ -6,7 +8,8 @@ import type { GuidedStep, TechniqueMode } from '../../types';
 
 /** Teacher-only, step-by-step walkthrough of a block technique on the model. */
 export function TechniquePanel({ technique }: { technique: TechniqueMode }) {
-  const { td } = useT();
+  const { td, loc, names } = useT();
+  const finger = useAppStore((s) => s.selectedFinger);
   const simpleStep = useAppStore((s) => s.simpleStep);
   const transthecalStep = useAppStore((s) => s.transthecalStep);
   const setSimpleStep = useAppStore((s) => s.setSimpleStep);
@@ -62,6 +65,12 @@ export function TechniquePanel({ technique }: { technique: TechniqueMode }) {
           {td('common.next')}
         </button>
       </div>
+      <Cautions
+        title={td('technique.digitCautions', { digit: names(getFinger(finger)).primary })}
+        items={(TECHNIQUE_DIGIT_CAUTIONS[technique][finger] ?? []).map(loc)}
+        open
+      />
+      <Cautions title={td('technique.failures')} items={TECHNIQUE_FAILURES[technique].map(loc)} />
       <p className="mt-4 text-xs text-slate-500">{k('viewHint')}</p>
       <p className="mt-3 flex items-start gap-2 text-xs text-amber-300">
         <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" aria-hidden />
@@ -69,5 +78,23 @@ export function TechniquePanel({ technique }: { technique: TechniqueMode }) {
       </p>
       <p className="mt-3 border-t border-slate-800 pt-3 text-xs leading-relaxed text-slate-500">{k('reference')}</p>
     </div>
+  );
+}
+
+/** Collapsible list of cautions (amber markers). Hidden when empty. */
+function Cautions({ title, items, open = false }: { title: string; items: string[]; open?: boolean }) {
+  if (!items.length) return null;
+  return (
+    <details className="mt-4 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2" open={open}>
+      <summary className="cursor-pointer select-none text-sm font-semibold text-amber-300">{title}</summary>
+      <ul className="mt-2 space-y-2">
+        {items.map((text, i) => (
+          <li key={i} className="flex gap-2 text-sm leading-relaxed text-slate-200">
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" aria-hidden />
+            <span>{text}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

@@ -39,6 +39,8 @@ export class TransthecalOverlay implements ModelExtension {
   private readonly fillFrames: BufferGeometry[] = [];
   private readonly pressure = new Group();
   private readonly diffusion = new Group();
+  /** Thumb and little finger: the sheath continues into the radial/ulnar bursa, so solution can escape proximally. */
+  private readonly bursaLeak: Mesh | null = null;
   private readonly tipBone: Vector3;
   private readonly tipSheath: Vector3;
   private readonly dir: Vector3;
@@ -134,6 +136,17 @@ export class TransthecalOverlay implements ModelExtension {
     diff.renderOrder = 6;
     this.diffusion.add(diff);
 
+    if (d.id === 'thumb' || d.id === 'little') {
+      const leakPts = Array.from({ length: 16 }, (_, j) => centre(a1 - ((a1 + 4.2) * j) / 15));
+      this.bursaLeak = new Mesh(
+        createTaperedTube(leakPts, (u) => (0.27 + 0.12 * u) * d.k, 50, 16, 1.3, 0.95),
+        new MeshBasicMaterial({ color: COLORS.injectate, transparent: true, opacity: 0.22, depthWrite: false }),
+      );
+      this.bursaLeak.name = 'bursa_leak';
+      this.bursaLeak.renderOrder = 7;
+      this.object.add(this.bursaLeak);
+    }
+
     this.object.add(this.site, this.sheath, this.needle, this.fill, this.pressure, this.diffusion);
   }
 
@@ -151,6 +164,7 @@ export class TransthecalOverlay implements ModelExtension {
     this.fill.visible = step.fill !== 'none';
     this.pressure.visible = step.pressure;
     this.diffusion.visible = step.diffusion;
+    if (this.bursaLeak) this.bursaLeak.visible = step.fill !== 'none';
     if (changed) this.restart();
   }
 

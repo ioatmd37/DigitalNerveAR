@@ -27,6 +27,29 @@ describe('app store', () => {
     expect(s().activeTab).toBe('calibration');
   });
 
+  it('the SIMPLE technique scene is teacher-only and closes when instructor mode locks', async () => {
+    const { computeViewState } = await import('../logic/visibility');
+    const { SIMPLE_STEPS } = await import('../config/simpleSteps');
+    s().setActiveTab('simple');
+    expect(s().mode).not.toBe('simple');
+    s().setMode('simple');
+    expect(s().mode).not.toBe('simple');
+    s().unlockInstructor(s().instructor.passcode);
+    s().setActiveTab('simple');
+    expect(s().mode).toBe('simple');
+    s().setSimpleStep(99);
+    expect(s().simpleStep).toBe(SIMPLE_STEPS.length - 1);
+    // Steps show the volar anatomy without the model's avoid zone (the injection is subcutaneous, volar).
+    for (let i = 0; i < SIMPLE_STEPS.length; i++) {
+      const v = computeViewState({ ...s(), mode: 'simple', simpleStep: i, assessment: { revealed: false } });
+      expect(v.layers.skin).toBe(true);
+      expect(v.layers.avoidZone).toBe(false);
+    }
+    s().lockInstructor();
+    expect(s().mode).toBe('anatomy');
+    expect(s().activeTab).toBe('anatomy');
+  });
+
   it('saves, reverts and resets calibration', () => {
     s().updateCalibration({ position: { ...DEFAULT_CALIBRATION.position, x: 4 }, markerSizeCm: 6 });
     expect(s().calibration.position.x).toBe(4);

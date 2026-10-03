@@ -98,7 +98,7 @@ export interface AnatomyStructure {
   thumb?: Partial<Pick<AnatomyStructure, 'nameTh' | 'nameEn' | 'description' | 'educationalNote' | 'warningNote'>>;
 }
 
-export type LearningMode = 'surface' | 'anatomy' | 'layers' | 'guided' | 'needle' | 'osce' | 'quiz' | 'assessment';
+export type LearningMode = 'surface' | 'anatomy' | 'layers' | 'guided' | 'needle' | 'osce' | 'quiz' | 'assessment' | 'simple';
 
 /** Panel tabs: every learning mode plus the instructor-only calibration panel. */
 export type PanelTab = LearningMode | 'calibration';
@@ -187,6 +187,24 @@ export interface GuidedStep {
   highlight: StructureId[];
 }
 
+/** What the SIMPLE-technique teaching overlay shows in a step. */
+export interface SimpleOverlayStep {
+  /** Injection-site marker on the volar midline of the proximal phalanx. */
+  site: boolean;
+  /** Thin band marking the subcutaneous plane (superficial to the flexor sheath). */
+  plane: boolean;
+  /** Short, fine needle inserted into the subcutaneous fat. */
+  needle: boolean;
+  /** Volar subcutaneous bleb: 'none', growing ('spread') or full ('full'). */
+  bleb: 'none' | 'spread' | 'full';
+  /** Optional small dorsal subcutaneous top-up over the proximal phalanx. */
+  dorsal: boolean;
+}
+
+export interface SimpleStep extends GuidedStep {
+  overlay: SimpleOverlayStep;
+}
+
 export type TrackingStatus = 'idle' | 'loading' | 'searching' | 'tracking' | 'lost' | 'error';
 
 export interface AssessmentState {
@@ -215,6 +233,8 @@ export interface SessionState {
   userLayers: LayerVisibility;
   showLabels: boolean;
   guidedStep: number;
+  /** Teacher-only SIMPLE technique scene step. */
+  simpleStep: number;
   selectedStructure: StructureId | null;
   /** Finger that currently carries the overlay. */
   selectedFinger: FingerId;

@@ -16,6 +16,7 @@ export function useViewState(): ViewState {
       selectedStructure: s.selectedStructure,
       feedbackHighlight: s.feedbackHighlight,
       needleShowAnatomy: s.needle.showAnatomy,
+      simpleStep: s.simpleStep,
     })),
   );
   return useMemo(
@@ -29,6 +30,7 @@ export function useViewState(): ViewState {
         selectedStructure: input.selectedStructure,
         feedbackHighlight: input.feedbackHighlight,
         needleShowAnatomy: input.needleShowAnatomy,
+        simpleStep: input.simpleStep,
       }),
     [input],
   );

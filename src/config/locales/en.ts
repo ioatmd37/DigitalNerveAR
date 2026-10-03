@@ -100,6 +100,38 @@ const en = {
     stackHeading: 'Built with',
     privacyHeading: 'Data and privacy',
   },
+  simple: {
+    teacherOnly: 'Teacher view',
+    intro: 'Lalonde’s SIMPLE block: Single subcutaneous Injection in the Middle of the Proximal phalanx with Lidocaine and Epinephrine. A teaching summary on the mannequin model; present it with the original literature and your institutional protocol.',
+    viewHint: 'Best seen from the Volar view.',
+    replay: 'Replay injection',
+    s1: {
+      title: 'One injection, volar midline',
+      body: 'Turn the hand palm-up (the marker on the back of the hand cannot be tracked then, so teach this scene in the 3D model). The single needle entry is on the palm side, in the midline, halfway along the proximal phalanx: between the proximal digital (palm–finger) crease and the PIP crease (thumb: the IP crease). Compare it with the two-sided dorsolateral approach practised elsewhere in the app.',
+    },
+    s2: {
+      title: 'What lies under the site',
+      body: 'The palmar digital nerves and arteries run on both volar-lateral sides; the flexor sheath lies deep in the midline. The SIMPLE injection stays in the subcutaneous fat (light band), superficial to the sheath. It is not a transthecal (intra-sheath) block.',
+    },
+    s3: {
+      title: 'Needle in',
+      body: 'Use a fine needle (27–30 G). Stabilise the finger and insert perpendicular to the skin, only into the subcutaneous fat, a few millimetres; stop before the firm sheath. Lalonde’s tips for less pain: buffered, warmed solution, a still needle and a slow injection.',
+    },
+    s4: {
+      title: 'Slow volar injection',
+      body: 'Inject slowly: a small amount first, pause, then the rest; about 2 mL in total in Lalonde’s description. The bleb spreads around the volar half of the finger to reach both palmar digital nerves, and the skin blanches as the epinephrine acts.',
+    },
+    s5: {
+      title: 'Dorsal skin over the proximal phalanx',
+      body: 'The dorsal digital nerves over the proximal phalanx may not be reached by the volar bleb. If the procedure involves that skin, a small dorsal subcutaneous injection can be added (shown on both sides). Distal to the PIP, the dorsal branches of the palmar nerves supply the dorsum.',
+    },
+    s6: {
+      title: 'Teaching points',
+      body: 'One needle stick, with onset usually within minutes. Epinephrine in the finger is part of Lalonde’s wide-awake (WALANT) approach; follow your institution’s protocol, contraindications and rescue plan (e.g. phentolamine). The overlay shows where and how deep on this simplified model, not doses or patient selection.',
+    },
+    reference: 'Further reading: Lalonde DH, Wide Awake Hand Surgery; Williams JG, Lalonde DH, Plast Reconstr Surg 2006 (single volar subcutaneous versus two-injection dorsal digital block).',
+    modelNote: 'Drugs and volumes are named for teaching context only. Not guidance for real patients.',
+  },
   common: {
     back: 'Back',
     home: 'Home',
@@ -132,6 +164,7 @@ const en = {
     osce: 'OSCE Station',
     quiz: 'Knowledge Check',
     assessment: 'Assessment Mode',
+    simple: 'SIMPLE technique (Lalonde)',
     calibration: 'Calibration',
   },
   modeGroups: {
@@ -414,6 +447,7 @@ const en = {
     lock: 'Lock instructor mode',
     unlocked: 'Instructor',
     openAr: 'Open AR to calibrate live',
+    openSimple: 'Open the SIMPLE technique scene (3D)',
     openExplorer: 'Open 3D preview',
     assessmentAr: 'Start assessment (AR)',
     assessmentExplorer: 'Start assessment (3D)',

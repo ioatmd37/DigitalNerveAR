@@ -53,6 +53,20 @@ export function InstructorScreen() {
         </section>
 
         <section>
+          <h2 className="panel-title">{t('modes.simple')}</h2>
+          <p className="mb-2 text-sm text-slate-400">{t('simple.intro')}</p>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              setScreen('explorer');
+              setActiveTab('simple');
+            }}
+          >
+            {t('instructor.openSimple')}
+          </button>
+        </section>
+
+        <section>
           <h2 className="panel-title">{t('modes.assessment')}</h2>
           <div className="grid gap-2 sm:grid-cols-2">
             <button className="btn btn-secondary" onClick={() => startAssessment('ar')}>

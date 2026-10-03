@@ -228,6 +228,23 @@ automatic score out of 85, and the time used. Attempts are stored on this device
 automatic score is not an official OSCE result, and the real station is judged by the examiner on the physical
 mannequin.
 
+## SIMPLE technique scene (teacher only)
+
+A 3D walkthrough of Lalonde's **SIMPLE** block (*Single subcutaneous Injection in the Middle of the Proximal phalanx
+with Lidocaine and Epinephrine*) is available **only after unlocking Instructor Mode** (*Instructor Mode → Open the
+SIMPLE technique scene*, or the **Instructor** group of the mode picker). Learners never see it; locking Instructor
+Mode closes it.
+
+Six steps on the selected digit (the explorer switches to the volar view and hides the palm-down table, because the
+hand is turned palm-up for this injection): the volar-midline site halfway along the proximal phalanx, the anatomy
+under it (palmar nerves volar-lateral, flexor sheath deep: the injection stays subcutaneous, not transthecal), a fine
+needle into the subcutaneous fat, the slow volar injection whose bleb spreads to both palmar digital nerves, the
+optional dorsal top-up over the proximal phalanx, and teaching points. The overlay lives in
+`src/three/teaching/SimpleOverlay.ts`, the steps in `src/config/simpleSteps.ts`, the text under `simple.*` in the
+locale files. It is a teaching summary on a simplified model; present it with the original literature and the
+institutional protocol. Because the marker is on the back of the hand, this scene is meant for the 3D model rather
+than live AR.
+
 ## Printing and using the image marker
 
 - The marker image is `public/marker/marker.png` and its compiled MindAR target is `public/marker/targets.mind`. Both are

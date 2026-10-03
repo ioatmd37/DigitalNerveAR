@@ -4,6 +4,7 @@ import { createAnatomyModel } from '../three/anatomy/createAnatomyModel';
 import type { AnatomyModel } from '../three/anatomy/AnatomyModel';
 import { digitFor } from '../three/anatomy/layout';
 import { useNeedleSim } from './useNeedle';
+import { useSimpleOverlay } from './useSimpleOverlay';
 import { useViewState } from './useViewState';
 
 /**
@@ -63,6 +64,7 @@ export function useAnatomyModel(): AnatomyModel | null {
   }, [model, view.animateInjectate, injectateNonce]);
 
   useNeedleSim(model);
+  useSimpleOverlay(model);
 
   return model;
 }

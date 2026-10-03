@@ -1,5 +1,6 @@
 import { INTERNAL_LAYERS, LAYER_IDS, layerVisibility } from '../config/anatomy';
 import { GUIDED_STEPS } from '../config/guidedSteps';
+import { clampSimpleStep, SIMPLE_STEPS } from '../config/simpleSteps';
 import type { AssessmentState, LayerId, LayerVisibility, LearningMode, StructureId, ViewState } from '../types';
 
 export interface VisibilityInput {
@@ -13,6 +14,8 @@ export interface VisibilityInput {
   feedbackHighlight?: StructureId[];
   /** Needle practice: show internal anatomy (false = "blind" practice). */
   needleShowAnatomy?: boolean;
+  /** Teacher-only SIMPLE technique scene: current step. */
+  simpleStep?: number;
 }
 
 const SURFACE_LAYERS: LayerId[] = ['skin', 'landmarks', 'safeZones', 'orientation'];
@@ -85,6 +88,18 @@ export function computeViewState(input: VisibilityInput): ViewState {
         highlight: selected.length ? selected : step.highlight,
         interactive: true,
         animateInjectate: step.layers.includes('injectate'),
+      };
+    }
+    case 'simple': {
+      const step = SIMPLE_STEPS[clampSimpleStep(input.simpleStep ?? 0)];
+      return {
+        layers: layerVisibility(step.layers),
+        skinOpacity: step.skinOpacity,
+        labels: input.showLabels,
+        highlight: selected.length ? selected : step.highlight,
+        interactive: true,
+        // The scene draws its own injection overlay.
+        animateInjectate: false,
       };
     }
     case 'needle':

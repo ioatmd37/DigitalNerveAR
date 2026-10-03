@@ -1,6 +1,7 @@
 import { CrossSectionFigure } from '../components/CrossSectionFigure';
 import { DisclaimerText } from '../components/Disclaimer';
 import { Icon } from '../components/Icon';
+import { SetupFigure } from '../components/SetupFigure';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { appConfig } from '../config/appConfig';
 import { useT } from '../i18n/useT';
@@ -113,6 +114,7 @@ export function LandingScreen() {
               </li>
             ))}
           </ol>
+          <SetupFigure />
         </section>
 
         {/* ------------------------------------------------ modes */}

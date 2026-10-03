@@ -13,7 +13,7 @@ import { LayerPanel } from '../components/panels/LayerPanel';
 import { NeedlePanel } from '../components/panels/NeedlePanel';
 import { OscePanel } from '../components/panels/OscePanel';
 import { QuizPanel } from '../components/panels/QuizPanel';
-import { SimplePanel } from '../components/panels/SimplePanel';
+import { TechniquePanel } from '../components/panels/TechniquePanel';
 import { SurfacePanel } from '../components/panels/SurfacePanel';
 import { CalibrationBadge, TrackingBadge } from '../components/StatusBadges';
 import { StructureCard } from '../components/StructureCard';
@@ -71,14 +71,15 @@ export function ViewerScreen({ kind }: { kind: 'ar' | 'explorer' }) {
   const portrait = usePortrait();
   const [preset, setPreset] = useState<{ name: ViewPreset; nonce: number }>({ name: 'oblique', nonce: 0 });
   const [showMarker, setShowMarker] = useState(true);
-  // The SIMPLE technique is a volar injection: switch the explorer to the volar view when it opens.
+  // The technique scenes are volar injections: switch the explorer to the volar view when one opens.
   const [simpleSeen, setSimpleSeen] = useState(false);
   // The hand is turned palm-up for this injection, so the palm-down table and context hand are hidden.
-  if (mode === 'simple' && !simpleSeen) {
+  const techniqueMode = mode === 'simple' || mode === 'transthecal';
+  if (techniqueMode && !simpleSeen) {
     setSimpleSeen(true);
     setPreset((cur) => ({ name: 'volar', nonce: cur.nonce + 1 }));
     setShowMarker(false);
-  } else if (mode !== 'simple' && simpleSeen) {
+  } else if (!techniqueMode && simpleSeen) {
     setSimpleSeen(false);
     setShowMarker(true);
   }
@@ -86,7 +87,7 @@ export function ViewerScreen({ kind }: { kind: 'ar' | 'explorer' }) {
 
   const tabs: PanelTab[] = assessmentActive ? ['assessment'] : [...LEARNER_TABS];
   // Teacher-only views.
-  if (instructor && !assessmentActive) tabs.push('simple');
+  if (instructor && !assessmentActive) tabs.push('simple', 'transthecal');
   if (instructor) tabs.push('calibration');
 
   const goHome = () => {
@@ -110,7 +111,8 @@ export function ViewerScreen({ kind }: { kind: 'ar' | 'explorer' }) {
       case 'quiz':
         return <QuizPanel />;
       case 'simple':
-        return <SimplePanel />;
+      case 'transthecal':
+        return <TechniquePanel key={activeTab} technique={activeTab} />;
       case 'assessment':
         return <AssessmentPanel />;
       case 'calibration':

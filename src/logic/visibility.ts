@@ -1,6 +1,7 @@
 import { INTERNAL_LAYERS, LAYER_IDS, layerVisibility } from '../config/anatomy';
 import { GUIDED_STEPS } from '../config/guidedSteps';
 import { clampSimpleStep, SIMPLE_STEPS } from '../config/simpleSteps';
+import { clampTransthecalStep, TRANSTHECAL_STEPS } from '../config/transthecalSteps';
 import type { AssessmentState, LayerId, LayerVisibility, LearningMode, StructureId, ViewState } from '../types';
 
 export interface VisibilityInput {
@@ -16,6 +17,8 @@ export interface VisibilityInput {
   needleShowAnatomy?: boolean;
   /** Teacher-only SIMPLE technique scene: current step. */
   simpleStep?: number;
+  /** Teacher-only transthecal volar block scene: current step. */
+  transthecalStep?: number;
 }
 
 const SURFACE_LAYERS: LayerId[] = ['skin', 'landmarks', 'safeZones', 'orientation'];
@@ -90,8 +93,12 @@ export function computeViewState(input: VisibilityInput): ViewState {
         animateInjectate: step.layers.includes('injectate'),
       };
     }
-    case 'simple': {
-      const step = SIMPLE_STEPS[clampSimpleStep(input.simpleStep ?? 0)];
+    case 'simple':
+    case 'transthecal': {
+      const step =
+        input.mode === 'simple'
+          ? SIMPLE_STEPS[clampSimpleStep(input.simpleStep ?? 0)]
+          : TRANSTHECAL_STEPS[clampTransthecalStep(input.transthecalStep ?? 0)];
       return {
         layers: layerVisibility(step.layers),
         skinOpacity: step.skinOpacity,

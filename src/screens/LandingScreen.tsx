@@ -10,7 +10,7 @@ import { useAppStore } from '../store/useAppStore';
 import type { LearningMode } from '../types';
 import { assetUrl } from '../utils/assets';
 
-type LearnerMode = Exclude<LearningMode, 'assessment' | 'simple'>;
+type LearnerMode = Exclude<LearningMode, 'assessment' | 'simple' | 'transthecal'>;
 
 const MODE_GROUPS: { group: 'learn' | 'practice'; modes: LearnerMode[] }[] = [
   { group: 'learn', modes: ['surface', 'anatomy', 'layers', 'guided'] },

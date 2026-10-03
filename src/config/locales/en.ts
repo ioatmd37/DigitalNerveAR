@@ -132,6 +132,38 @@ const en = {
     reference: 'Further reading: Lalonde DH, Wide Awake Hand Surgery; Williams JG, Lalonde DH, Plast Reconstr Surg 2006 (single volar subcutaneous versus two-injection dorsal digital block).',
     modelNote: 'Drugs and volumes are named for teaching context only. Not guidance for real patients.',
   },
+  transthecal: {
+    teacherOnly: 'Teacher view',
+    intro: 'Transthecal (intrathecal) volar digital block: a single injection into the flexor tendon sheath at the A1 pulley. The solution spreads along the sheath and diffuses out to the palmar digital nerves. A teaching summary on the mannequin model; present it with the original literature and your institutional protocol.',
+    viewHint: 'Needle angle: Radial or Ulnar view. Sheath filling: Volar view.',
+    replay: 'Replay injection',
+    s1: {
+      title: 'Site: over the A1 pulley, hand palm-up',
+      body: 'Turn the hand palm-up (the marker on the back of the hand is then out of view, so teach this scene in the 3D model). Palpate the flexor tendon over the MCP joint at the palmar crease: the entry is in the midline over the A1 pulley, where the tendon sheath begins.',
+    },
+    s2: {
+      title: 'Target: the flexor tendon sheath',
+      body: 'The sheath runs from the A1 pulley to the distal phalanx around the flexor tendons. Unlike the SIMPLE block (subcutaneous), this technique deliberately places the solution inside the sheath. The palmar digital nerves lie outside it, volar-lateral, and are reached by diffusion.',
+    },
+    s3: {
+      title: 'Needle at about 45°, down to bone',
+      body: 'With a fine needle (25–27 G) angled about 45° toward the fingertip, pass through the skin and the flexor tendon until the tip just touches bone.',
+    },
+    s4: {
+      title: 'Withdraw slightly into the sheath',
+      body: 'Withdraw 1–2 mm so the tip lies within the sheath, and aspirate. The injection should then flow with little resistance; firm resistance suggests the tip is still in the tendon. If the needle moves when the finger flexes, it is in the tendon: withdraw a little more.',
+    },
+    s5: {
+      title: 'Inject with pressure just proximal',
+      body: 'Inject about 2 mL slowly while pressing firmly just proximal to the entry, so the solution runs distally along the sheath. The sheath can be felt filling along the finger.',
+    },
+    s6: {
+      title: 'Diffusion and teaching points',
+      body: 'The solution diffuses out of the sheath to both palmar digital nerves; onset is usually within a few minutes. Teaching points: strict asepsis (this is an injection into a synovial sheath); transient soreness over the palm is common; the dorsum over the proximal phalanx may need a separate small injection. Compare comfort and coverage with the SIMPLE subcutaneous block.',
+    },
+    reference: 'Further reading: Chiu DTW. Transthecal digital block: flexor tendon sheath used for anesthetic infusion. J Hand Surg Am, 1990.',
+    modelNote: 'Drugs and volumes are named for teaching context only. Not guidance for real patients.',
+  },
   common: {
     back: 'Back',
     home: 'Home',
@@ -165,6 +197,7 @@ const en = {
     quiz: 'Knowledge Check',
     assessment: 'Assessment Mode',
     simple: 'SIMPLE technique (Lalonde)',
+    transthecal: 'Transthecal volar block',
     calibration: 'Calibration',
   },
   modeGroups: {
@@ -447,7 +480,10 @@ const en = {
     lock: 'Lock instructor mode',
     unlocked: 'Instructor',
     openAr: 'Open AR to calibrate live',
+    techniques: 'Technique scenes (teacher only)',
+    techniquesHint: 'Step-by-step 3D walkthroughs that learners cannot open.',
     openSimple: 'Open the SIMPLE technique scene (3D)',
+    openTransthecal: 'Open the transthecal volar block scene (3D)',
     openExplorer: 'Open 3D preview',
     assessmentAr: 'Start assessment (AR)',
     assessmentExplorer: 'Start assessment (3D)',

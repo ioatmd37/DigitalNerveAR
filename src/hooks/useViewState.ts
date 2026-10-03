@@ -17,6 +17,7 @@ export function useViewState(): ViewState {
       feedbackHighlight: s.feedbackHighlight,
       needleShowAnatomy: s.needle.showAnatomy,
       simpleStep: s.simpleStep,
+      transthecalStep: s.transthecalStep,
     })),
   );
   return useMemo(
@@ -31,6 +32,7 @@ export function useViewState(): ViewState {
         feedbackHighlight: input.feedbackHighlight,
         needleShowAnatomy: input.needleShowAnatomy,
         simpleStep: input.simpleStep,
+        transthecalStep: input.transthecalStep,
       }),
     [input],
   );

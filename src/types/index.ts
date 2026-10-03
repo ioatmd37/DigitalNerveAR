@@ -98,7 +98,20 @@ export interface AnatomyStructure {
   thumb?: Partial<Pick<AnatomyStructure, 'nameTh' | 'nameEn' | 'description' | 'educationalNote' | 'warningNote'>>;
 }
 
-export type LearningMode = 'surface' | 'anatomy' | 'layers' | 'guided' | 'needle' | 'osce' | 'quiz' | 'assessment' | 'simple';
+export type LearningMode =
+  | 'surface'
+  | 'anatomy'
+  | 'layers'
+  | 'guided'
+  | 'needle'
+  | 'osce'
+  | 'quiz'
+  | 'assessment'
+  | 'simple'
+  | 'transthecal';
+
+/** Teacher-only technique scenes. */
+export type TechniqueMode = 'simple' | 'transthecal';
 
 /** Panel tabs: every learning mode plus the instructor-only calibration panel. */
 export type PanelTab = LearningMode | 'calibration';
@@ -205,6 +218,26 @@ export interface SimpleStep extends GuidedStep {
   overlay: SimpleOverlayStep;
 }
 
+/** What the transthecal (intrathecal) volar block overlay shows in a step. */
+export interface TransthecalOverlayStep {
+  /** Entry marker over the A1 pulley (palmar crease over the MCP joint). */
+  site: boolean;
+  /** Translucent flexor sheath outline. */
+  sheath: boolean;
+  /** Needle at 45° toward the fingertip: at bone contact, or withdrawn slightly into the sheath. */
+  needle: 'none' | 'bone' | 'sheath';
+  /** Injectate filling the sheath distally: 'none', growing ('spread') or full ('full'). */
+  fill: 'none' | 'spread' | 'full';
+  /** Firm pressure just proximal to the injection site. */
+  pressure: boolean;
+  /** Diffusion out of the sheath to the palmar digital nerves. */
+  diffusion: boolean;
+}
+
+export interface TransthecalStep extends GuidedStep {
+  overlay: TransthecalOverlayStep;
+}
+
 export type TrackingStatus = 'idle' | 'loading' | 'searching' | 'tracking' | 'lost' | 'error';
 
 export interface AssessmentState {
@@ -235,6 +268,8 @@ export interface SessionState {
   guidedStep: number;
   /** Teacher-only SIMPLE technique scene step. */
   simpleStep: number;
+  /** Teacher-only transthecal volar block scene step. */
+  transthecalStep: number;
   selectedStructure: StructureId | null;
   /** Finger that currently carries the overlay. */
   selectedFinger: FingerId;

@@ -1,24 +1,37 @@
 import { SIMPLE_STEPS } from '../../config/simpleSteps';
+import { TRANSTHECAL_STEPS } from '../../config/transthecalSteps';
 import { useT } from '../../i18n/useT';
 import { useAppStore } from '../../store/useAppStore';
+import type { GuidedStep, TechniqueMode } from '../../types';
 
-/** Teacher-only walkthrough of Lalonde's SIMPLE block on the model. */
-export function SimplePanel() {
-  const { t, td } = useT();
-  const step = useAppStore((s) => s.simpleStep);
-  const setStep = useAppStore((s) => s.setSimpleStep);
+/** Teacher-only, step-by-step walkthrough of a block technique on the model. */
+export function TechniquePanel({ technique }: { technique: TechniqueMode }) {
+  const { td } = useT();
+  const simpleStep = useAppStore((s) => s.simpleStep);
+  const transthecalStep = useAppStore((s) => s.transthecalStep);
+  const setSimpleStep = useAppStore((s) => s.setSimpleStep);
+  const setTransthecalStep = useAppStore((s) => s.setTransthecalStep);
   const replay = useAppStore((s) => s.replayInjectate);
-  const current = SIMPLE_STEPS[step];
-  const last = step === SIMPLE_STEPS.length - 1;
+
+  const steps: GuidedStep[] = technique === 'simple' ? SIMPLE_STEPS : TRANSTHECAL_STEPS;
+  const step = technique === 'simple' ? simpleStep : transthecalStep;
+  const setStep = technique === 'simple' ? setSimpleStep : setTransthecalStep;
+  const animated =
+    technique === 'simple' ? SIMPLE_STEPS[step].overlay.bleb === 'spread' : TRANSTHECAL_STEPS[step].overlay.fill === 'spread';
+  const k = (key: string) => td(`${technique}.${key}`);
+  const current = steps[step];
+  const last = step === steps.length - 1;
+  const stepLabel = td('common.step', { current: step + 1, total: steps.length });
+
   return (
     <div>
       <p className="mb-2 inline-flex items-center gap-2 rounded border border-slate-700 px-2 py-0.5 text-xs font-medium text-slate-300">
         <span className="h-1.5 w-1.5 rounded-full bg-slate-300" aria-hidden />
-        {t('simple.teacherOnly')}
+        {k('teacherOnly')}
       </p>
-      <p className="mb-3 text-xs leading-relaxed text-slate-400">{t('simple.intro')}</p>
-      <ol className="mb-3 flex gap-1.5" aria-label={t('common.step', { current: step + 1, total: SIMPLE_STEPS.length })}>
-        {SIMPLE_STEPS.map((s, i) => (
+      <p className="mb-3 text-xs leading-relaxed text-slate-400">{k('intro')}</p>
+      <ol className="mb-3 flex gap-1.5" aria-label={stepLabel}>
+        {steps.map((s, i) => (
           <li key={s.id} className="flex-1">
             <button
               onClick={() => setStep(i)}
@@ -33,28 +46,28 @@ export function SimplePanel() {
           </li>
         ))}
       </ol>
-      <p className="text-xs text-slate-500">{t('common.step', { current: step + 1, total: SIMPLE_STEPS.length })}</p>
+      <p className="text-xs text-slate-500">{stepLabel}</p>
       <h3 className="mb-2 mt-0.5 text-lg font-semibold leading-snug text-slate-50">{td(current.titleKey)}</h3>
       <p className="leading-relaxed text-slate-200">{td(current.bodyKey)}</p>
-      {current.overlay.bleb === 'spread' && (
+      {animated && (
         <button className="btn btn-ghost btn-sm mt-3" onClick={replay}>
-          {t('simple.replay')}
+          {k('replay')}
         </button>
       )}
       <div className="mt-4 flex gap-2">
         <button className="btn btn-secondary flex-1" disabled={step === 0} onClick={() => setStep(step - 1)}>
-          {t('common.previous')}
+          {td('common.previous')}
         </button>
         <button className="btn btn-primary flex-1" disabled={last} onClick={() => setStep(step + 1)}>
-          {t('common.next')}
+          {td('common.next')}
         </button>
       </div>
-      <p className="mt-4 text-xs text-slate-500">{t('simple.viewHint')}</p>
+      <p className="mt-4 text-xs text-slate-500">{k('viewHint')}</p>
       <p className="mt-3 flex items-start gap-2 text-xs text-amber-300">
         <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" aria-hidden />
-        {t('simple.modelNote')}
+        {k('modelNote')}
       </p>
-      <p className="mt-3 border-t border-slate-800 pt-3 text-xs leading-relaxed text-slate-500">{t('simple.reference')}</p>
+      <p className="mt-3 border-t border-slate-800 pt-3 text-xs leading-relaxed text-slate-500">{k('reference')}</p>
     </div>
   );
 }

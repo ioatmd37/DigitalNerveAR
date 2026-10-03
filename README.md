@@ -228,7 +228,7 @@ automatic score out of 85, and the time used. Attempts are stored on this device
 automatic score is not an official OSCE result, and the real station is judged by the examiner on the physical
 mannequin.
 
-## SIMPLE technique scene (teacher only)
+## Technique scenes (teacher only): SIMPLE and transthecal
 
 A 3D walkthrough of Lalonde's **SIMPLE** block (*Single subcutaneous Injection in the Middle of the Proximal phalanx
 with Lidocaine and Epinephrine*) is available **only after unlocking Instructor Mode** (*Instructor Mode → Open the
@@ -244,6 +244,17 @@ optional dorsal top-up over the proximal phalanx, and teaching points. The overl
 locale files. It is a teaching summary on a simplified model; present it with the original literature and the
 institutional protocol. Because the marker is on the back of the hand, this scene is meant for the 3D model rather
 than live AR.
+
+### Transthecal (intrathecal) volar block
+
+A second teacher-only scene (*Instructor Mode → Open the transthecal volar block scene*) walks through the single
+injection into the flexor tendon sheath at the A1 pulley: the entry over the MCP joint (hand palm-up), the sheath as
+the target (unlike SIMPLE, which stays subcutaneous), a fine needle at about 45° toward the fingertip down to bone,
+withdrawal of 1–2 mm into the sheath with aspiration and free flow, injection with firm pressure just proximal so the
+sheath fills distally, and diffusion out of the sheath to the palmar nerves with teaching points (asepsis, palm
+soreness, dorsal top-up). Overlay: `src/three/teaching/TransthecalOverlay.ts`; steps:
+`src/config/transthecalSteps.ts`; text: `transthecal.*`. Both scenes share `TechniquePanel` and are gated by the same
+instructor check in the store.
 
 ## Printing and using the image marker
 

@@ -11,6 +11,7 @@ import { digitFor } from '../three/anatomy/layout';
 import { appendAttempt } from '../logic/quiz';
 import { clampGuidedStep } from '../logic/visibility';
 import { clampSimpleStep } from '../config/simpleSteps';
+import { clampTransthecalStep } from '../config/transthecalSteps';
 import type {
   AssessmentState,
   CalibrationSettings,
@@ -22,6 +23,7 @@ import type {
   PanelTab,
   QuizAttempt,
   Screen,
+  TechniqueMode,
   SessionState,
   StructureId,
   TrackingStatus,
@@ -47,6 +49,7 @@ export interface AppActions {
   setGuidedStep: (step: number) => void;
   /** Teacher-only SIMPLE technique scene. */
   setSimpleStep: (step: number) => void;
+  setTransthecalStep: (step: number) => void;
   selectStructure: (id: StructureId | null) => void;
   setFeedbackHighlight: (ids: StructureId[]) => void;
   setTrackingStatus: (status: TrackingStatus) => void;
@@ -131,6 +134,7 @@ function initialState(): SessionState & TransientState {
     showLabels: true,
     guidedStep: 0,
     simpleStep: 0,
+    transthecalStep: 0,
     selectedStructure: null,
     feedbackHighlight: [],
     injectateNonce: 0,
@@ -166,6 +170,13 @@ function safeLocalStorage(): Storage {
   };
 }
 
+/** Teacher-only technique scenes (shown only with Instructor Mode unlocked). */
+export const TECHNIQUE_MODES: TechniqueMode[] = ['simple', 'transthecal'];
+
+export function isTechnique(mode: string): mode is TechniqueMode {
+  return (TECHNIQUE_MODES as string[]).includes(mode);
+}
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -181,8 +192,8 @@ export const useAppStore = create<AppState>()(
       setMode: (mode) =>
         set((s) => {
           if (s.assessment.active && mode !== 'assessment') return {};
-          // The SIMPLE technique scene is for teachers only.
-          if (mode === 'simple' && !s.instructor.unlocked) return {};
+          // Technique scenes are for teachers only.
+          if (isTechnique(mode) && !s.instructor.unlocked) return {};
           return { mode, activeTab: mode, selectedStructure: null, feedbackHighlight: [] };
         }),
       setActiveTab: (tab) =>
@@ -191,7 +202,7 @@ export const useAppStore = create<AppState>()(
             return s.instructor.unlocked ? { activeTab: tab } : {};
           }
           if (s.assessment.active && tab !== 'assessment') return {};
-          if (tab === 'simple' && !s.instructor.unlocked) return {};
+          if (isTechnique(tab) && !s.instructor.unlocked) return {};
           return { activeTab: tab, mode: tab, selectedStructure: null, feedbackHighlight: [] };
         }),
       toggleLayer: (id) => set((s) => ({ userLayers: { ...s.userLayers, [id]: !s.userLayers[id] } })),
@@ -201,6 +212,7 @@ export const useAppStore = create<AppState>()(
       setShowLabels: (showLabels) => set({ showLabels }),
       setGuidedStep: (step) => set({ guidedStep: clampGuidedStep(step), selectedStructure: null }),
       setSimpleStep: (step) => set({ simpleStep: clampSimpleStep(step), selectedStructure: null }),
+      setTransthecalStep: (step) => set({ transthecalStep: clampTransthecalStep(step), selectedStructure: null }),
       selectStructure: (selectedStructure) => set({ selectedStructure }),
       setFeedbackHighlight: (feedbackHighlight) => set({ feedbackHighlight }),
       setTrackingStatus: (trackingStatus) => set({ trackingStatus }),
@@ -369,8 +381,13 @@ export const useAppStore = create<AppState>()(
         set((s) => ({
           instructor: { ...s.instructor, unlocked: false },
           // Leave teacher-only views when locking.
-          ...(s.mode === 'simple' ? { mode: 'anatomy' as const } : {}),
-          activeTab: s.activeTab === 'calibration' || s.activeTab === 'simple' ? (s.mode === 'simple' ? 'anatomy' : s.mode) : s.activeTab,
+          ...(isTechnique(s.mode) ? { mode: 'anatomy' as const } : {}),
+          activeTab:
+            s.activeTab === 'calibration' || isTechnique(s.activeTab)
+              ? isTechnique(s.mode)
+                ? 'anatomy'
+                : s.mode
+              : s.activeTab,
         })),
 
       startAssessment: (screen) =>

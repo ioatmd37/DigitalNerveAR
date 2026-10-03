@@ -27,7 +27,7 @@ describe('app store', () => {
     expect(s().activeTab).toBe('calibration');
   });
 
-  it('the SIMPLE technique scene is teacher-only and closes when instructor mode locks', async () => {
+  it('the SIMPLE and transthecal technique scenes are teacher-only and closes when instructor mode locks', async () => {
     const { computeViewState } = await import('../logic/visibility');
     const { SIMPLE_STEPS } = await import('../config/simpleSteps');
     s().setActiveTab('simple');
@@ -45,9 +45,15 @@ describe('app store', () => {
       expect(v.layers.skin).toBe(true);
       expect(v.layers.avoidZone).toBe(false);
     }
+    s().setActiveTab('transthecal');
+    expect(s().mode).toBe('transthecal');
+    s().setTransthecalStep(-5);
+    expect(s().transthecalStep).toBe(0);
     s().lockInstructor();
     expect(s().mode).toBe('anatomy');
     expect(s().activeTab).toBe('anatomy');
+    s().setActiveTab('transthecal');
+    expect(s().mode).toBe('anatomy');
   });
 
   it('saves, reverts and resets calibration', () => {

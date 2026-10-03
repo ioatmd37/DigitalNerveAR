@@ -53,17 +53,22 @@ export function InstructorScreen() {
         </section>
 
         <section>
-          <h2 className="panel-title">{t('modes.simple')}</h2>
-          <p className="mb-2 text-sm text-slate-400">{t('simple.intro')}</p>
-          <button
-            className="btn btn-secondary"
-            onClick={() => {
-              setScreen('explorer');
-              setActiveTab('simple');
-            }}
-          >
-            {t('instructor.openSimple')}
-          </button>
+          <h2 className="panel-title">{t('instructor.techniques')}</h2>
+          <p className="mb-2 text-sm text-slate-400">{t('instructor.techniquesHint')}</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(['simple', 'transthecal'] as const).map((tab) => (
+              <button
+                key={tab}
+                className="btn btn-secondary"
+                onClick={() => {
+                  setScreen('explorer');
+                  setActiveTab(tab);
+                }}
+              >
+                {tab === 'simple' ? t('instructor.openSimple') : t('instructor.openTransthecal')}
+              </button>
+            ))}
+          </div>
         </section>
 
         <section>

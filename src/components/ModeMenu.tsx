@@ -6,7 +6,7 @@ import { Icon } from './Icon';
 const GROUPS: { key: 'learn' | 'practice' | 'instructor'; tabs: PanelTab[] }[] = [
   { key: 'learn', tabs: ['surface', 'anatomy', 'layers', 'guided'] },
   { key: 'practice', tabs: ['needle', 'osce', 'quiz'] },
-  { key: 'instructor', tabs: ['assessment', 'simple', 'calibration'] },
+  { key: 'instructor', tabs: ['assessment', 'simple', 'transthecal', 'calibration'] },
 ];
 
 /** Compact mode picker for the side panel (landscape), grouped Learn / Practice / Instructor. */

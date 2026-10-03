@@ -5,7 +5,7 @@
 > anatomically exact.
 
 The app is designed for a **whole right-hand mannequin** (for example an IV/injection training hand on a foam wrist
-block). A small **marker sticker** sits on the **back of the hand over the middle-finger knuckle**. The learner picks a
+block). A small **marker sticker** sits in the **centre of the back of the hand**. The learner picks a
 digit (**thumb, index, middle, ring or little**), and the anatomy overlay appears on that digit. The thumb uses its
 own two-phalanx model.
 
@@ -31,11 +31,12 @@ doctor during a digital block. On a right hand the **thumb is then on your right
 
 1. Stick the printed marker onto the rigid tile so it is perfectly flat. The dorsum of the hand is curved, and a bent
    marker tracks badly.
-2. Fix the tile with double-sided tape on the **back of the hand**, **centred over the middle-finger MCP knuckle**.
+2. Fix the tile with double-sided tape in the **centre of the back of the hand**: over the middle-finger metacarpal,
+   midway between the knuckles and the wrist, where the dorsum is flattest. The default calibration assumes the
+   middle-finger knuckle is **4.5 cm distal** to the marker centre (**Y = +4.5**).
 3. Point the yellow **TOP** arrow **toward the fingertips**, in line with the middle finger.
-4. If the knuckle is too rounded for the tile to sit still, move the tile 1–2 cm **proximally** (toward the wrist),
-   where the dorsum is flatter. Then set **Y = +1 to +2 cm** in calibration, because the knuckle is now distal to the
-   marker centre.
+4. Set the mannequin's digits in **abduction** (spread apart, thumb radially abducted). The default finger angles
+   assume this pose; correct each finger's **Splay** if your mannequin differs.
 5. Once calibrated, the sticker must **not move**. Mark its outline on the mannequin with a pen so it can be replaced
    in the same spot.
 
@@ -61,13 +62,14 @@ only need to change the fingers you teach on.
 
 ### A. Whole hand (do this first, with the middle finger selected)
 
-Select **Middle**. The whole-hand values say where the **middle-finger knuckle** is relative to the marker centre.
+Select **Middle**. The whole-hand values say where the **middle-finger knuckle** is relative to the marker centre
+(default X 0, Y +4.5, Z −0.15 for a sticker in the centre of the back of the hand).
 
 | Control | Meaning | Typical use |
 | --- | --- | --- |
-| **X** | Toward ulnar / marker right (+), cm | Sticker not centred side-to-side on the knuckle |
-| **Y** | Toward fingertips / marker TOP (+), cm | Sticker placed proximal to the knuckle (→ positive Y) |
-| **Z** | Height relative to the marker plane, cm | Default −0.2 (tile thickness). More negative if the tile is thicker |
+| **X** | Toward ulnar / marker right (+), cm | Sticker not on the middle-finger line (sticker radial → positive X) |
+| **Y** | Toward fingertips / marker TOP (+), cm | Measure from the sticker centre to the middle knuckle with a ruler |
+| **Z** | Height relative to the marker plane, cm | Default −0.15 (tile on a flat dorsum). More negative if the knuckle sits lower |
 | **Tilt hand (X)** | Fingertips up or down | The mannequin's fingers slope toward the table |
 | **Roll hand (Y)** | Rotation around the hand's long axis | Hand slightly tilted onto its side |
 | **Turn hand (Z)** | Rotation on the table | TOP arrow not exactly in line with the middle finger |

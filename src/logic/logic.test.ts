@@ -106,8 +106,14 @@ describe('calibration (v2: whole hand + per-finger)', () => {
     },
   };
 
-  it('defaults to a 2 cm sticker on the middle-finger knuckle', () => {
+  it('defaults to a 2 cm sticker in the centre of the back of the hand, digits abducted', () => {
     expect(DEFAULT_CALIBRATION.version).toBe(2);
+    expect(DEFAULT_CALIBRATION.position.y).toBeGreaterThan(3); // knuckle distal to the mid-dorsum marker
+    const f = DEFAULT_CALIBRATION.fingers;
+    expect(f.index.splayDeg).toBeGreaterThan(10);
+    expect(f.ring.splayDeg).toBeLessThan(-10);
+    expect(f.little.splayDeg).toBeLessThan(f.ring.splayDeg);
+    expect(f.thumb.splayDeg).toBeGreaterThan(f.index.splayDeg);
     expect(DEFAULT_CALIBRATION.markerSizeCm).toBe(2);
     expect(Object.keys(DEFAULT_CALIBRATION.fingers).sort()).toEqual(['index', 'little', 'middle', 'ring', 'thumb']);
   });

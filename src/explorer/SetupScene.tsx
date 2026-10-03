@@ -46,8 +46,8 @@ export interface SetupSceneLabels {
 /**
  * Illustrative set-up for the landing page (world = cm, +Y up): the
  * right mannequin hand palm-down on a table, fingertips toward the operator
- * (as for a digital block), with the marker on the middle-finger knuckle, and a phone held by a stand 12–20 cm above the
- * marker with its rear camera facing down. The index finger carries the
+ * (as for a digital block) and every digit abducted, the marker in the centre of the back of the hand, and a phone held
+ * by a stand 12–20 cm above the hand (between the marker and the knuckles) with its rear camera facing down. The index finger carries the
  * anatomy overlay to show what the learner will see. Purely illustrative.
  */
 export function SetupScene({ language, labels }: { language: Language; labels: SetupSceneLabels }) {
@@ -78,8 +78,10 @@ export function SetupScene({ language, labels }: { language: Language; labels: S
   );
 }
 
-/** Phone above the marker: height of its lens and size of the camera footprint on the hand. */
+/** Phone above the hand: lens height, and where it looks (world z; the fingertips are toward −Z). */
 const LENS_HEIGHT = 16;
+/** Between the marker (z = 0) and the knuckles, so the marker and the whole finger are in view. */
+const LOOK_Z = -5;
 const PHONE = { w: 7.5, l: 15.5, t: 0.8 };
 
 function Setup({ language, labels }: { language: Language; labels: SetupSceneLabels }) {
@@ -187,7 +189,7 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   phone.updateMatrix();
   // Place the phone so the lens sits LENS_HEIGHT above the marker.
   const lensLocal = lensPos.clone().applyMatrix4(phone.matrix);
-  phone.position.set(-lensLocal.x, LENS_HEIGHT - lensLocal.y, -lensLocal.z);
+  phone.position.set(-lensLocal.x, LENS_HEIGHT - lensLocal.y, LOOK_Z - lensLocal.z);
   phone.updateMatrixWorld(true);
   group.add(phone);
   const lensWorld = lensPos.clone().applyMatrix4(phone.matrixWorld);
@@ -212,13 +214,13 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   group.add(neck);
 
   // --- Camera view: a translucent pyramid from the lens to its footprint around the marker.
-  const half = { x: 6.5, z: 8.5 };
+  const half = { x: 7.5, z: 9.5 };
   const corners = [
     new Vector3(-half.x, 0.1, -half.z),
     new Vector3(half.x, 0.1, -half.z),
     new Vector3(half.x, 0.1, half.z),
     new Vector3(-half.x, 0.1, half.z),
-  ].map((c) => c.add(new Vector3(0, 0, -1.5)));
+  ].map((c) => c.add(new Vector3(0, 0, LOOK_Z - 0.5)));
   const pts: Vector3[] = [];
   for (let i = 0; i < 4; i++) pts.push(lensWorld, corners[i], corners[i], corners[(i + 1) % 4]);
   const frustum = new LineSegments(new BufferGeometry().setFromPoints(pts), new LineBasicMaterial({ color: '#e8e5de', transparent: true, opacity: 0.45 }));
@@ -232,7 +234,7 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   // --- Height dimension from the lens to the marker.
   const dimX = -9;
   const dimTop = new Vector3(dimX, lensWorld.y, lensWorld.z);
-  const dimBottom = new Vector3(dimX, 0.1, 0);
+  const dimBottom = new Vector3(dimX, 0.1, LOOK_Z);
   const tick = (p: Vector3) => [p.clone().add(new Vector3(-0.8, 0, 0)), p.clone().add(new Vector3(0.8, 0, 0))];
   const dimLines = new LineSegments(
     new BufferGeometry().setFromPoints([
@@ -243,14 +245,14 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
       dimTop,
       lensWorld,
       dimBottom,
-      new Vector3(-1.2, 0.1, 0),
+      new Vector3(-1.2, 0.1, LOOK_Z),
     ]),
     new LineBasicMaterial({ color: '#facc15' }),
   );
   group.add(dimLines);
 
   add(label(labels.distance, '#facc15', 2.2), dimX - 5, (lensWorld.y + 0.1) / 2, lensWorld.z / 2);
-  add(label(labels.marker, '#e8e5de', 1.7), -2, 3.6, -5);
+  add(label(labels.marker, '#e8e5de', 1.7), -2, 3.6, 2);
   add(label(labels.phone, '#e8e5de', 1.7), 0, LENS_HEIGHT + 4.6, lensWorld.z - 2);
   add(label(labels.stand, '#e8e5de', 1.7), base.x, top.y + 4.5, base.z + 2);
   // Where the operator sits: at the fingertips.

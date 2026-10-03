@@ -60,13 +60,14 @@ describe('hand placement (right hand, marker on the middle-finger knuckle)', () 
     expect(fingerPlacement('index', DEFAULT_CALIBRATION).position.x).toBeLessThan(0);
   });
 
-  it('fingers point distally (+Y) and the middle knuckle sits just under the marker', () => {
+  it('fingers point distally (+Y) and the middle knuckle lies distal to the mid-dorsum marker', () => {
     rig.update(DEFAULT_CALIBRATION, 'middle');
     rig.markerSpace.updateMatrixWorld(true);
     const tip = rig.markerSpace.worldToLocal(model.anatomyFrame.localToWorld(new Vector3(0, 8.4, 0)));
     expect(tip.y).toBeGreaterThan(7);
     const k = rig.markerSpace.worldToLocal(model.anatomyFrame.localToWorld(MODEL_KNUCKLE.clone()));
-    expect(k.length()).toBeCloseTo(0.2, 5); // tile thickness
+    expect(k.y).toBeCloseTo(4.5, 5); // marker in the centre of the back of the hand
+    expect(k.z).toBeCloseTo(-0.15, 5);
   });
 
   it('applies finger length/width, flexion and the marker-unit scale', () => {

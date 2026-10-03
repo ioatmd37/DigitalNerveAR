@@ -20,7 +20,7 @@ const en = {
     title: 'Safety notice',
   },
   landing: {
-    instruction: 'Point the camera at the marker sticker on the back of the mannequin’s hand (over the middle-finger knuckle).',
+    instruction: 'Point the camera at the marker sticker in the centre of the back of the mannequin’s hand.',
     startAr: 'Start AR Session',
     explore: 'Explore 3D Model',
     instructor: 'Instructor Mode',
@@ -36,7 +36,7 @@ const en = {
     step1Title: 'Print the marker',
     step1Body: 'Print at 100% so the square is {size} × {size} cm. Check it with a ruler.',
     step2Title: 'Stick it on the hand',
-    step2Body: 'On the back of the mannequin’s hand, over the middle-finger knuckle. Keep it flat.',
+    step2Body: 'In the centre of the back of the mannequin’s hand, midway between the knuckles and the wrist. Keep it flat.',
     step3Title: 'Point the camera',
     step3Body: 'Hold the device 12–20 cm away, start AR and choose a finger.',
     insideTitle: 'What’s inside',
@@ -59,8 +59,8 @@ const en = {
       distance: '12–20 cm',
       operator: 'Operator (you)',
       tip1: 'Lay the hand palm-down on a non-slip mat with the fingertips pointing toward you, as the patient’s hand faces the doctor during a block. Put the stand beyond the wrist so it never covers the fingers.',
-      tip2: 'Stick the {size} × {size} cm marker on the middle-finger knuckle with its TOP arrow toward the fingertips.',
-      tip3: 'Clamp the phone with its rear camera straight above the marker, 12–20 cm away, screen tilted slightly toward you. Keep the whole marker and the selected finger in view.',
+      tip2: 'Stick the {size} × {size} cm marker in the centre of the back of the hand (over the middle-finger metacarpal, midway to the wrist) with its TOP arrow toward the fingertips. Spread all the digits (abduction).',
+      tip3: 'Clamp the phone with its rear camera 12–20 cm above the back of the hand, between the marker and the knuckles, screen tilted slightly toward you. Keep the whole marker and the selected finger in view.',
       tip4: 'Use even, diffuse light: no glare on the sticker and no shadow from the phone or your hand.',
     },
     figure: {

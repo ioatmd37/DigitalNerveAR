@@ -45,15 +45,21 @@ export const appConfig = {
   },
 } as const;
 
+/** Default distance from the marker centre (mid-dorsum) to the middle-finger MCP knuckle, cm. */
+export const MARKER_TO_KNUCKLE_CM = 4.5;
+
 /**
- * Default: the marker sticker is centred on the dorsal skin over the
- * middle-finger MCP knuckle, TOP arrow toward the fingertips, mounted on a
- * thin (~2 mm) rigid tile, so the knuckle skin is 0.2 cm below the marker.
+ * Default: the marker sticker sits in the CENTRE OF THE BACK OF THE HAND
+ * (over the middle-finger metacarpal, midway between the knuckles and the
+ * wrist), TOP arrow toward the fingertips, on a thin (~2 mm) rigid tile.
+ * The hand frame's origin stays at the middle-finger MCP knuckle, so the
+ * knuckle is 4.5 cm distal to the marker centre and, the dorsum there being
+ * about level with the knuckle, 0.15 cm below the marker plane.
  */
 export const DEFAULT_CALIBRATION: CalibrationSettings = {
   version: 2,
   markerSizeCm: appConfig.markerSizeCm,
-  position: { x: 0, y: 0, z: -0.2 },
+  position: { x: 0, y: MARKER_TO_KNUCKLE_CM, z: -0.15 },
   rotationDeg: { x: 0, y: 0, z: 0 },
   scale: 1,
   fingers: Object.fromEntries(FINGER_IDS.map((id) => [id, defaultFingerCalibration(id)])) as Record<

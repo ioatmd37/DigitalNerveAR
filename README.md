@@ -37,7 +37,7 @@ practising a digital nerve block **on a whole right-hand training mannequin** (i
 
 ## Project overview
 
-A small marker sticker is fixed on the **back of a right-hand mannequin, over the middle-finger knuckle**. The learner
+A small marker sticker is fixed in the **centre of the back of a right-hand mannequin** (digits abducted). The learner
 chooses a digit (**thumb, index, middle, ring or little**) and points a tablet or phone camera at the hand. When the marker is recognised, a 3D, layered, **simplified** digital anatomy model is overlaid on the
 selected digit. The model shows skin, subcutaneous tissue, phalanges, the flexor and extensor tendons, the radial and
 ulnar palmar digital nerves and arteries, the dorsal digital nerves, optional dorsal veins, dorsolateral learning zones, a volar avoid zone, model needle entry markers,
@@ -232,8 +232,9 @@ mannequin.
 - Open **Print marker** on the landing page (`/marker/print.html`), choose a size (**2 cm recommended**; 2.5–3 cm tracks more steadily), and print at
   **100 % / Actual size** on matte sticker paper. Measure the printed square and enter it in *Calibration → Printed
   marker width*.
-- Mount the sticker on a thin rigid tile and fix it on the **back of the right mannequin hand, centred over the
-  middle-finger MCP knuckle**, with the yellow **TOP** arrow pointing toward the fingertips.
+- Mount the sticker on a thin rigid tile and fix it in the **centre of the back of the right mannequin hand** (over
+  the middle-finger metacarpal, about 4.5 cm proximal to the knuckle), with the yellow **TOP** arrow pointing toward
+  the fingertips. Set the digits in abduction.
 
 Full instructions, lighting tips and troubleshooting: **[docs/AR_MARKER_SETUP_GUIDE.md](docs/AR_MARKER_SETUP_GUIDE.md)**.
 

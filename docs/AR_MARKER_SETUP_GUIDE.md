@@ -18,7 +18,7 @@ uploaded.
 ## 1. Print the marker sticker
 
 1. Open the app → **Print marker** (or `https://<host>/marker/print.html`).
-2. Choose the size. **2 × 2 cm is the default** and fits over the middle-finger knuckle. It is close to MindAR's
+2. Choose the size. **2 × 2 cm is the default**; the centre of the back of the hand also has room for 2.5–3 cm. It is close to MindAR's
    limit: the marker must cover at least about **100 pixels** of the camera image. If detection is unreliable, use
    **2.5 or 3 cm**, which track noticeably more steadily. Print sharply (≥ 600 dpi laser or photo printer); blurry
    edges at this size prevent detection.
@@ -33,8 +33,9 @@ uploaded.
   size. Plain, symmetric or repetitive images track poorly.
 - **Keep it flat and stable.** The back of the hand is curved, so stick the marker onto a **thin rigid tile** (1–2 mm
   plastic or thick card) first. A bent sticker causes drift and jitter.
-- Fix the tile with double-sided tape on the **back of the right hand, centred over the middle-finger MCP knuckle**.
-  If it rocks on the knuckle, move it 1–2 cm toward the wrist and set **Y** in calibration (see the calibration guide).
+- Fix the tile with double-sided tape in the **centre of the back of the right hand** (over the middle-finger
+  metacarpal, midway between the knuckles and the wrist). The default calibration expects the middle knuckle 4.5 cm
+  distal to the marker centre; measure yours and set **Y** if it differs (see the calibration guide).
 - Point the yellow **TOP** arrow toward the **fingertips**, in line with the middle finger.
 - Once calibrated, **do not move the sticker**. Outline it with a pen so it can be replaced in the same place.
 

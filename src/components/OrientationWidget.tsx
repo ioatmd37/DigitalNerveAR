@@ -61,19 +61,19 @@ export function OrientationWidget() {
           strokeWidth={sel.w}
           strokeLinecap="round"
         />
-        {/* Marker sticker over the middle-finger knuckle. */}
-        <rect x="92" y="80" width="16" height="16" fill="#111111" stroke="#facc15" strokeWidth="2" />
+        {/* Marker sticker in the centre of the back of the hand. */}
+        <rect x="92" y="104" width="16" height="16" fill="#111111" stroke="#facc15" strokeWidth="2" />
         {/* Arrows */}
         <g stroke="#e2e8f0" strokeWidth="2.5" fill="#e2e8f0">
-          <line x1="100" y1="140" x2="100" y2="112" />
-          <polygon points="100,104 95,113 105,113" />
+          <line x1="100" y1="156" x2="100" y2="134" />
+          <polygon points="100,126 95,135 105,135" />
           <line x1="40" y1="120" x2="22" y2="120" />
           <polygon points="15,120 24,115 24,125" />
           <line x1="158" y1="120" x2="176" y2="120" />
           <polygon points="183,120 174,115 174,125" />
         </g>
         </g>
-        <text x="108" y="52" textAnchor="start" fontSize="11" fill="#e2e8f0" fontWeight="700">
+        <text x="108" y="40" textAnchor="start" fontSize="11" fill="#e2e8f0" fontWeight="700">
           {t('orientation.distal').split(' ')[0]}
         </text>
         <text x="180" y="72" textAnchor="middle" fontSize="11" fill="#e2e8f0" fontWeight="700">

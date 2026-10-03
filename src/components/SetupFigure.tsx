@@ -35,6 +35,7 @@ export function SetupFigure() {
       marker: t('landing.setupFigure.marker', { size }),
       phone: t('landing.setupFigure.phone'),
       stand: t('landing.setupFigure.stand'),
+      counterweight: t('landing.setupFigure.counterweight'),
       distance: t('landing.setupFigure.distance'),
     }),
     [t, size],
@@ -45,6 +46,7 @@ export function SetupFigure() {
     t('landing.setupFigure.tip2', { size }),
     t('landing.setupFigure.tip3'),
     t('landing.setupFigure.tip4'),
+    t('landing.setupFigure.tip5'),
   ];
 
   return (

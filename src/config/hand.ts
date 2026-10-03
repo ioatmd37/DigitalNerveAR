@@ -145,11 +145,14 @@ export const DIGIT_SUPPLY: Record<FingerId, Record<SupplyKind, { radial: Localiz
   },
   index: {
     palmarNerve: {
-      radial: { th: 'เส้นประสาทมีเดียน (common palmar digital nerve เส้นที่ 1)', en: 'Median nerve (1st common palmar digital nerve)' },
-      ulnar: { th: 'เส้นประสาทมีเดียน (common palmar digital nerve เส้นที่ 2)', en: 'Median nerve (2nd common palmar digital nerve)' },
+      radial: {
+        th: 'เส้นประสาทมีเดียน — proper palmar digital nerve ด้านเรเดียลของนิ้วชี้ แยกจากมีเดียนในฝ่ามือ (กลุ่มแขนงเดียวกับเส้นประสาทนิ้วโป้ง) วิ่งเป็นเส้นเดียวตามขอบเรเดียล ไม่แยกที่ง่ามนิ้วแรก และให้แขนงไป lumbrical ตัวที่ 1',
+        en: 'Median nerve — the radial proper palmar digital nerve of the index leaves the median nerve in the palm (with the thumb’s digital nerves) and runs as a single nerve along the radial border, not divided at the first web; it also supplies the 1st lumbrical',
+      },
+      ulnar: { th: 'เส้นประสาทมีเดียน (common palmar digital nerve เส้นที่ 2 แยกที่ง่ามนิ้วที่ 2)', en: 'Median nerve (2nd common palmar digital nerve, dividing at the second web)' },
     },
     dorsalNerve: {
-      radial: { th: 'แขนงตื้นของเส้นประสาทเรเดียล — ถึงราวข้อ PIP', en: 'Superficial radial nerve — to about the PIP joint' },
+      radial: { th: 'แขนงตื้นของเส้นประสาทเรเดียล วิ่งตามขอบเรเดียลของกระดูกฝ่ามือชิ้นที่ 2 — ถึงราวข้อ PIP', en: 'Superficial radial nerve along the radial border of the 2nd metacarpal — to about the PIP joint' },
       ulnar: { th: 'แขนงตื้นของเส้นประสาทเรเดียล — ถึงราวข้อ PIP', en: 'Superficial radial nerve — to about the PIP joint' },
     },
     artery: {

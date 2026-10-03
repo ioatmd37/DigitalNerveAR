@@ -14,6 +14,7 @@ import {
   MeshPhysicalMaterial,
   MeshStandardMaterial,
   PlaneGeometry,
+  SphereGeometry,
   SRGBColorSpace,
   Sprite,
   SpriteMaterial,
@@ -26,7 +27,6 @@ import { DEFAULT_LAYER_VISIBILITY } from '../config/anatomy';
 import { appConfig, DEFAULT_CALIBRATION } from '../config/appConfig';
 import { computeViewState } from '../logic/visibility';
 import { disposeObject } from '../three/anatomy/AnatomyModel';
-import { createTaperedTube } from '../three/anatomy/geometry';
 import { FINGER } from '../three/anatomy/layout';
 import { ProceduralFingerModel } from '../three/anatomy/ProceduralFingerModel';
 import { createLabelTexture } from '../three/anatomy/textures';
@@ -40,6 +40,7 @@ export interface SetupSceneLabels {
   marker: string;
   phone: string;
   stand: string;
+  counterweight: string;
   distance: string;
 }
 
@@ -55,7 +56,7 @@ export function SetupScene({ language, labels }: { language: Language; labels: S
     <Canvas
       className="!absolute inset-0 touch-pan-y"
       dpr={[1, 1.75]}
-      camera={{ fov: 32, near: 0.5, far: 400, position: [-50, 42, -52] }}
+      camera={{ fov: 32, near: 0.5, far: 400, position: [-56, 44, -58] }}
       gl={{ antialias: true, alpha: false }}
     >
       <color attach="background" args={['#151515']} />
@@ -66,7 +67,7 @@ export function SetupScene({ language, labels }: { language: Language; labels: S
       {/* Rotate only: zooming would hijack page scrolling. */}
       <OrbitControls
         makeDefault
-        target={[2, 7, 0]}
+        target={[2, 9, 2]}
         enableZoom={false}
         enablePan={false}
         autoRotate
@@ -194,24 +195,49 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   group.add(phone);
   const lensWorld = lensPos.clone().applyMatrix4(phone.matrixWorld);
 
-  // Clamp around the phone's long edges.
+  // Clamp across the phone near its top (wrist) end, so the arm stays short and off the fingers.
   const clamp = new Mesh(new RoundedBoxGeometry(PHONE.w + 1.2, 1.4, 2.2, 3, 0.3), dark);
-  clamp.position.set(0, 0.2, 2.5);
+  clamp.position.set(0, 0.2, -3.6);
   phone.add(clamp);
-  const clampWorld = new Vector3(0, 0.9, 2.5).applyMatrix4(phone.matrixWorld);
+  const clampWorld = new Vector3(0, 0.9, -3.6).applyMatrix4(phone.matrixWorld);
 
-  // --- Stand on the table beyond the wrist: base, upright and a gooseneck arm to the clamp.
+  // --- Stand: a weighted base on the table beyond the wrist (on the hand's midline), a rigid
+  // upright, and a rigid horizontal boom with a counterweight behind the upright. The boom carries
+  // the phone forward on a short drop rod with a tilt head. The combined centre of mass stays over
+  // the base, nothing stands beside the fingers, and the space above the fingers is left free for
+  // the operator's hands and syringe.
   const tableY = -3;
-  const base = new Vector3(9, tableY, 22);
-  const top = new Vector3(9, 23, 22);
-  add(new Mesh(new CylinderGeometry(5.5, 6, 1.2, 40), metal), base.x, tableY + 0.6, base.z);
-  const pole = new Mesh(new CylinderGeometry(0.55, 0.65, top.y - tableY, 20), metal);
-  add(pole, base.x, (top.y + tableY) / 2, base.z);
-  const neck = new Mesh(
-    createTaperedTube([top, new Vector3(8, 25, 16), new Vector3(4, 23.5, 10), clampWorld.clone().add(new Vector3(0, 1.4, 0)), clampWorld], () => 0.5, 80, 14),
-    metal,
-  );
-  group.add(neck);
+  const baseZ = 19;
+  const boomY = LENS_HEIGHT + 6;
+  const base = new Vector3(0, tableY, baseZ);
+  const heavy = new MeshStandardMaterial({ color: '#2a2a28', metalness: 0.3, roughness: 0.55 });
+  add(new Mesh(new RoundedBoxGeometry(18, 1.6, 13, 3, 0.4), heavy), base.x, tableY + 0.8, base.z);
+  for (const [fx, fz] of [
+    [-7.5, -5],
+    [7.5, -5],
+    [-7.5, 5],
+    [7.5, 5],
+  ]) {
+    // Rubber feet.
+    add(new Mesh(new CylinderGeometry(0.8, 0.8, 0.3, 16), dark), base.x + fx, tableY + 0.15, base.z + fz);
+  }
+  add(new Mesh(new CylinderGeometry(0.75, 0.85, boomY - tableY, 20), metal), base.x, (boomY + tableY) / 2, base.z);
+  // Clamp knob where the boom meets the upright.
+  add(new Mesh(new RoundedBoxGeometry(2.6, 2.6, 2.6, 3, 0.4), dark), base.x, boomY, base.z);
+  const knob = new Mesh(new CylinderGeometry(0.9, 0.9, 1.2, 20), dark);
+  knob.rotation.z = Math.PI / 2;
+  add(knob, base.x + 2, boomY, base.z);
+  // Boom: from behind the upright (counterweight) to above the clamp.
+  const rearZ = baseZ + 9;
+  const frontZ = clampWorld.z;
+  const boom = new Mesh(new RoundedBoxGeometry(1.4, 1.4, rearZ - frontZ + 1.4, 3, 0.3), metal);
+  add(boom, 0, boomY, (rearZ + frontZ) / 2);
+  add(new Mesh(new RoundedBoxGeometry(4.5, 4, 5, 3, 0.6), heavy), 0, boomY, rearZ - 1.5);
+  // Drop rod and tilt head down to the phone clamp.
+  const dropTop = new Vector3(clampWorld.x, boomY, frontZ);
+  const rod = new Mesh(new CylinderGeometry(0.45, 0.45, dropTop.y - clampWorld.y - 1, 16), metal);
+  add(rod, dropTop.x, (dropTop.y + clampWorld.y + 1) / 2, frontZ);
+  add(new Mesh(new SphereGeometry(1.1, 20, 14), dark), clampWorld.x, clampWorld.y + 0.9, clampWorld.z);
 
   // --- Camera view: a translucent pyramid from the lens to its footprint around the marker.
   const half = { x: 7.5, z: 9.5 };
@@ -254,7 +280,8 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   add(label(labels.distance, '#facc15', 2.2), dimX - 5, (lensWorld.y + 0.1) / 2, lensWorld.z / 2);
   add(label(labels.marker, '#e8e5de', 1.7), -2, 3.6, 2);
   add(label(labels.phone, '#e8e5de', 1.7), 0, LENS_HEIGHT + 4.6, lensWorld.z - 2);
-  add(label(labels.stand, '#e8e5de', 1.7), base.x, top.y + 4.5, base.z + 2);
+  add(label(labels.stand, '#e8e5de', 1.7), base.x, 9, base.z);
+  add(label(labels.counterweight, '#e8e5de', 1.5), 0, boomY + 3.4, rearZ + 2);
   // Where the operator sits: at the fingertips.
   add(label(labels.operator, '#facc15', 1.9), 0, 1.5, -24);
   const arrow = new Mesh(new CylinderGeometry(0, 1.1, 2.4, 3), new MeshBasicMaterial({ color: '#facc15' }));

@@ -48,20 +48,25 @@ describe('ProceduralFingerModel', () => {
     // First web space on the thumb's ulnar side; no web branch on its radial border.
     expect(worldCenter(byName(thumb.root, 'landmark_web_space')!).x).toBeGreaterThan(0);
     expect(byName(thumb.root, 'nerve_radial_common_branch')).toBeUndefined();
-    expect(byName(thumb.root, 'nerve_ulnar_common_branch')).toBeDefined();
+    expect(byName(thumb.root, 'nerve_ulnar_common_branch')).toBeUndefined();
     // Dorsal nerves reach the nail fold on the thumb.
     const dorsal = THUMB.paths().find((p) => p.name === 'dorsal_nerve_radial_trunk')!;
     expect(dorsal.points[dorsal.points.length - 1].y).toBeGreaterThanOrEqual(THUMB.joints.nailFold);
     thumb.dispose();
   });
 
-  it('draws the index radial digital artery as one vessel (radialis indicis), not a web bifurcation', () => {
+  it('draws the index radial digital artery and nerve as single structures, not web bifurcations', () => {
     const index = new ProceduralFingerModel('en', INDEX);
     expect(byName(index.root, 'artery_radial_common_branch')).toBeUndefined();
     expect(byName(index.root, 'artery_radial_trunk')).toBeDefined();
-    // The ulnar side still divides at the second web; the radial nerve still comes from the first common digital nerve.
+    // The radial palmar nerve is one nerve too; the ulnar side still divides at the second web.
+    expect(byName(index.root, 'nerve_radial_common_branch')).toBeUndefined();
     expect(byName(index.root, 'artery_ulnar_common_branch')).toBeDefined();
-    expect(byName(index.root, 'nerve_radial_common_branch')).toBeDefined();
+    expect(byName(index.root, 'nerve_ulnar_common_branch')).toBeDefined();
+    for (const name of ['nerve_radial_trunk', 'dorsal_nerve_radial_trunk']) {
+      const p0 = INDEX.paths().find((p) => p.name === name)!.points[0];
+      expect(Math.abs(p0.x), name).toBeLessThan(1.0); // runs straight proximally, not into the first web
+    }
     // The trunk runs straight proximally instead of swinging into the first web.
     const trunk = INDEX.paths().find((p) => p.name === 'artery_radial_trunk')!.points;
     expect(Math.abs(trunk[0].x)).toBeLessThan(1.0);

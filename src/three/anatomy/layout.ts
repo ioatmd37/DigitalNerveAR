@@ -98,6 +98,17 @@ interface DigitSpec {
    * single vessels that do not divide at the first web.
    */
   arteryForks?: Record<Side, boolean>;
+  /**
+   * Sides whose palmar digital NERVE comes from a common palmar digital nerve
+   * dividing at the web (default: same as `webs`). The radial proper palmar
+   * digital nerve of the index leaves the median nerve in the palm and runs
+   * as one nerve along the radial border of the 2nd metacarpal and the index
+   * (also giving the 1st lumbrical branch); it does not divide at the first
+   * web. The thumb's palmar nerves likewise do not divide at a web.
+   */
+  nerveForks?: Record<Side, boolean>;
+  /** Sides whose DORSAL digital nerve heads into the web proximally (default: same as `webs`). */
+  dorsalNerveWebs?: Record<Side, boolean>;
   /** Distal reach of the dorsal digital nerves (radial/ulnar nerve origin). */
   dorsalNerveEndY: number;
   /** Dorsal branch of the palmar digital nerve: [leaves the trunk at, ends at]. */
@@ -244,6 +255,11 @@ const INDEX_SPEC: DigitSpec = {
   // digital artery dividing at the first web. The ulnar side divides at the
   // second web from the 2nd common palmar digital artery as usual.
   arteryForks: { radial: false, ulnar: true },
+  // Radial side: the proper palmar digital nerve runs as a single nerve along the radial border
+  // (no Y-division at the first web); its dorsal digital nerve (superficial radial) runs along the
+  // radial border of the 2nd metacarpal rather than into the web.
+  nerveForks: { radial: false, ulnar: true },
+  dorsalNerveWebs: { radial: false, ulnar: true },
 };
 
 const THUMB_K = 1.16;
@@ -281,6 +297,8 @@ const THUMB_SPEC: DigitSpec = {
   webs: { radial: false, ulnar: true },
   // Both thumb arteries come from the princeps pollicis, not from a web bifurcation.
   arteryForks: { radial: false, ulnar: false },
+  nerveForks: { radial: false, ulnar: false },
+  dorsalNerveWebs: { radial: false, ulnar: false },
   // Superficial radial nerve branches reach the nail fold.
   dorsalNerveEndY: 3.6,
   palmarDorsalBranch: null,
@@ -567,7 +585,7 @@ export class Digit {
     const amp = kind === 'artery' ? 0.025 : 0.01;
     let x = spec.x * this.k * t + amp * Math.sin(y * 2.4 + phase);
     let z = spec.z * this.k * t + amp * 0.6 * Math.cos(y * 1.9 + phase);
-    if (kind === 'artery' ? this.arteryForks(side) : this.spec.webs[side]) {
+    if (kind === 'artery' ? this.arteryForks(side) : this.nerveForks(side)) {
       const web = smoothstep(0, -1.6, y);
       x += 0.45 * web;
       z -= 0.12 * web;
@@ -578,6 +596,11 @@ export class Digit {
   /** Whether this side's palmar digital artery divides from a common digital artery at a web. */
   arteryForks(side: Side): boolean {
     return (this.spec.arteryForks ?? this.spec.webs)[side];
+  }
+
+  /** Whether this side's palmar digital nerve divides from a common digital nerve at a web. */
+  nerveForks(side: Side): boolean {
+    return (this.spec.nerveForks ?? this.spec.webs)[side];
   }
 
   /** All modelled nerve/artery/vein/tendon paths (built once per digit). */
@@ -604,7 +627,7 @@ export class Digit {
       // --- Proper palmar digital nerve: trunk, web bifurcation stub, dorsal and terminal branches.
       const nEnd = this.trunkCenter('nerve', side, tip - 1.2);
       paths.push({ structure: nerve, name: `${nerve}_trunk`, kind: 'nerve', points: sample((y) => this.trunkCenter('nerve', side, y), -3.6, tip - 1.2), r0: 0.09 * k, r1: 0.055 * k, evaluate: true });
-      if (web) {
+      if (this.nerveForks(side)) {
         const nFork = this.trunkCenter('nerve', side, -1.4);
         paths.push({ structure: nerve, name: `${nerve}_common_branch`, kind: 'nerve', points: [nFork, v(sx * 1.35, -0.9, -0.58), v(sx * 1.55, -0.4, -0.55)], r0: 0.07, r1: 0.06, evaluate: true });
       }
@@ -640,7 +663,7 @@ export class Digit {
         // Drifts slightly toward the dorsal midline distally, and toward the web proximally.
         const th = dTheta + (90 - dTheta) * 0.35 * smoothstep(dEnd - 1.5, dEnd, y) + 3 * Math.sin(y * 1.3);
         const p = this.surfacePoint(y, th, 0.86);
-        if (web) {
+        if ((s.dorsalNerveWebs ?? s.webs)[side]) {
           const w = smoothstep(-0.2, -2.0, y);
           p.x += sx * 0.4 * w;
           p.z -= 0.05 * w;

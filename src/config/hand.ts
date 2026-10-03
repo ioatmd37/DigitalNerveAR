@@ -151,7 +151,7 @@ export const DIGIT_SUPPLY: Record<FingerId, Record<SupplyKind, { radial: Localiz
       ulnar: { th: 'แขนงตื้นของเส้นประสาทเรเดียล — ถึงราวข้อ PIP', en: 'Superficial radial nerve — to about the PIP joint' },
     },
     artery: {
-      radial: { th: 'radialis indicis artery (จาก deep palmar arch / princeps pollicis)', en: 'Radialis indicis artery (deep arch / princeps pollicis)' },
+      radial: { th: 'radialis indicis artery เส้นเดียว (จาก deep palmar arch / princeps pollicis) ไม่แยกที่ง่ามนิ้วแรก', en: 'Radialis indicis artery — a single vessel (deep arch / princeps pollicis), not divided at the first web' },
       ulnar: { th: 'common palmar digital artery จาก superficial palmar arch', en: 'Common palmar digital artery from the superficial palmar arch' },
     },
   },
@@ -229,8 +229,8 @@ export const DIGIT_NOTES: Record<FingerId, LocalizedText[]> = {
       en: 'Both palmar digital nerves are median; the dorsal nerves (superficial radial) reach about the PIP, and the dorsum of the middle and distal phalanges is supplied by dorsal branches of the palmar nerves.',
     },
     {
-      th: 'หลอดเลือดด้านเรเดียลคือ radialis indicis (จากหลอดเลือดแดงเรเดียล) ด้านอัลนามาจาก superficial palmar arch และมักเป็นเส้นที่ใหญ่กว่า',
-      en: 'The radial-side artery is the radialis indicis (radial artery system); the ulnar-side artery comes from the superficial palmar arch and is usually the larger one.',
+      th: 'หลอดเลือดด้านเรเดียลคือ radialis indicis เป็นเส้นเดียวจากระบบหลอดเลือดแดงเรเดียล ไม่ได้แยกจาก common palmar digital artery ที่ง่ามนิ้ว ส่วนด้านอัลนามาจาก common palmar digital artery เส้นที่ 2 (superficial palmar arch) ที่แยกที่ง่ามนิ้วที่ 2 และมักเป็นเส้นที่ใหญ่กว่า',
+      en: 'The radial-side artery is the radialis indicis, a single vessel from the radial artery system — not a branch of a common palmar digital artery dividing at the web. The ulnar-side artery comes from the 2nd common palmar digital artery (superficial arch), which divides at the second web, and is usually the larger one.',
     },
     {
       th: 'ด้านหลังมีเอ็น EDC และเอ็น extensor indicis (EIP อยู่ด้านอัลนาของ EDC ที่ข้อ MCP) รวมเข้า extensor hood; ด้านเรเดียลมีกล้ามเนื้อ first dorsal interosseous และ lumbrical ตัวที่ 1 (ไม่ได้แสดงในโมเดล)',

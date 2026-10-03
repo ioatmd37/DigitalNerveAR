@@ -5,7 +5,7 @@ import { computeViewState } from '../../logic/visibility';
 import { DEFAULT_LAYER_VISIBILITY } from '../../config/anatomy';
 import { findStructureId } from './AnatomyModel';
 import { ProceduralFingerModel } from './ProceduralFingerModel';
-import { FINGER, LITTLE, THUMB } from './layout';
+import { FINGER, INDEX, LITTLE, THUMB } from './layout';
 
 function byName(root: Object3D, name: string): Object3D | undefined {
   return root.getObjectByName(name);
@@ -53,6 +53,21 @@ describe('ProceduralFingerModel', () => {
     const dorsal = THUMB.paths().find((p) => p.name === 'dorsal_nerve_radial_trunk')!;
     expect(dorsal.points[dorsal.points.length - 1].y).toBeGreaterThanOrEqual(THUMB.joints.nailFold);
     thumb.dispose();
+  });
+
+  it('draws the index radial digital artery as one vessel (radialis indicis), not a web bifurcation', () => {
+    const index = new ProceduralFingerModel('en', INDEX);
+    expect(byName(index.root, 'artery_radial_common_branch')).toBeUndefined();
+    expect(byName(index.root, 'artery_radial_trunk')).toBeDefined();
+    // The ulnar side still divides at the second web; the radial nerve still comes from the first common digital nerve.
+    expect(byName(index.root, 'artery_ulnar_common_branch')).toBeDefined();
+    expect(byName(index.root, 'nerve_radial_common_branch')).toBeDefined();
+    // The trunk runs straight proximally instead of swinging into the first web.
+    const trunk = INDEX.paths().find((p) => p.name === 'artery_radial_trunk')!.points;
+    expect(Math.abs(trunk[0].x)).toBeLessThan(1.0);
+    // The thumb arteries (princeps pollicis) do not fork at a web either.
+    expect(THUMB.paths().some((p) => p.name.startsWith('artery_') && p.name.endsWith('common_branch'))).toBe(false);
+    index.dispose();
   });
 
   it('models the little finger without an ulnar web and with longer dorsal nerves', () => {

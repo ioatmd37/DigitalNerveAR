@@ -9,7 +9,9 @@ import { smoothstep } from './geometry';
  * evaluate the virtual needle, so feedback always matches what is drawn.
  *
  * Three layouts:
- *  - `finger`  index, middle and ring (three phalanges, FDS + FDP, extensor hood)
+ *  - `finger`  middle and ring (three phalanges, FDS + FDP, extensor hood)
+ *  - `index`   the finger layout; its radial artery (radialis indicis) is a
+ *              single vessel with no web bifurcation
  *  - `little`  the finger layout with little-finger nerve patterns
  *              (no web on the ulnar side, ulnar dorsal nerves reaching the DIP)
  *  - `thumb`   two phalanges and one IP joint, FPL only, EPL/EPB, sesamoids,
@@ -31,7 +33,7 @@ const DORSAL_NERVE_DEG: Record<Side, number> = { radial: 112, ulnar: 68 };
 
 const DEG = Math.PI / 180;
 
-export type DigitId = 'finger' | 'little' | 'thumb';
+export type DigitId = 'finger' | 'index' | 'little' | 'thumb';
 
 export interface BoneSpec {
   id: StructureId;
@@ -89,6 +91,13 @@ interface DigitSpec {
   bones: BoneSpec[];
   /** Which sides have a web space (where the common digital vessels and nerves divide). */
   webs: Record<Side, boolean>;
+  /**
+   * Sides whose palmar digital ARTERY comes from a common palmar digital
+   * artery dividing at the web (default: same as `webs`). The index radial
+   * artery (radialis indicis) and the thumb arteries (princeps pollicis) are
+   * single vessels that do not divide at the first web.
+   */
+  arteryForks?: Record<Side, boolean>;
   /** Distal reach of the dorsal digital nerves (radial/ulnar nerve origin). */
   dorsalNerveEndY: number;
   /** Dorsal branch of the palmar digital nerve: [leaves the trunk at, ends at]. */
@@ -227,6 +236,16 @@ const LITTLE_SPEC: DigitSpec = {
   palmarDorsalBranch: [4.9, 6.9],
 };
 
+const INDEX_SPEC: DigitSpec = {
+  ...FINGER_SPEC,
+  id: 'index',
+  // Radial side: the radialis indicis is one vessel from the radial artery
+  // system (deep arch / princeps pollicis), not a branch of a common palmar
+  // digital artery dividing at the first web. The ulnar side divides at the
+  // second web from the 2nd common palmar digital artery as usual.
+  arteryForks: { radial: false, ulnar: true },
+};
+
 const THUMB_K = 1.16;
 
 const THUMB_SPEC: DigitSpec = {
@@ -260,6 +279,8 @@ const THUMB_SPEC: DigitSpec = {
   ],
   // The first web space lies on the thumb's ulnar side; the radial border has no web.
   webs: { radial: false, ulnar: true },
+  // Both thumb arteries come from the princeps pollicis, not from a web bifurcation.
+  arteryForks: { radial: false, ulnar: false },
   // Superficial radial nerve branches reach the nail fold.
   dorsalNerveEndY: 3.6,
   palmarDorsalBranch: null,
@@ -546,12 +567,17 @@ export class Digit {
     const amp = kind === 'artery' ? 0.025 : 0.01;
     let x = spec.x * this.k * t + amp * Math.sin(y * 2.4 + phase);
     let z = spec.z * this.k * t + amp * 0.6 * Math.cos(y * 1.9 + phase);
-    if (this.spec.webs[side]) {
+    if (kind === 'artery' ? this.arteryForks(side) : this.spec.webs[side]) {
       const web = smoothstep(0, -1.6, y);
       x += 0.45 * web;
       z -= 0.12 * web;
     }
     return out.set(SIDE_SIGN[side] * x, y, z);
+  }
+
+  /** Whether this side's palmar digital artery divides from a common digital artery at a web. */
+  arteryForks(side: Side): boolean {
+    return (this.spec.arteryForks ?? this.spec.webs)[side];
   }
 
   /** All modelled nerve/artery/vein/tendon paths (built once per digit). */
@@ -632,7 +658,7 @@ export class Digit {
       // --- Proper palmar digital artery: trunk, bifurcation stub, condylar arches, pulp arcade, dorsal branches.
       const aEnd = this.trunkCenter('artery', side, tip - 1.1);
       paths.push({ structure: artery, name: `${artery}_trunk`, kind: 'artery', points: sample((y) => this.trunkCenter('artery', side, y), -3.6, tip - 1.1), r0: 0.08 * k, r1: 0.045 * k, evaluate: true });
-      if (web) {
+      if (this.arteryForks(side)) {
         const aFork = this.trunkCenter('artery', side, -1.2);
         paths.push({ structure: artery, name: `${artery}_common_branch`, kind: 'artery', points: [aFork, v(sx * 1.3, -0.75, -0.4), v(sx * 1.5, -0.25, -0.38)], r0: 0.065, r1: 0.055, evaluate: true });
       }
@@ -750,14 +776,16 @@ export function pathDistance(p: Vector3, path: AnatomyPath): number {
 }
 
 export const FINGER = new Digit(FINGER_SPEC);
+export const INDEX = new Digit(INDEX_SPEC);
 export const LITTLE = new Digit(LITTLE_SPEC);
 export const THUMB = new Digit(THUMB_SPEC);
-export const DIGITS: Record<DigitId, Digit> = { finger: FINGER, little: LITTLE, thumb: THUMB };
+export const DIGITS: Record<DigitId, Digit> = { finger: FINGER, index: INDEX, little: LITTLE, thumb: THUMB };
 
 /** Digit layout for a hand digit. */
 export function digitFor(finger: FingerId): Digit {
   if (finger === 'thumb') return THUMB;
   if (finger === 'little') return LITTLE;
+  if (finger === 'index') return INDEX;
   return FINGER;
 }
 

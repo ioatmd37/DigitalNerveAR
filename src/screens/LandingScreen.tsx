@@ -17,14 +17,20 @@ const MODE_GROUPS: { group: 'learn' | 'practice'; modes: LearnerMode[] }[] = [
   { group: 'practice', modes: ['needle', 'osce', 'quiz'] },
 ];
 
-/** Small wordmark glyph: a finger cross-section reduced to a ring and two bundles. */
+/** App mark: the DNBAR pig face (same drawing as the app icon, public/favicon.svg). */
 function Mark() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden className="shrink-0">
-      <ellipse cx="12" cy="12" rx="10" ry="9" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <ellipse cx="12" cy="10.5" rx="4" ry="3.4" fill="currentColor" opacity="0.85" />
-      <circle cx="6.4" cy="16" r="1.6" fill="var(--color-nerve)" />
-      <circle cx="17.6" cy="16" r="1.6" fill="var(--color-nerve)" />
+    <svg width="24" height="24" viewBox="8 10 48 44" aria-hidden className="shrink-0">
+      <path
+        d="M13.5 15.5c4.6-.8 9 .4 11.6 3.2l-8.9 8.4c-2.6-2.9-3.6-7.2-2.7-11.6zM50.5 15.5c-4.6-.8-9 .4-11.6 3.2l8.9 8.4c2.6-2.9 3.6-7.2 2.7-11.6z"
+        fill="currentColor"
+      />
+      <circle cx="32" cy="34" r="17.5" fill="currentColor" stroke="#111111" strokeWidth="1.6" />
+      <circle cx="25.5" cy="29" r="1.9" fill="#111111" />
+      <circle cx="38.5" cy="29" r="1.9" fill="#111111" />
+      <ellipse cx="32" cy="38.5" rx="7.2" ry="5.2" fill="#111111" />
+      <ellipse cx="29.2" cy="38.5" rx="1.3" ry="1.9" fill="currentColor" />
+      <ellipse cx="34.8" cy="38.5" rx="1.3" ry="1.9" fill="currentColor" />
     </svg>
   );
 }

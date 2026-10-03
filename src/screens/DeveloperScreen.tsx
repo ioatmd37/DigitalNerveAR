@@ -3,6 +3,7 @@ import { Icon } from '../components/Icon';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { useT } from '../i18n/useT';
 import { useAppStore } from '../store/useAppStore';
+import { assetUrl } from '../utils/assets';
 
 export const DEVELOPER = {
   name: 'Phachara Longmeewong, MD FRCST (ThPRS)',
@@ -50,8 +51,13 @@ export function DeveloperScreen() {
       <main className="mx-auto max-w-4xl px-5 pb-12 sm:px-8">
         <header className="py-10 sm:py-14">
           <p className="eyebrow">{t('developer.title')}</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">{t('app.title')}</h1>
-          <p className="mt-2 text-lg text-slate-300">{t('app.fullName')}</p>
+          <div className="mt-3 flex items-center gap-4">
+            <img src={assetUrl('favicon.svg')} alt="" width={64} height={64} className="h-14 w-14 shrink-0 sm:h-16 sm:w-16" />
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">{t('app.title')}</h1>
+              <p className="mt-1 text-lg text-slate-300">{t('app.fullName')}</p>
+            </div>
+          </div>
         </header>
 
         <Section title={t('developer.developerHeading')}>

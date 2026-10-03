@@ -51,13 +51,14 @@ const en = {
     },
     setupFigure: {
       title: 'Placing the phone and the hand',
-      caption: 'Example set-up: a phone on a stand above the mannequin hand (illustrative)',
+      caption: 'Example set-up: fingertips toward the operator, phone on a stand above the hand (illustrative)',
       hint: 'Drag to rotate',
       marker: 'Marker {size} × {size} cm',
       phone: 'Phone · rear camera down',
       stand: 'Phone stand',
       distance: '12–20 cm',
-      tip1: 'Lay the hand palm-down on a non-slip mat, fingers pointing away from the stand, so the stand never covers the fingers.',
+      operator: 'Operator (you)',
+      tip1: 'Lay the hand palm-down on a non-slip mat with the fingertips pointing toward you, as the patient’s hand faces the doctor during a block. Put the stand beyond the wrist so it never covers the fingers.',
       tip2: 'Stick the {size} × {size} cm marker on the middle-finger knuckle with its TOP arrow toward the fingertips.',
       tip3: 'Clamp the phone with its rear camera straight above the marker, 12–20 cm away, screen tilted slightly toward you. Keep the whole marker and the selected finger in view.',
       tip4: 'Use even, diffuse light: no glare on the sticker and no shadow from the phone or your hand.',
@@ -170,7 +171,7 @@ const en = {
     origin: 'Usual origin ({digit})',
   },
   orientation: {
-    title: 'Orientation (right hand)',
+    title: 'Orientation (right hand, operator’s view)',
     dorsal: 'Dorsal',
     volar: 'Volar',
     radial: 'Radial',
@@ -200,7 +201,7 @@ const en = {
     done: 'Sequence complete. Review any step, or try the Knowledge Check.',
     s1: {
       title: 'Identify orientation and landmarks',
-      body: 'In this mannequin model, find the nail (dorsal side), the MCP knuckle (proximal) and the fingertip (distal). On the right hand, the radial side faces the thumb and the ulnar side faces the little finger. Match the orientation axes to the physical mannequin.',
+      body: 'Position the hand palm-down with the fingertips toward you, as for a block. In this mannequin model, find the nail (dorsal side), the MCP knuckle (proximal) and the fingertip (distal). On the right hand, the radial side faces the thumb and the ulnar side faces the little finger. Match the orientation axes to the physical mannequin.',
     },
     s2: {
       title: 'Identify the radial and ulnar neurovascular bundles',
@@ -335,7 +336,7 @@ const en = {
       o2: 'The little-finger side',
       o3: 'The palm side',
       o4: 'The nail side',
-      explain: 'Radial is the thumb side. On the right hand viewed from the dorsal side with fingers pointing away, radial is on the left.',
+      explain: 'Radial is the thumb side. With the right hand palm-down and the fingertips toward you (the operator’s view), radial is on your right.',
     },
     q3: {
       prompt: 'Which structures are displayed in the red avoid zone?',

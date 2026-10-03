@@ -4,9 +4,9 @@ import { useAppStore } from '../store/useAppStore';
 import type { FingerId } from '../types';
 
 /**
- * 2D orientation key for a RIGHT-hand finger seen from the dorsal side
- * with the fingertip pointing up (away from the learner), matching the
- * default AR/explorer set-up. The 3D model also carries an axis gizmo.
+ * 2D orientation key for a RIGHT hand seen from the dorsal side in the
+ * operator's position (palm-down, fingertips toward the operator), matching
+ * the recommended set-up and the explorer's default views. The 3D model also carries an axis gizmo.
  */
 /** Approximate finger axes in the SVG drawing below (right hand, dorsal view). */
 const FINGER_LINES: Record<FingerId, { tip: [number, number]; base: [number, number]; w: number }> = {
@@ -40,7 +40,9 @@ export function OrientationWidget() {
         </button>
       </div>
       <svg viewBox="0 0 200 170" className="mx-auto w-40" role="img" aria-label={t('orientation.title')}>
-        {/* Hand outline (dorsal view, right hand): thumb on the left. */}
+        {/* Operator's view: right hand palm-down, fingertips toward the viewer, so the
+            drawing (dorsal view, fingers up) is turned 180° and the thumb is on the right. */}
+        <g transform="rotate(180 100 85)">
         <path
           d="M70 160 L70 105 Q52 98 40 80 L30 62 Q28 55 35 54 Q42 54 47 64 L60 84 L64 40 Q66 30 76 30 Q86 30 86 40 L86 72 L90 20 Q92 10 102 10 Q112 10 112 20 L110 72 L118 30 Q120 22 128 22 Q137 23 136 32 L130 78 L142 48 Q145 41 152 43 Q158 46 156 54 L144 104 Q140 130 130 140 L130 160 Z"
           fill="#e8b89a"
@@ -70,13 +72,14 @@ export function OrientationWidget() {
           <line x1="158" y1="120" x2="176" y2="120" />
           <polygon points="183,120 174,115 174,125" />
         </g>
-        <text x="100" y="158" textAnchor="middle" fontSize="11" fill="#e2e8f0" fontWeight="700">
+        </g>
+        <text x="108" y="52" textAnchor="start" fontSize="11" fill="#e2e8f0" fontWeight="700">
           {t('orientation.distal').split(' ')[0]}
         </text>
-        <text x="20" y="140" textAnchor="middle" fontSize="11" fill="#e2e8f0" fontWeight="700">
+        <text x="180" y="72" textAnchor="middle" fontSize="11" fill="#e2e8f0" fontWeight="700">
           {t('orientation.radial').split(' ')[0]}
         </text>
-        <text x="180" y="140" textAnchor="middle" fontSize="11" fill="#e2e8f0" fontWeight="700">
+        <text x="20" y="72" textAnchor="middle" fontSize="11" fill="#e2e8f0" fontWeight="700">
           {t('orientation.ulnar').split(' ')[0]}
         </text>
       </svg>

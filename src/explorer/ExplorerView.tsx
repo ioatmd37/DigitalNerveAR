@@ -28,16 +28,17 @@ export type ViewPreset = 'dorsal' | 'volar' | 'radial' | 'ulnar' | 'oblique';
 
 /** Camera direction per preset in the anatomical frame (+X ulnar, +Y distal, +Z dorsal). */
 const PRESET_DIRECTIONS: Record<ViewPreset, [number, number, number]> = {
-  dorsal: [0, -0.35, 1],
-  volar: [0, -0.35, -1],
-  radial: [-1, -0.2, 0.2],
-  ulnar: [1, -0.2, 0.2],
-  oblique: [-1, -0.55, 1],
+  // Views are taken from the distal side, where the operator sits (fingertips toward the viewer).
+  dorsal: [0, 0.35, 1],
+  volar: [0, 0.35, -1],
+  radial: [-1, 0.2, 0.2],
+  ulnar: [1, 0.2, 0.2],
+  oblique: [-1, 0.55, 1],
 };
 
 /**
- * The thumb points distally-radially, so the finger oblique (from proximal)
- * would look along it through the palm; view it from above its nail side.
+ * The thumb points distally-radially, so the finger oblique (from distal-radial)
+ * would look straight down its axis; view it from above its nail side instead.
  */
 const THUMB_OBLIQUE: [number, number, number] = [-0.55, 0.25, 1];
 

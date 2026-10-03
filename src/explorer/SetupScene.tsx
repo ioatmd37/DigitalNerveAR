@@ -36,6 +36,7 @@ import type { Language } from '../types';
 import { assetUrl } from '../utils/assets';
 
 export interface SetupSceneLabels {
+  operator: string;
   marker: string;
   phone: string;
   stand: string;
@@ -44,8 +45,8 @@ export interface SetupSceneLabels {
 
 /**
  * Illustrative set-up for the landing page (world = cm, +Y up): the
- * right mannequin hand palm-down on a table with the marker on the
- * middle-finger knuckle, and a phone held by a stand 12–20 cm above the
+ * right mannequin hand palm-down on a table, fingertips toward the operator
+ * (as for a digital block), with the marker on the middle-finger knuckle, and a phone held by a stand 12–20 cm above the
  * marker with its rear camera facing down. The index finger carries the
  * anatomy overlay to show what the learner will see. Purely illustrative.
  */
@@ -54,7 +55,7 @@ export function SetupScene({ language, labels }: { language: Language; labels: S
     <Canvas
       className="!absolute inset-0 touch-pan-y"
       dpr={[1, 1.75]}
-      camera={{ fov: 32, near: 0.5, far: 400, position: [-54, 40, 48] }}
+      camera={{ fov: 32, near: 0.5, far: 400, position: [-50, 42, -52] }}
       gl={{ antialias: true, alpha: false }}
     >
       <color attach="background" args={['#151515']} />
@@ -65,7 +66,7 @@ export function SetupScene({ language, labels }: { language: Language; labels: S
       {/* Rotate only: zooming would hijack page scrolling. */}
       <OrbitControls
         makeDefault
-        target={[2, 7, 4]}
+        target={[2, 7, 0]}
         enableZoom={false}
         enablePan={false}
         autoRotate
@@ -157,8 +158,9 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   const metal = new MeshStandardMaterial({ color: '#3a3a38', metalness: 0.6, roughness: 0.35 });
   const dark = new MeshStandardMaterial({ color: '#202020', metalness: 0.2, roughness: 0.6 });
 
-  // --- Phone: rear camera down, screen up, top of the phone toward the fingertips (−Z),
-  // tilted slightly so the screen faces the learner standing at the wrist side.
+  // --- Phone: rear camera down, screen up. The operator sits at the fingertip side (−Z), so the
+  // phone's top points toward the wrist and the screen tilts slightly toward the operator; the
+  // fingers then point down the screen toward the operator, as on the real hand.
   const phone = new Group();
   const body = new Mesh(new RoundedBoxGeometry(PHONE.w, PHONE.t, PHONE.l, 4, 0.5), new MeshPhysicalMaterial({ color: '#2b2b2b', roughness: 0.35, clearcoat: 0.6 }));
   const screen = new Mesh(new PlaneGeometry(PHONE.w - 0.6, PHONE.l - 0.9), new MeshBasicMaterial({ color: '#30414f', toneMapped: false }));
@@ -181,7 +183,7 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   glass.position.copy(lensPos).add(new Vector3(0, -0.13, 0));
   phone.add(body, screen, finger, nerveL, nerveR, lensRing, glass);
   const tilt = 0.22;
-  phone.rotation.x = tilt;
+  phone.rotation.set(-tilt, Math.PI, 0);
   phone.updateMatrix();
   // Place the phone so the lens sits LENS_HEIGHT above the marker.
   const lensLocal = lensPos.clone().applyMatrix4(phone.matrix);
@@ -251,6 +253,11 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   add(label(labels.marker, '#e8e5de', 1.7), -2, 3.6, -5);
   add(label(labels.phone, '#e8e5de', 1.7), 0, LENS_HEIGHT + 4.6, lensWorld.z - 2);
   add(label(labels.stand, '#e8e5de', 1.7), base.x, top.y + 4.5, base.z + 2);
+  // Where the operator sits: at the fingertips.
+  add(label(labels.operator, '#facc15', 1.9), 0, 1.5, -24);
+  const arrow = new Mesh(new CylinderGeometry(0, 1.1, 2.4, 3), new MeshBasicMaterial({ color: '#facc15' }));
+  arrow.rotation.x = Math.PI / 2; // tip toward +Z, i.e. toward the hand
+  add(arrow, 0, tableY + 0.6, -19);
 
   // A larger table so the stand base sits on it (the rig's own table is smaller).
   const table = new Mesh(new PlaneGeometry(80, 70), new MeshStandardMaterial({ color: '#1d1d1c', roughness: 0.95 }));

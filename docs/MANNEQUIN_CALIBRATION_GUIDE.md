@@ -24,8 +24,8 @@ Calibration is saved per device (browser `localStorage`) and can be exported and
 
 ## 2. Confirm it is a RIGHT hand
 
-Place the hand **palm down** (nails up) with the fingers pointing **away from you**. On a right hand the **thumb is on
-your left**. The app only supports right hands; radial and ulnar would be swapped on a left hand.
+Place the hand **palm down** (nails up) with the **fingertips pointing toward you**, the way a patient's hand faces the
+doctor during a digital block. On a right hand the **thumb is then on your right**. The app only supports right hands; radial and ulnar would be swapped on a left hand.
 
 ## 3. Attach the marker sticker
 

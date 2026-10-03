@@ -31,6 +31,7 @@ export function SetupFigure() {
 
   const labels = useMemo(
     () => ({
+      operator: t('landing.setupFigure.operator'),
       marker: t('landing.setupFigure.marker', { size }),
       phone: t('landing.setupFigure.phone'),
       stand: t('landing.setupFigure.stand'),

@@ -1,5 +1,5 @@
 /**
- * Core data model for the Digital Nerve Block AR Trainer.
+ * Core data model for SimPlastic - DNBAR (Digital Nerve Block AR Trainer).
  *
  * All anatomy is a SIMPLIFIED EDUCATIONAL MODEL of a right-hand finger on a
  * training mannequin. Nothing here describes a real patient.
@@ -205,7 +205,7 @@ export interface InstructorSettings {
   passcode: string;
 }
 
-export type Screen = 'landing' | 'ar' | 'explorer' | 'instructorLogin' | 'instructor';
+export type Screen = 'landing' | 'ar' | 'explorer' | 'instructorLogin' | 'instructor' | 'developer';
 
 export interface SessionState {
   screen: Screen;

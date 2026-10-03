@@ -35,7 +35,8 @@ describe('locales', () => {
   });
 
   it('uses the required app title and Thai terminology', () => {
-    expect(translate('en', 'app.title')).toBe('Digital Nerve Block AR Trainer');
+    expect(translate('en', 'app.title')).toBe('SimPlastic - DNBAR');
+    expect(translate('en', 'app.fullName')).toBe('Digital Nerve Block AR Trainer');
     expect(translate('en', 'app.subtitle')).toBe('Right-Hand Finger Anatomy on a Mannequin');
     expect(translate('th', 'modes.guided')).toBe('โหมดฝึกแบบมีคำแนะนำ');
     expect(translate('th', 'modes.assessment')).toBe('โหมดประเมิน');

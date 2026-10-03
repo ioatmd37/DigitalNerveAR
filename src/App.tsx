@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAppStore } from './store/useAppStore';
 import { InstructorLoginScreen } from './screens/InstructorLoginScreen';
 import { InstructorScreen } from './screens/InstructorScreen';
+import { DeveloperScreen } from './screens/DeveloperScreen';
 import { LandingScreen } from './screens/LandingScreen';
 import { ViewerScreen } from './screens/ViewerScreen';
 
@@ -21,6 +22,8 @@ export default function App() {
       return <ViewerScreen key="explorer" kind="explorer" />;
     case 'instructorLogin':
       return <InstructorLoginScreen />;
+    case 'developer':
+      return <DeveloperScreen />;
     case 'instructor':
       return unlocked ? <InstructorScreen /> : <InstructorLoginScreen />;
     default:

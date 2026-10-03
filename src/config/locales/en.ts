@@ -5,9 +5,10 @@
  */
 const en = {
   app: {
-    title: 'Digital Nerve Block AR Trainer',
+    title: 'SimPlastic - DNBAR',
+    fullName: 'Digital Nerve Block AR Trainer',
     subtitle: 'Right-Hand Finger Anatomy on a Mannequin',
-    shortTitle: 'DNB AR Trainer',
+    shortTitle: 'SimPlastic - DNBAR',
     modelNotice: 'Simplified educational anatomy model',
   },
   safety: {
@@ -20,6 +21,7 @@ const en = {
     title: 'Safety notice',
   },
   landing: {
+    by: 'Developed by',
     instruction: 'Point the camera at the marker sticker in the centre of the back of the mannequin’s hand.',
     startAr: 'Start AR Session',
     explore: 'Explore 3D Model',
@@ -75,6 +77,28 @@ const en = {
       volarBundle: 'Volar digital nerve and artery',
       dorsalBranch: 'Dorsal digital nerve',
     },
+  },
+  developer: {
+    title: 'Development',
+    navLink: 'About & development',
+    developerHeading: 'Developer',
+    linkedin: 'LinkedIn profile',
+    feedback: 'Suggestions and corrections are welcome; please contact the developer through LinkedIn.',
+    aboutHeading: 'About this project',
+    about: 'SimPlastic - DNBAR (Digital Nerve Block AR Trainer) is an educational web app for practising the anatomy and steps of a digital nerve block on a right-hand training mannequin. Through the camera it overlays a simplified 3D model of the selected digit on the mannequin, and it runs in the browser without installation.',
+    status: 'Minimum viable product. The anatomy is simplified for teaching; content should be reviewed by faculty before formal use.',
+    releaseHeading: 'In this version',
+    r1: 'All five digits, including a two-phalanx thumb, with per-digit nerve and artery patterns and their usual origins',
+    r2: 'Marker sticker in the centre of the back of the hand; views from the operator’s position (fingertips toward you)',
+    r3: 'Needle practice and a virtual OSCE station scored with the faculty rubric',
+    r4: 'Full-screen portrait AR, a rotatable set-up example, Thai and English',
+    r5: 'Instructor calibration per digit, with JSON export and import',
+    buildHeading: 'Build',
+    version: 'Version',
+    commit: 'Commit',
+    built: 'Built',
+    stackHeading: 'Built with',
+    privacyHeading: 'Data and privacy',
   },
   common: {
     back: 'Back',

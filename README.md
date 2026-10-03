@@ -1,4 +1,7 @@
-# Digital Nerve Block AR Trainer
+# SimPlastic - DNBAR
+
+**Digital Nerve Block AR Trainer** — developed by
+[Phachara Longmeewong, MD FRCST (ThPRS)](https://www.linkedin.com/in/longpcr).
 
 **Right-Hand Finger Anatomy on a Mannequin** — a mobile-first, marker-based WebAR teaching aid for medical students
 practising a digital nerve block **on a whole right-hand training mannequin** (index, middle, ring or little finger).

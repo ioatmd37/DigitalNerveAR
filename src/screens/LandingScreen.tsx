@@ -2,6 +2,7 @@ import { CrossSectionFigure } from '../components/CrossSectionFigure';
 import { DisclaimerText } from '../components/Disclaimer';
 import { Icon } from '../components/Icon';
 import { SetupFigure } from '../components/SetupFigure';
+import { DEVELOPER } from './DeveloperScreen';
 import { LanguageToggle } from '../components/LanguageToggle';
 import { appConfig } from '../config/appConfig';
 import { useT } from '../i18n/useT';
@@ -66,7 +67,14 @@ export function LandingScreen() {
             <h1 className="mt-4 text-[32px] font-semibold leading-[1.1] tracking-tight text-slate-50 sm:text-5xl">
               {t('app.title')}
             </h1>
-            <p className="mt-3 text-lg text-slate-300 sm:text-xl">{t('app.subtitle')}</p>
+            <p className="mt-3 text-lg text-slate-200 sm:text-xl">{t('app.fullName')}</p>
+            <p className="mt-1 text-base text-slate-400">{t('app.subtitle')}</p>
+            <p className="mt-3 text-sm text-slate-400">
+              {t('landing.by')}{' '}
+              <button className="text-slate-200 underline underline-offset-4 hover:text-white" onClick={() => setScreen('developer')}>
+                {DEVELOPER.name}
+              </button>
+            </p>
             <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-slate-400">{t('landing.lede')}</p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -162,7 +170,12 @@ export function LandingScreen() {
       <footer className="border-t border-slate-800">
         <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-5 py-5 text-xs text-slate-500 sm:px-8">
           <span>{t('landing.guides')}</span>
-          <span className="num">{t('landing.version', { version: __APP_VERSION__ })}</span>
+          <span className="flex items-center gap-4">
+            <button className="text-slate-300 underline underline-offset-4 hover:text-white" onClick={() => setScreen('developer')}>
+              {t('developer.navLink')}
+            </button>
+            <span className="num">{t('landing.version', { version: __APP_VERSION__ })}</span>
+          </span>
         </div>
       </footer>
     </div>

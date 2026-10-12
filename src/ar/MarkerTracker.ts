@@ -13,6 +13,7 @@ import {
 } from 'three';
 import { Controller, type MindARUpdateEvent } from 'mind-ar/dist/mindar-image.prod.js';
 import { applyRoomEnvironment } from '../three/environment';
+import { CameraError, closeCameraVideo, openCameraVideo } from './cameraVideo';
 
 export type TrackerErrorKind = 'insecure' | 'no-camera' | 'permission' | 'target' | 'unknown';
 
@@ -104,71 +105,17 @@ export class MarkerTracker {
   }
 
   async start(targetBuffer: ArrayBuffer): Promise<void> {
-    if (!window.isSecureContext) {
-      throw new TrackerError('insecure', 'Camera requires a secure context (HTTPS or localhost).');
-    }
-    if (!navigator.mediaDevices?.getUserMedia) {
-      throw new TrackerError('no-camera', 'getUserMedia is not available.');
-    }
-    await this.startVideo();
-    if (this.stopped) return;
-    await this.startTracking(targetBuffer);
-  }
-
-  private async startVideo(): Promise<void> {
-    const video = document.createElement('video');
-    video.setAttribute('autoplay', '');
-    video.setAttribute('muted', '');
-    video.setAttribute('playsinline', '');
-    video.muted = true;
-    // maxWidth/maxHeight: CSS resets (e.g. Tailwind preflight) clamp videos to
-    // 100% width, which would break the cover-fit sizing in resize().
-    Object.assign(video.style, {
-      position: 'absolute',
-      left: '0',
-      top: '0',
-      zIndex: '0',
-      maxWidth: 'none',
-      maxHeight: 'none',
-    });
-    this.container.appendChild(video);
-    this.video = video;
-
-    let stream: MediaStream;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: this.options.highResolution ? 1920 : 1280 },
-          height: { ideal: this.options.highResolution ? 1080 : 720 },
-        },
+      this.video = await openCameraVideo(this.container, {
+        highResolution: this.options.highResolution,
+        isStopped: () => this.stopped,
       });
     } catch (err) {
-      const name = (err as DOMException)?.name;
-      if (name === 'NotAllowedError' || name === 'SecurityError') {
-        throw new TrackerError('permission', 'Camera permission denied.');
-      }
-      try {
-        // Retry with the loosest constraints (e.g. OverconstrainedError on some webcams).
-        stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
-      } catch (err2) {
-        const n2 = (err2 as DOMException)?.name;
-        if (n2 === 'NotAllowedError') throw new TrackerError('permission', 'Camera permission denied.');
-        throw new TrackerError('no-camera', `No usable camera (${n2 ?? 'unknown'}).`);
-      }
+      if (err instanceof CameraError) throw new TrackerError(err.kind, err.message);
+      throw err;
     }
-    if (this.stopped) {
-      stream.getTracks().forEach((t) => t.stop());
-      return;
-    }
-    await new Promise<void>((resolve) => {
-      video.addEventListener('loadedmetadata', () => resolve(), { once: true });
-      video.srcObject = stream;
-    });
-    await video.play().catch(() => undefined);
-    video.width = video.videoWidth;
-    video.height = video.videoHeight;
+    if (this.stopped || !this.video) return;
+    await this.startTracking(targetBuffer);
   }
 
   private async startTracking(targetBuffer: ArrayBuffer): Promise<void> {
@@ -284,9 +231,7 @@ export class MarkerTracker {
     } catch {
       // Controller may not be fully initialised.
     }
-    const stream = this.video?.srcObject as MediaStream | null;
-    stream?.getTracks().forEach((t) => t.stop());
-    this.video?.remove();
+    closeCameraVideo(this.video);
     this.disposeEnvironment();
     this.renderer.dispose();
     this.renderer.domElement.remove();

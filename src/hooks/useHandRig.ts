@@ -8,11 +8,11 @@ export function useHandRig(model: AnatomyModel | null, options: HandRigOptions):
   const [rig, setRig] = useState<HandRig | null>(null);
   const calibration = useAppStore((s) => s.calibration);
   const finger = useAppStore((s) => s.selectedFinger);
-  const { markerUnits, showContext } = options;
+  const { markerUnits, showContext, tracked } = options;
 
   useEffect(() => {
     if (!model) return;
-    const r = new HandRig({ markerUnits, showContext });
+    const r = new HandRig({ markerUnits, showContext, tracked });
     r.attach(model);
     const { calibration: c, selectedFinger } = useAppStore.getState();
     r.update(c, selectedFinger);
@@ -21,7 +21,7 @@ export function useHandRig(model: AnatomyModel | null, options: HandRigOptions):
       r.dispose();
       setRig(null);
     };
-  }, [model, markerUnits, showContext]);
+  }, [model, markerUnits, showContext, tracked]);
 
   useEffect(() => {
     rig?.update(calibration, finger);

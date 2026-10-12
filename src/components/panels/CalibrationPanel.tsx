@@ -13,6 +13,8 @@ export function CalibrationPanel({ onStartAssessment }: { onStartAssessment: () 
   const c = useAppStore((s) => s.calibration);
   const saved = useAppStore((s) => s.savedCalibration);
   const finger = useAppStore((s) => s.selectedFinger);
+  const source = useAppStore((s) => s.trackingSource);
+  const setTrackingSource = useAppStore((s) => s.setTrackingSource);
   const {
     updateCalibration,
     updateFingerCalibration: updateFinger,
@@ -57,6 +59,25 @@ export function CalibrationPanel({ onStartAssessment }: { onStartAssessment: () 
 
   return (
     <div className="space-y-3">
+      <div>
+        <p className="mb-1.5 text-sm font-semibold text-slate-100">{t('calibration.source')}</p>
+        <div className="seg w-full" role="radiogroup" aria-label={t('calibration.source')}>
+          {(['hand', 'marker'] as const).map((s) => (
+            <button
+              key={s}
+              role="radio"
+              aria-checked={source === s}
+              className="seg-item flex-1"
+              onClick={() => setTrackingSource(s)}
+            >
+              {s === 'hand' ? t('calibration.sourceHand') : t('calibration.sourceMarker')}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+          {source === 'hand' ? t('calibration.sourceHandHint') : t('calibration.sourceMarkerHint')}
+        </p>
+      </div>
       <p className="text-xs text-slate-400">{t('calibration.guide')}</p>
 
       <section className="space-y-2">

@@ -47,9 +47,9 @@ export function LandingScreen() {
   const markerHref = assetUrl(appConfig.markerPrintUrl);
 
   const steps = [
-    { title: t('landing.step1Title'), body: t('landing.step1Body', { size }) },
+    { title: t('landing.step1Title'), body: t('landing.step1Body') },
     { title: t('landing.step2Title'), body: t('landing.step2Body') },
-    { title: t('landing.step3Title'), body: t('landing.step3Body') },
+    { title: t('landing.step3Title'), body: t('landing.step3Body', { size }) },
   ];
 
   return (
@@ -115,7 +115,7 @@ export function LandingScreen() {
                 <span className="num text-sm text-slate-500">{String(i + 1).padStart(2, '0')}</span>
                 <h3 className="mt-3 text-base font-semibold text-slate-100">{s.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{s.body}</p>
-                {i === 0 && (
+                {i === 2 && (
                   <a
                     className="btn btn-secondary btn-sm mt-4 self-start"
                     href={markerHref}

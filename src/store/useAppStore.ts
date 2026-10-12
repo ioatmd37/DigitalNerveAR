@@ -24,6 +24,7 @@ import type {
   QuizAttempt,
   Screen,
   TechniqueMode,
+  TrackingSource,
   SessionState,
   StructureId,
   TrackingStatus,
@@ -52,7 +53,9 @@ export interface AppActions {
   setTransthecalStep: (step: number) => void;
   selectStructure: (id: StructureId | null) => void;
   setFeedbackHighlight: (ids: StructureId[]) => void;
-  setTrackingStatus: (status: TrackingStatus) => void;
+  setTrackingStatus: (status: TrackingStatus, viewAngle?: number | null) => void;
+  /** How AR finds the hand (persisted). */
+  setTrackingSource: (source: TrackingSource) => void;
   replayInjectate: () => void;
 
   /** Change needle position; any geometry change invalidates a previous aspiration. */
@@ -121,7 +124,7 @@ export type AppState = SessionState & TransientState & AppActions;
 
 type PersistedState = Pick<
   AppState,
-  'language' | 'savedCalibration' | 'quizAttempts' | 'showLabels' | 'selectedFinger' | 'osceAttempts'
+  'language' | 'savedCalibration' | 'quizAttempts' | 'showLabels' | 'selectedFinger' | 'osceAttempts' | 'trackingSource'
 >;
 
 function initialState(): SessionState & TransientState {
@@ -145,6 +148,8 @@ function initialState(): SessionState & TransientState {
     calibration: cloneCalibration(DEFAULT_CALIBRATION),
     savedCalibration: null,
     trackingStatus: 'idle',
+    trackingAngle: null,
+    trackingSource: 'hand',
     assessment: { ...INITIAL_ASSESSMENT },
     instructor: { unlocked: false, passcode: appConfig.instructorPasscode },
     quizAttempts: [],
@@ -215,7 +220,9 @@ export const useAppStore = create<AppState>()(
       setTransthecalStep: (step) => set({ transthecalStep: clampTransthecalStep(step), selectedStructure: null }),
       selectStructure: (selectedStructure) => set({ selectedStructure }),
       setFeedbackHighlight: (feedbackHighlight) => set({ feedbackHighlight }),
-      setTrackingStatus: (trackingStatus) => set({ trackingStatus }),
+      setTrackingStatus: (trackingStatus, viewAngle) =>
+        set((s) => ({ trackingStatus, trackingAngle: viewAngle === undefined ? s.trackingAngle : viewAngle })),
+      setTrackingSource: (trackingSource) => set({ trackingSource }),
       replayInjectate: () => set((s) => ({ injectateNonce: s.injectateNonce + 1 })),
 
       setNeedle: (patch) =>
@@ -458,6 +465,7 @@ export const useAppStore = create<AppState>()(
         quizAttempts: s.quizAttempts,
         showLabels: s.showLabels,
         selectedFinger: s.selectedFinger,
+        trackingSource: s.trackingSource,
         osceAttempts: s.osceAttempts,
       }),
       // Older persisted state is handled in `merge` (v1 calibrations are dropped).
@@ -473,6 +481,7 @@ export const useAppStore = create<AppState>()(
           selectedFinger: p.selectedFinger && FINGER_IDS.includes(p.selectedFinger) ? p.selectedFinger : current.selectedFinger,
           quizAttempts: Array.isArray(p.quizAttempts) ? p.quizAttempts : [],
           osceAttempts: Array.isArray(p.osceAttempts) ? p.osceAttempts : [],
+          trackingSource: p.trackingSource === 'marker' ? 'marker' : 'hand',
           savedCalibration: saved,
           calibration: saved ? cloneCalibration(saved) : current.calibration,
         };

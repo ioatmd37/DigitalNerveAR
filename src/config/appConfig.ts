@@ -34,6 +34,17 @@ export const appConfig = {
    * MindAR needs the marker to cover >= ~100 px of the camera image.
    */
   smallMarkerCm: 3,
+  /** Markerless AR (default): MediaPipe Hand Landmarker, self-hosted model. */
+  handTracking: {
+    modelUrl: (env.VITE_HAND_MODEL_URL as string | undefined) || 'models/hand_landmarker.task',
+    /** Camera field of view across the long side of the image (typical phone main camera). */
+    cameraFovLongDeg: num(env.VITE_CAMERA_FOV_DEG, 64),
+    /** Allowed lateral viewing angle (90° = hand square to the camera). */
+    minViewDeg: 45,
+    maxViewDeg: 135,
+    /** Pose smoothing per frame (0..1; higher = more responsive, more jitter). */
+    smoothing: 0.45,
+  },
   tracking: {
     filterMinCF: 0.0001,
     filterBeta: 10,

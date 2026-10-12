@@ -14,7 +14,8 @@ export const DEVELOPER = {
 const STACK: { name: string; note: string }[] = [
   { name: 'React · TypeScript · Vite', note: 'UI and build' },
   { name: 'three.js · React Three Fiber · drei', note: '3D rendering' },
-  { name: 'MindAR', note: 'Image-marker tracking' },
+  { name: 'MediaPipe Hand Landmarker', note: 'Markerless hand detection (Apache-2.0, on-device)' },
+  { name: 'MindAR', note: 'Image-marker tracking (fallback)' },
   { name: 'Zustand', note: 'App state' },
   { name: 'Tailwind CSS', note: 'Styling' },
   { name: 'IBM Plex Sans Thai · Plex Mono', note: 'Fonts (SIL Open Font License)' },

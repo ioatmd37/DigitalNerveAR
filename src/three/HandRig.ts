@@ -4,6 +4,7 @@ import {
   Group,
   LineBasicMaterial,
   LineLoop,
+  Matrix4,
   Mesh,
   MeshPhysicalMaterial,
   MeshStandardMaterial,
@@ -18,13 +19,18 @@ import type { AnatomyModel } from './anatomy/AnatomyModel';
 import { disposeObject } from './anatomy/AnatomyModel';
 import { createLoftGeometry } from './anatomy/geometry';
 import { digitFor } from './anatomy/layout';
-import { applyFingerPlacement, applyHandCalibration, fingerPlacement } from './handPlacement';
+import { applyFingerPlacement, applyHandCalibration, fingerDims, fingerPlacement } from './handPlacement';
 
 export interface HandRigOptions {
   /** AR: the parent anchor is in marker widths, so scale by 1/markerSizeCm. Explorer: false (world = cm). */
   markerUnits: boolean;
   /** Explorer: draw a faint hand (palm, thumb, other fingers) and a table for context. */
   showContext: boolean;
+  /**
+   * Markerless AR: the hand and finger poses come from hand tracking
+   * (`applyTrackedPose`) instead of the marker + calibration transform.
+   */
+  tracked?: boolean;
 }
 
 /**
@@ -80,11 +86,31 @@ export class HandRig {
       ]);
       this.outlineSize = c.markerSizeCm;
     }
+    if (this.options.tracked) return; // poses arrive through applyTrackedPose
     applyHandCalibration(this.hand, c);
     const f = c.fingers[selected];
     this.model?.setDimensions(f.lengthCm, f.widthCm);
     if (this.model) applyFingerPlacement(this.finger, this.model.root, selected, c);
     if (this.options.showContext) this.rebuildContext(c, selected);
+  }
+
+  /**
+   * Markerless AR: place the hand frame (camera space, cm) and the selected
+   * digit (relative to the hand frame) from a tracked hand pose. The digit's
+   * length comes from its landmarks; its width from calibration.
+   */
+  applyTrackedPose(hand: Matrix4, fingerLocal: Matrix4, lengthCm: number, widthCm: number, selected: FingerId): void {
+    this.hand.matrixAutoUpdate = false;
+    this.hand.matrix.copy(hand);
+    this.hand.matrixWorldNeedsUpdate = true;
+    this.finger.matrixAutoUpdate = false;
+    this.finger.matrix.copy(fingerLocal);
+    this.finger.matrixWorldNeedsUpdate = true;
+    if (!this.model) return;
+    this.model.setDimensions(lengthCm, widthCm);
+    const digit = digitFor(selected);
+    this.model.root.position.copy(digit.knuckle().multiply(fingerDims(lengthCm, widthCm, digit)).negate());
+    this.model.root.updateMatrix();
   }
 
   /** Faint, non-pickable anatomical hand around the selected finger (Explorer only). */

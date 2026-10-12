@@ -8,7 +8,10 @@ import { usesNeedle } from '../logic/needle';
 import { useViewState } from '../hooks/useViewState';
 import { useT } from '../i18n/useT';
 import { useAppStore } from '../store/useAppStore';
+import { digitFor } from '../three/anatomy/layout';
+import type { HandTracker } from './HandTracker';
 import type { MarkerTracker, TrackerErrorKind } from './MarkerTracker';
+import { assetUrl } from '../utils/assets';
 import { loadTargetBuffer, TargetLoadError } from './targetStore';
 
 type Phase = 'loading' | 'camera' | 'running' | 'error';
@@ -19,24 +22,30 @@ interface ARViewProps {
 }
 
 /**
- * Camera AR view. MindAR (lazy-loaded) tracks the printed marker; the same
- * anatomy model as the Explorer is attached to the marker anchor through
- * the calibration transform:
+ * Camera AR view with two ways to find the mannequin hand (lazy-loaded):
  *
- *   anchor (1 unit = marker width) → markerSpace (cm) → hand → finger → model
+ *  - Hand detection (default): MediaPipe Hand Landmarker finds the hand; the
+ *    overlay appears only when the thumb, index and little finger are in view
+ *    and the hand is within 45–135° of facing the camera (lateral tilt ≤ 45°).
+ *      anchor (camera space, cm) → hand (tracked) → finger (tracked) → model
+ *  - Marker sticker (fallback): MindAR tracks the printed marker, and the
+ *    calibration transform places the hand.
+ *      anchor (1 unit = marker width) → markerSpace (cm) → hand → finger → model
  */
-const RIG_OPTIONS = { markerUnits: true, showContext: false };
+const MARKER_RIG = { markerUnits: true, showContext: false };
+const HAND_RIG = { markerUnits: false, showContext: false, tracked: true };
 export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
   const { t } = useT();
   const containerRef = useRef<HTMLDivElement>(null);
-  const trackerRef = useRef<MarkerTracker | null>(null);
+  const trackerRef = useRef<MarkerTracker | HandTracker | null>(null);
+  const source = useAppStore((s) => s.trackingSource);
   const [phase, setPhase] = useState<Phase>('loading');
   const [errorKind, setErrorKind] = useState<TrackerErrorKind | null>(null);
   const [customTarget, setCustomTarget] = useState(false);
   const [attempt, setAttempt] = useState(0);
 
   const model = useAnatomyModel();
-  const rig = useHandRig(model, RIG_OPTIONS);
+  const rig = useHandRig(model, source === 'hand' ? HAND_RIG : MARKER_RIG);
   const view = useViewState();
   const activeTab = useAppStore((s) => s.activeTab);
   const setTrackingStatus = useAppStore((s) => s.setTrackingStatus);
@@ -54,6 +63,10 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
     (async () => {
       try {
         if (!window.isSecureContext) throw Object.assign(new Error('insecure'), { kind: 'insecure' });
+        if (source === 'hand') {
+          await startHandTracking();
+          return;
+        }
         const [{ MarkerTracker }, target] = await Promise.all([import('./MarkerTracker'), loadTargetBuffer()]);
         if (cancelled) return;
         setCustomTarget(target.custom);
@@ -89,18 +102,93 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
       }
     })();
 
+    /** Markerless: detect the hand, gate the overlay on the border digits and the lateral angle. */
+    async function startHandTracking() {
+      const [{ HandTracker }, pose] = await Promise.all([import('./HandTracker'), import('../logic/handPose')]);
+      if (cancelled || !model || !rig) return;
+      const cfg = appConfig.handTracking;
+      const gate = new pose.ViewAngleGate(cfg.minViewDeg, cfg.maxViewDeg);
+      const handSmooth = new pose.PoseSmoother(cfg.smoothing);
+      const fingerSmooth = new pose.PoseSmoother(cfg.smoothing);
+      let length = 0;
+      let lastStatus = '';
+      let lastAngle = -1;
+      const report = (status: 'searching' | 'partial' | 'tilted' | 'tracking', angle: number | null) => {
+        const a = angle === null ? null : Math.round(angle);
+        if (status === lastStatus && a === lastAngle) return;
+        lastStatus = status;
+        lastAngle = a ?? -1;
+        setTrackingStatus(status, a);
+      };
+      const tracker = new HandTracker(container, {
+        modelUrl: assetUrl(cfg.modelUrl),
+        cameraFovLongDeg: cfg.cameraFovLongDeg,
+        onFrame: (obs, cam) => {
+          const hide = () => {
+            tracker.anchor.visible = false;
+            handSmooth.reset();
+            fingerSmooth.reset();
+            length = 0;
+          };
+          if (!obs) {
+            gate.reset();
+            hide();
+            report('searching', null);
+            return;
+          }
+          const angle = pose.lateralViewAngle(obs.world, obs.image, cam);
+          if (!pose.borderDigitsInView(obs.image)) {
+            hide();
+            report('partial', angle);
+            return;
+          }
+          if (!gate.update(angle)) {
+            hide();
+            report('tilted', angle);
+            return;
+          }
+          const { calibration, selectedFinger } = useAppStore.getState();
+          const f = calibration.fingers[selectedFinger];
+          // Width is not visible in the image: keep the calibrated proportions of the digit.
+          const widthCm = length ? (f.widthCm * length) / f.lengthCm : f.widthCm;
+          const p = pose.estimateHandPose(obs, cam, selectedFinger, digitFor(selectedFinger), {
+            widthCm,
+            rollDeg: f.rollDeg ?? 0,
+            offset: f.offset,
+          });
+          length = length ? length + (p.lengthCm - length) * cfg.smoothing : p.lengthCm;
+          rig.applyTrackedPose(handSmooth.smooth(p.hand), fingerSmooth.smooth(p.fingerLocal), length, (f.widthCm * length) / f.lengthCm, selectedFinger);
+          tracker.anchor.visible = true;
+          report('tracking', angle);
+        },
+      });
+      trackerRef.current = tracker;
+      tracker.anchor.add(rig.markerSpace);
+      setPhase('camera');
+      await tracker.start();
+      if (cancelled) return;
+      setPhase('running');
+      setTrackingStatus('searching', null);
+      const start = performance.now();
+      tracker.setAnimationLoop(() => {
+        tracker.detect();
+        model.update((performance.now() - start) / 1000);
+        tracker.render();
+      });
+    }
+
     return () => {
       cancelled = true;
       trackerRef.current?.stop();
       trackerRef.current = null;
       rig.markerSpace.parent?.remove(rig.markerSpace);
-      setTrackingStatus('idle');
+      setTrackingStatus('idle', null);
     };
-  }, [model, rig, attempt, setTrackingStatus]);
+  }, [model, rig, attempt, source, setTrackingStatus]);
 
   useEffect(() => {
-    if (rig) rig.markerOutline.visible = activeTab === 'calibration';
-  }, [rig, activeTab, phase]);
+    if (rig) rig.markerOutline.visible = source === 'marker' && activeTab === 'calibration';
+  }, [rig, activeTab, phase, source]);
 
   useEffect(() => {
     trackerRef.current?.setFrozen(frozen);

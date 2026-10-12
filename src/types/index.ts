@@ -238,7 +238,20 @@ export interface TransthecalStep extends GuidedStep {
   overlay: TransthecalOverlayStep;
 }
 
-export type TrackingStatus = 'idle' | 'loading' | 'searching' | 'tracking' | 'lost' | 'error';
+export type TrackingStatus =
+  | 'idle'
+  | 'loading'
+  | 'searching'
+  | 'tracking'
+  | 'lost'
+  | 'error'
+  /** Hand found, but the thumb, index and little finger are not all in view. */
+  | 'partial'
+  /** Hand turned more than 45° onto its side (viewing angle outside 45–135°). */
+  | 'tilted';
+
+/** How AR finds the mannequin hand. */
+export type TrackingSource = 'hand' | 'marker';
 
 export interface AssessmentState {
   active: boolean;
@@ -276,6 +289,10 @@ export interface SessionState {
   calibration: CalibrationSettings;
   savedCalibration: CalibrationSettings | null;
   trackingStatus: TrackingStatus;
+  /** Hand tracking: current lateral viewing angle in degrees (90 = square to the camera). */
+  trackingAngle: number | null;
+  /** How AR finds the hand: markerless hand detection (default) or the printed marker. */
+  trackingSource: TrackingSource;
   assessment: AssessmentState;
   instructor: InstructorSettings;
   quizAttempts: QuizAttempt[];

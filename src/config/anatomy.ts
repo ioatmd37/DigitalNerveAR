@@ -75,8 +75,8 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: false,
     description: {
-      th: 'เปลือกผิวหนังโปร่งแสงของนิ้วมือขวาที่เลือกในหุ่นจำลอง',
-      en: 'Semi-transparent skin envelope of the selected mannequin right-hand digit.',
+      th: 'เปลือกผิวหนังโปร่งแสงของนิ้วที่เลือกในหุ่นจำลอง',
+      en: 'Semi-transparent skin envelope of the selected mannequin digit.',
     },
     educationalNote: {
       th: `ใช้ผิวหนังเพื่อเชื่อมโยงจุดสังเกตภายนอกกับโครงสร้างภายใน ${SIMPLIFIED_TH}`,
@@ -733,12 +733,12 @@ export const STRUCTURES: AnatomyStructure[] = [
     defaultVisible: true,
     showLabel: false,
     description: {
-      th: 'ลูกศรแสดงทิศ Dorsal/Volar, Radial/Ulnar, Proximal/Distal ของนิ้วมือขวา',
-      en: 'Arrows showing dorsal/volar, radial/ulnar and proximal/distal for a right-hand digit.',
+      th: 'ลูกศรแสดงทิศ Dorsal/Volar, Radial/Ulnar, Proximal/Distal ของนิ้วมือ',
+      en: 'Arrows showing dorsal/volar, radial/ulnar and proximal/distal for the digit.',
     },
     educationalNote: {
-      th: 'มือขวา: ด้านเรเดียลคือฝั่งนิ้วโป้ง ด้านอัลนาคือฝั่งนิ้วก้อย',
-      en: 'Right hand: radial is the thumb side, ulnar is the little-finger side.',
+      th: 'ด้านเรเดียลคือฝั่งนิ้วโป้ง ด้านอัลนาคือฝั่งนิ้วก้อย',
+      en: 'Radial is the thumb side, ulnar is the little-finger side.',
     },
   },
 ];

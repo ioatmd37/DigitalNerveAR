@@ -25,6 +25,7 @@ import type {
   Screen,
   TechniqueMode,
   TrackingSource,
+  HandSide,
   SessionState,
   StructureId,
   TrackingStatus,
@@ -56,6 +57,7 @@ export interface AppActions {
   setTrackingStatus: (status: TrackingStatus, viewAngle?: number | null) => void;
   /** How AR finds the hand (persisted). */
   setTrackingSource: (source: TrackingSource) => void;
+  setHandSide: (side: HandSide) => void;
   replayInjectate: () => void;
 
   /** Change needle position; any geometry change invalidates a previous aspiration. */
@@ -124,7 +126,7 @@ export type AppState = SessionState & TransientState & AppActions;
 
 type PersistedState = Pick<
   AppState,
-  'language' | 'savedCalibration' | 'quizAttempts' | 'showLabels' | 'selectedFinger' | 'osceAttempts' | 'trackingSource'
+  'language' | 'savedCalibration' | 'quizAttempts' | 'showLabels' | 'selectedFinger' | 'osceAttempts' | 'trackingSource' | 'handSide'
 >;
 
 function initialState(): SessionState & TransientState {
@@ -150,6 +152,7 @@ function initialState(): SessionState & TransientState {
     trackingStatus: 'idle',
     trackingAngle: null,
     trackingSource: 'hand',
+    handSide: 'left',
     assessment: { ...INITIAL_ASSESSMENT },
     instructor: { unlocked: false, passcode: appConfig.instructorPasscode },
     quizAttempts: [],
@@ -223,6 +226,7 @@ export const useAppStore = create<AppState>()(
       setTrackingStatus: (trackingStatus, viewAngle) =>
         set((s) => ({ trackingStatus, trackingAngle: viewAngle === undefined ? s.trackingAngle : viewAngle })),
       setTrackingSource: (trackingSource) => set({ trackingSource }),
+      setHandSide: (handSide) => set({ handSide }),
       replayInjectate: () => set((s) => ({ injectateNonce: s.injectateNonce + 1 })),
 
       setNeedle: (patch) =>
@@ -466,6 +470,7 @@ export const useAppStore = create<AppState>()(
         showLabels: s.showLabels,
         selectedFinger: s.selectedFinger,
         trackingSource: s.trackingSource,
+        handSide: s.handSide,
         osceAttempts: s.osceAttempts,
       }),
       // Older persisted state is handled in `merge` (v1 calibrations are dropped).
@@ -482,6 +487,7 @@ export const useAppStore = create<AppState>()(
           quizAttempts: Array.isArray(p.quizAttempts) ? p.quizAttempts : [],
           osceAttempts: Array.isArray(p.osceAttempts) ? p.osceAttempts : [],
           trackingSource: p.trackingSource === 'marker' ? 'marker' : 'hand',
+          handSide: p.handSide === 'right' ? 'right' : 'left',
           savedCalibration: saved,
           calibration: saved ? cloneCalibration(saved) : current.calibration,
         };

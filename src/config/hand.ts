@@ -1,13 +1,17 @@
 import type { FingerCalibration, FingerId, LocalizedText, Vec3 } from '../types';
 
 /**
- * Default layout of a RIGHT mannequin hand in the hand frame:
+ * Default layout of the mannequin hand in the hand frame, modelled as a RIGHT
+ * hand (a left mannequin is drawn as its mirror image):
  * origin = dorsal skin over the middle-finger MCP knuckle,
  * +X ulnar, +Y distal, +Z dorsal; centimetres.
  *
- * Typical adult proportions; calibration fine-tunes each digit. The default
- * pose is a flat hand with every digit ABDUCTED (spread away from the middle
- * finger, the thumb radially abducted), which keeps the web spaces open.
+ * Proportions measured from photographs of the reference training mannequin
+ * (adult silicone hand, flat on a mat, digits spread), scaled to a middle
+ * finger of 8.8 cm: knuckle positions, digit lengths and widths relative to
+ * the middle finger, and the spread of each digit. Hand detection measures
+ * length live and keeps these width/length proportions; calibration
+ * fine-tunes each digit for other mannequins.
  */
 export interface FingerPreset {
   id: FingerId;
@@ -42,8 +46,8 @@ export const FINGERS: FingerPreset[] = [
     splayDeg: 40,
     flexionDeg: 10,
     rollDeg: -55,
-    lengthCm: 5.7,
-    widthCm: 2.3,
+    lengthCm: 5.4,
+    widthCm: 2.0,
   },
   {
     id: 'index',
@@ -51,12 +55,12 @@ export const FINGERS: FingerPreset[] = [
     nameEn: 'Index finger',
     shortTh: 'ชี้',
     shortEn: 'Index',
-    knuckle: { x: -2.0, y: -0.3, z: -0.25 },
-    splayDeg: 14,
+    knuckle: { x: -2.25, y: -0.3, z: -0.25 },
+    splayDeg: 6,
     flexionDeg: 0,
     rollDeg: 0,
-    lengthCm: 8.0,
-    widthCm: 1.9,
+    lengthCm: 8.1,
+    widthCm: 1.75,
   },
   {
     id: 'middle',
@@ -69,7 +73,7 @@ export const FINGERS: FingerPreset[] = [
     flexionDeg: 0,
     rollDeg: 0,
     lengthCm: 8.8,
-    widthCm: 1.9,
+    widthCm: 1.75,
   },
   {
     id: 'ring',
@@ -77,12 +81,12 @@ export const FINGERS: FingerPreset[] = [
     nameEn: 'Ring finger',
     shortTh: 'นาง',
     shortEn: 'Ring',
-    knuckle: { x: 1.8, y: -0.4, z: -0.3 },
-    splayDeg: -12,
+    knuckle: { x: 2.0, y: -0.3, z: -0.3 },
+    splayDeg: -4,
     flexionDeg: 0,
     rollDeg: 0,
-    lengthCm: 8.3,
-    widthCm: 1.8,
+    lengthCm: 8.2,
+    widthCm: 1.7,
   },
   {
     id: 'little',
@@ -90,12 +94,12 @@ export const FINGERS: FingerPreset[] = [
     nameEn: 'Little finger',
     shortTh: 'ก้อย',
     shortEn: 'Little',
-    knuckle: { x: 3.4, y: -1.3, z: -0.8 },
-    splayDeg: -24,
+    knuckle: { x: 3.7, y: -1.2, z: -0.8 },
+    splayDeg: -8,
     flexionDeg: 0,
     rollDeg: 0,
-    lengthCm: 6.6,
-    widthCm: 1.6,
+    lengthCm: 6.8,
+    widthCm: 1.5,
   },
 ];
 

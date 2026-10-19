@@ -14,7 +14,7 @@ import {
   type Object3D,
 } from 'three';
 import { FINGER_IDS } from '../config/hand';
-import type { CalibrationSettings, FingerId } from '../types';
+import type { CalibrationSettings, FingerId, HandSide } from '../types';
 import type { AnatomyModel } from './anatomy/AnatomyModel';
 import { disposeObject } from './anatomy/AnatomyModel';
 import { createLoftGeometry } from './anatomy/geometry';
@@ -74,7 +74,11 @@ export class HandRig {
     this.model = null;
   }
 
-  update(c: CalibrationSettings, selected: FingerId): void {
+  /**
+   * `side`: the anatomy is modelled as a right hand; a left mannequin gets the
+   * mirror image (hand frame scaled −1 in X, so +X stays ulnar and +Z dorsal).
+   */
+  update(c: CalibrationSettings, selected: FingerId, side: HandSide = 'right'): void {
     this.markerSpace.scale.setScalar(this.options.markerUnits ? 1 / c.markerSizeCm : 1);
     if (c.markerSizeCm !== this.outlineSize) {
       const h = c.markerSizeCm / 2;
@@ -88,6 +92,10 @@ export class HandRig {
     }
     if (this.options.tracked) return; // poses arrive through applyTrackedPose
     applyHandCalibration(this.hand, c);
+    if (side === 'left') {
+      this.hand.scale.x *= -1;
+      this.hand.updateMatrix();
+    }
     const f = c.fingers[selected];
     this.model?.setDimensions(f.lengthCm, f.widthCm);
     if (this.model) applyFingerPlacement(this.finger, this.model.root, selected, c);

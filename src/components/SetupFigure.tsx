@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { appConfig } from '../config/appConfig';
 import { useT } from '../i18n/useT';
+import { useAppStore } from '../store/useAppStore';
 
 const SetupScene = lazy(() => import('../explorer/SetupScene').then((m) => ({ default: m.SetupScene })));
 
@@ -14,6 +15,7 @@ export function SetupFigure() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const size = String(appConfig.markerSizeCm);
+  const side = useAppStore((s) => s.handSide);
 
   useEffect(() => {
     const el = ref.current;
@@ -32,13 +34,13 @@ export function SetupFigure() {
   const labels = useMemo(
     () => ({
       operator: t('landing.setupFigure.operator'),
-      marker: t('landing.setupFigure.marker', { size }),
+      hand: t(side === 'left' ? 'landing.setupFigure.handLeft' : 'landing.setupFigure.handRight'),
       phone: t('landing.setupFigure.phone'),
       stand: t('landing.setupFigure.stand'),
       counterweight: t('landing.setupFigure.counterweight'),
       distance: t('landing.setupFigure.distance'),
     }),
-    [t, size],
+    [t, side],
   );
 
   const tips = [
@@ -55,7 +57,7 @@ export function SetupFigure() {
         <div ref={ref} className="relative aspect-[4/3] w-full bg-[#151515]">
           {visible ? (
             <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center text-sm text-slate-500">…</div>}>
-              <SetupScene language={language} labels={labels} />
+              <SetupScene language={language} side={side} labels={labels} />
             </Suspense>
           ) : null}
           <span className="pointer-events-none absolute bottom-2 right-3 text-xs text-slate-500">{t('landing.setupFigure.hint')}</span>

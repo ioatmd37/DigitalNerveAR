@@ -15,16 +15,14 @@ import {
   MeshStandardMaterial,
   PlaneGeometry,
   SphereGeometry,
-  SRGBColorSpace,
   Sprite,
   SpriteMaterial,
-  TextureLoader,
   Vector3,
   type Object3D,
 } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { DEFAULT_LAYER_VISIBILITY } from '../config/anatomy';
-import { appConfig, DEFAULT_CALIBRATION } from '../config/appConfig';
+import { DEFAULT_CALIBRATION } from '../config/appConfig';
 import { computeViewState } from '../logic/visibility';
 import { disposeObject } from '../three/anatomy/AnatomyModel';
 import { FINGER } from '../three/anatomy/layout';
@@ -32,12 +30,11 @@ import { ProceduralFingerModel } from '../three/anatomy/ProceduralFingerModel';
 import { createLabelTexture } from '../three/anatomy/textures';
 import { applyRoomEnvironment } from '../three/environment';
 import { HandRig } from '../three/HandRig';
-import type { Language } from '../types';
-import { assetUrl } from '../utils/assets';
+import type { HandSide, Language } from '../types';
 
 export interface SetupSceneLabels {
   operator: string;
-  marker: string;
+  hand: string;
   phone: string;
   stand: string;
   counterweight: string;
@@ -46,28 +43,29 @@ export interface SetupSceneLabels {
 
 /**
  * Illustrative set-up for the landing page (world = cm, +Y up): the
- * right mannequin hand palm-down on a table, fingertips toward the operator
- * (as for a digital block) and every digit abducted, the marker in the centre of the back of the hand, and a phone held
- * by a stand 12–20 cm above the hand (between the marker and the knuckles) with its rear camera facing down. The index finger carries the
+ * mannequin hand (left or right, as set) palm-down on a table, fingertips toward the operator
+ * (as for a digital block) with the digits spread, and a phone held by a stand
+ * about 30 cm above the back of the hand with its rear camera facing down, so the whole hand
+ * (thumb, index and little finger) is in view for hand detection. The index finger carries the
  * anatomy overlay to show what the learner will see. Purely illustrative.
  */
-export function SetupScene({ language, labels }: { language: Language; labels: SetupSceneLabels }) {
+export function SetupScene({ language, side, labels }: { language: Language; side: HandSide; labels: SetupSceneLabels }) {
   return (
     <Canvas
       className="!absolute inset-0 touch-pan-y"
       dpr={[1, 1.75]}
-      camera={{ fov: 32, near: 0.5, far: 400, position: [-56, 44, -58] }}
+      camera={{ fov: 32, near: 0.5, far: 400, position: [-70, 56, -72] }}
       gl={{ antialias: true, alpha: false }}
     >
       <color attach="background" args={['#151515']} />
       <hemisphereLight args={['#f6f6f5', '#3a3a38', 0.9]} />
       <directionalLight position={[10, 30, 14]} intensity={1.4} />
       <directionalLight position={[-14, 8, -10]} intensity={0.4} />
-      <Setup language={language} labels={labels} />
+      <Setup language={language} side={side} labels={labels} />
       {/* Rotate only: zooming would hijack page scrolling. */}
       <OrbitControls
         makeDefault
-        target={[2, 9, 2]}
+        target={[2, 13, 2]}
         enableZoom={false}
         enablePan={false}
         autoRotate
@@ -80,17 +78,17 @@ export function SetupScene({ language, labels }: { language: Language; labels: S
 }
 
 /** Phone above the hand: lens height, and where it looks (world z; the fingertips are toward −Z). */
-const LENS_HEIGHT = 16;
-/** Between the marker (z = 0) and the knuckles, so the marker and the whole finger are in view. */
-const LOOK_Z = -5;
+const LENS_HEIGHT = 30;
+/** Over the middle of the hand (the knuckles are at z ≈ −4), so the wrist and every fingertip are in view. */
+const LOOK_Z = -4;
 const PHONE = { w: 7.5, l: 15.5, t: 0.8 };
 
-function Setup({ language, labels }: { language: Language; labels: SetupSceneLabels }) {
+function Setup({ language, side, labels }: { language: Language; side: HandSide; labels: SetupSceneLabels }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   useEffect(() => applyRoomEnvironment(gl, scene), [gl, scene]);
 
-  // Hand, marker and the index-finger overlay (reusing the AR rig).
+  // Hand and the index-finger overlay (reusing the AR rig).
   const hand = useMemo(() => {
     const model = new ProceduralFingerModel(language, FINGER);
     model.applyViewState(
@@ -104,25 +102,18 @@ function Setup({ language, labels }: { language: Language; labels: SetupSceneLab
     );
     const rig = new HandRig({ markerUnits: false, showContext: true });
     rig.attach(model);
-    rig.update(DEFAULT_CALIBRATION, 'index');
+    rig.update(DEFAULT_CALIBRATION, 'index', side);
     // Marker space → world: the sticker lies flat, out of the marker = world up.
     const world = new Group();
     world.rotation.x = -Math.PI / 2;
     world.add(rig.markerSpace);
-    const size = DEFAULT_CALIBRATION.markerSizeCm;
-    const tex = new TextureLoader().load(assetUrl(appConfig.markerImageUrl));
-    tex.colorSpace = SRGBColorSpace;
-    const marker = new Mesh(new PlaneGeometry(size, size), new MeshBasicMaterial({ map: tex, toneMapped: false }));
-    marker.position.z = 0.03;
-    rig.markerSpace.add(marker);
-    return { model, rig, world, tex };
-  }, [language]);
+    return { model, rig, world };
+  }, [language, side]);
 
   useEffect(
     () => () => {
       hand.rig.dispose();
       hand.model.dispose();
-      hand.tex.dispose();
       disposeObject(hand.world);
     },
     [hand],
@@ -197,7 +188,7 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   const tilt = 0.22;
   phone.rotation.set(-tilt, Math.PI, 0);
   phone.updateMatrix();
-  // Place the phone so the lens sits LENS_HEIGHT above the marker.
+  // Place the phone so the lens sits LENS_HEIGHT above the back of the hand.
   const lensLocal = lensPos.clone().applyMatrix4(phone.matrix);
   phone.position.set(-lensLocal.x, LENS_HEIGHT - lensLocal.y, LOOK_Z - lensLocal.z);
   phone.updateMatrixWorld(true);
@@ -264,8 +255,9 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   add(new Mesh(new SphereGeometry(0.6, 16, 12), dark), elbowWorld.x, elbowWorld.y, elbowWorld.z);
   add(new Mesh(new SphereGeometry(0.75, 16, 12), dark), boomEnd.x, boomEnd.y, boomEnd.z);
 
-  // --- Camera view: a translucent pyramid from the lens to its footprint around the marker.
-  const half = { x: 7.5, z: 9.5 };
+  // --- Camera view: a translucent pyramid from the lens to its footprint around the hand
+  // (portrait phone, ~64° across the long side).
+  const half = { x: 10.5, z: 18.5 };
   const corners = [
     new Vector3(-half.x, 0.1, -half.z),
     new Vector3(half.x, 0.1, -half.z),
@@ -282,7 +274,7 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   );
   group.add(faces);
 
-  // --- Height dimension from the lens to the marker.
+  // --- Height dimension from the lens to the back of the hand.
   const dimX = -9;
   const dimTop = new Vector3(dimX, lensWorld.y, lensWorld.z);
   const dimBottom = new Vector3(dimX, 0.1, LOOK_Z);
@@ -303,7 +295,7 @@ function buildProps(labels: SetupSceneLabels): { group: Group } {
   group.add(dimLines);
 
   add(label(labels.distance, '#facc15', 2.2), dimX - 5, (lensWorld.y + 0.1) / 2, lensWorld.z / 2);
-  add(label(labels.marker, '#e8e5de', 1.7), -2, 3.6, 2);
+  add(label(labels.hand, '#e8e5de', 1.7), 0, 3.6, 4);
   add(label(labels.phone, '#e8e5de', 1.7), 0, LENS_HEIGHT + 4.6, lensWorld.z - 2);
   add(label(labels.stand, '#e8e5de', 1.7), base.x, 9, base.z);
   add(label(labels.counterweight, '#e8e5de', 1.5), rear.x, boomY + 3.4, rear.z + 1);

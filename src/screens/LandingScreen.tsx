@@ -1,5 +1,6 @@
 import { CrossSectionFigure } from '../components/CrossSectionFigure';
 import { DisclaimerText } from '../components/Disclaimer';
+import { HandSideToggle } from '../components/HandSideToggle';
 import { Icon } from '../components/Icon';
 import { SetupFigure } from '../components/SetupFigure';
 import { DEVELOPER } from './DeveloperScreen';
@@ -115,6 +116,12 @@ export function LandingScreen() {
                 <span className="num text-sm text-slate-500">{String(i + 1).padStart(2, '0')}</span>
                 <h3 className="mt-3 text-base font-semibold text-slate-100">{s.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{s.body}</p>
+                {i === 0 && (
+                  <div className="mt-4">
+                    <p className="mb-1.5 text-xs text-slate-500">{t('handSide.label')}</p>
+                    <HandSideToggle className="w-full max-w-60" />
+                  </div>
+                )}
                 {i === 2 && (
                   <a
                     className="btn btn-secondary btn-sm mt-4 self-start"

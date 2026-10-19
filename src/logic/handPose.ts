@@ -1,6 +1,6 @@
 import { Matrix4, Quaternion, Vector3 } from 'three';
 import type { Digit } from '../three/anatomy/layout';
-import type { FingerId } from '../types';
+import type { FingerId, HandSide } from '../types';
 
 /**
  * Markerless hand pose from MediaPipe Hand Landmarker output.
@@ -11,7 +11,8 @@ import type { FingerId } from '../types';
  * three.js camera space in centimetres (x right, y up, z toward the viewer;
  * the camera looks down −z) and recover:
  *   - the hand frame used by the overlay (origin = dorsal skin over the
- *     middle-finger MCP, +X ulnar, +Y distal, +Z dorsal; right hand),
+ *     middle-finger MCP, +X ulnar, +Y distal, +Z dorsal; right hand — a left
+ *     hand gets the mirror image, see `estimateHandPose`),
  *   - the selected digit's pose and length from its own landmarks,
  *   - the lateral viewing angle used to switch the overlay off when the
  *     hand is turned too far onto its side.
@@ -88,6 +89,43 @@ export function lateralViewAngle(world: Landmark[], image?: Landmark[], cam?: Pi
   return 90 + (worldAngle >= 90 ? tilt : -tilt);
 }
 
+/** Image length of the knuckle line (index → little MCP) over the palm length (wrist → middle MCP). */
+export function knuckleSpanRatio(image: Landmark[], cam: Pick<CameraIntrinsics, 'width' | 'height'>): number {
+  const d = (i: number, j: number) => Math.hypot((image[i].x - image[j].x) * cam.width, (image[i].y - image[j].y) * cam.height);
+  const palm = d(LM.middle.mcp, LM.wrist);
+  return palm > 1 ? d(LM.little.mcp, LM.index.mcp) / palm : 0;
+}
+
+/**
+ * Lateral view angle for a live session. MediaPipe's metric depth is biased by
+ * 20–30° on flat hands (more on mannequins), which would switch the overlay
+ * off far too early, so the size of the roll comes from the image instead:
+ * turning the hand onto its side foreshortens the knuckle line against the
+ * palm length by cos(roll). The flat-hand ratio is the largest seen so far
+ * (it starts at `flatRatio`, a little below a typical flat hand, so a hand
+ * first seen rolled is not mistaken for flat). The metric depth only gives
+ * the direction (toward 45° or 135°).
+ */
+export class LateralViewEstimator {
+  private flat: number;
+
+  constructor(readonly flatRatio = 0.6) {
+    this.flat = flatRatio;
+  }
+
+  update(obs: HandObservation, cam: Pick<CameraIntrinsics, 'width' | 'height'>): number {
+    const r = knuckleSpanRatio(obs.image, cam);
+    if (!(r > 0)) return lateralViewAngle(obs.world);
+    this.flat = Math.max(this.flat, r);
+    const tilt = (Math.acos(Math.min(1, r / this.flat)) * 180) / Math.PI;
+    return 90 + (lateralViewAngle(obs.world) >= 90 ? tilt : -tilt);
+  }
+
+  reset(): void {
+    this.flat = this.flatRatio;
+  }
+}
+
 /**
  * True when the edges of the hand that frame the overlay are in the image:
  * the thumb, index and little fingers (MCP joints and tips).
@@ -161,7 +199,23 @@ export function estimateHandPose(
   finger: FingerId,
   digit: Digit,
   fit: FingerFit,
+  side: HandSide = 'right',
 ): HandPose {
+  if (side === 'left') {
+    // A left hand is the mirror image of a right one: mirror the picture (about the
+    // principal point) and the metric landmarks, solve as a right hand, then mirror
+    // the hand frame back. Its determinant is then −1, which renders the right-hand
+    // anatomy as a left hand; the digit frame relative to the hand is unchanged.
+    const mirrored: HandObservation = {
+      image: obs.image.map((l) => ({ x: 1 - l.x, y: l.y, z: l.z })),
+      world: obs.world.map((l) => ({ x: -l.x, y: l.y, z: l.z })),
+    };
+    const p = estimateHandPose(mirrored, cam, finger, digit, fit, 'right');
+    const mirror = new Matrix4().makeScale(-1, 1, 1);
+    p.hand.premultiply(mirror);
+    for (const q of p.points) q.x = -q.x;
+    return p;
+  }
   const W = obs.world.map((l) => toCamera(l));
   const px = obs.image.map((l) => new Vector3(l.x * cam.width - cam.width / 2, -(l.y * cam.height - cam.height / 2), 0));
 

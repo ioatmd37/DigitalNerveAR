@@ -7,6 +7,7 @@ import {
   focalFromFov,
   LM,
   lateralViewAngle,
+  LateralViewEstimator,
   ViewAngleGate,
   type CameraIntrinsics,
   type HandObservation,
@@ -118,5 +119,41 @@ describe('markerless hand pose', () => {
     expect(nail.x).toBeLessThan(-0.5); // pronated: nail turned toward the radial side
     expect(r.lengthCm).toBeGreaterThan(4);
     expect(r.lengthCm).toBeLessThan(7);
+  });
+
+  it('poses a left hand as the mirror image (dorsum toward the camera, ulnar toward its little finger)', () => {
+    // A left hand is the right hand mirrored in X: dorsum facing the camera, thumb on the right of the image.
+    const pose = new Matrix4().makeTranslation(-1, -2, -30).multiply(new Matrix4().makeScale(-1, 1, 1));
+    const obs = observe(pose);
+    const r = estimateHandPose(obs, cam, 'index', FINGER, fit, 'left');
+    expect(r.hand.determinant()).toBeLessThan(0);
+    const e = r.hand.elements;
+    const x = new Vector3(e[0], e[1], e[2]).normalize();
+    const z = new Vector3(e[8], e[9], e[10]).normalize();
+    expect(x.x).toBeLessThan(-0.95); // ulnar = little finger = image left
+    expect(z.z).toBeGreaterThan(0.95); // dorsal toward the camera
+    expect(r.fingerLocal.determinant()).toBeGreaterThan(0);
+    // The index knuckle sits on the radial side (−X in the hand frame) like a right hand.
+    const knuckle = new Vector3().setFromMatrixPosition(r.fingerLocal);
+    expect(knuckle.x).toBeLessThan(-1);
+    expect(r.lengthCm).toBeGreaterThan(7.5);
+    expect(r.lengthCm).toBeLessThan(8.8);
+    // Solving the same picture as a right hand puts the dorsum on the far side.
+    const wrong = estimateHandPose(obs, cam, 'index', FINGER, fit, 'right').hand.elements;
+    expect(wrong[10]).toBeLessThan(-0.9);
+  });
+
+  it('estimates the roll from the image when the metric depth is biased', () => {
+    const tilted = (deg: number) =>
+      new Matrix4().makeTranslation(0, 0, -32).multiply(new Matrix4().makeRotationY((deg * Math.PI) / 180));
+    // Metric depth that claims a 25° roll on a flat hand (as MediaPipe does on the mannequin).
+    const biased = (deg: number) => ({ ...observe(tilted(deg)), world: observe(tilted(deg + 25)).world });
+    const est = new LateralViewEstimator();
+    expect(Math.abs(est.update(biased(0), cam) - 90)).toBeLessThan(4);
+    expect(Math.abs(Math.abs(est.update(biased(50), cam) - 90) - 50)).toBeLessThan(5);
+    expect(Math.abs(est.update(biased(-60), cam) - 90)).toBeGreaterThan(50);
+    // A hand first seen rolled is not taken as flat.
+    const fresh = new LateralViewEstimator();
+    expect(Math.abs(fresh.update(observe(tilted(50)), cam) - 90)).toBeGreaterThan(35);
   });
 });

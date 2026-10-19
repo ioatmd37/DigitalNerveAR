@@ -2,6 +2,7 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import { CALIBRATION_LIMITS } from '../../config/appConfig';
 import { getFinger } from '../../config/hand';
 import { FingerSelector } from '../FingerSelector';
+import { HandSideToggle } from '../HandSideToggle';
 import { Slider } from '../Slider';
 import { useT } from '../../i18n/useT';
 import { calibrationEquals, exportCalibration, parseCalibration } from '../../logic/calibration';
@@ -77,6 +78,11 @@ export function CalibrationPanel({ onStartAssessment }: { onStartAssessment: () 
         <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
           {source === 'hand' ? t('calibration.sourceHandHint') : t('calibration.sourceMarkerHint')}
         </p>
+      </div>
+      <div>
+        <p className="mb-1.5 text-sm font-semibold text-slate-100">{t('handSide.label')}</p>
+        <HandSideToggle className="w-full" />
+        <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{t('handSide.hint')}</p>
       </div>
       <p className="text-xs text-slate-400">{t('calibration.guide')}</p>
 

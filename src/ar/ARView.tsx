@@ -108,6 +108,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
       if (cancelled || !model || !rig) return;
       const cfg = appConfig.handTracking;
       const gate = new pose.ViewAngleGate(cfg.minViewDeg, cfg.maxViewDeg);
+      const viewAngle = new pose.LateralViewEstimator();
       const handSmooth = new pose.PoseSmoother(cfg.smoothing);
       const fingerSmooth = new pose.PoseSmoother(cfg.smoothing);
       let length = 0;
@@ -136,7 +137,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
             report('searching', null);
             return;
           }
-          const angle = pose.lateralViewAngle(obs.world, obs.image, cam);
+          const angle = viewAngle.update(obs, cam);
           if (!pose.borderDigitsInView(obs.image)) {
             hide();
             report('partial', angle);
@@ -147,7 +148,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
             report('tilted', angle);
             return;
           }
-          const { calibration, selectedFinger } = useAppStore.getState();
+          const { calibration, selectedFinger, handSide } = useAppStore.getState();
           const f = calibration.fingers[selectedFinger];
           // Width is not visible in the image: keep the calibrated proportions of the digit.
           const widthCm = length ? (f.widthCm * length) / f.lengthCm : f.widthCm;
@@ -155,7 +156,7 @@ export function ARView({ frozen, onOpenExplorer }: ARViewProps) {
             widthCm,
             rollDeg: f.rollDeg ?? 0,
             offset: f.offset,
-          });
+          }, handSide);
           length = length ? length + (p.lengthCm - length) * cfg.smoothing : p.lengthCm;
           rig.applyTrackedPose(handSmooth.smooth(p.hand), fingerSmooth.smooth(p.fingerLocal), length, (f.widthCm * length) / f.lengthCm, selectedFinger);
           tracker.anchor.visible = true;

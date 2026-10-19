@@ -253,6 +253,9 @@ export type TrackingStatus =
 /** How AR finds the mannequin hand. */
 export type TrackingSource = 'hand' | 'marker';
 
+/** Which hand the training mannequin is. The anatomy is modelled as a right hand and mirrored for a left one. */
+export type HandSide = 'left' | 'right';
+
 export interface AssessmentState {
   active: boolean;
   revealed: boolean;
@@ -293,6 +296,7 @@ export interface SessionState {
   trackingAngle: number | null;
   /** How AR finds the hand: markerless hand detection (default) or the printed marker. */
   trackingSource: TrackingSource;
+  handSide: HandSide;
   assessment: AssessmentState;
   instructor: InstructorSettings;
   quizAttempts: QuizAttempt[];
